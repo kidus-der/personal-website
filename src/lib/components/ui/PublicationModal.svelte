@@ -11,9 +11,9 @@
 	let { pub, index }: Props = $props();
 
 	let open = $state(false);
-	let overlayEl: HTMLDivElement;
-	let cardEl: HTMLDivElement;
-	let bulletEls: HTMLLIElement[] = [];
+	let overlayEl: HTMLDivElement | undefined = $state();
+	let cardEl: HTMLDivElement | undefined = $state();
+	let bulletEls: HTMLLIElement[] = $state([]);
 
 	let activeTl: gsap.core.Timeline | null = null;
 
@@ -82,6 +82,7 @@
 		class="modal-overlay"
 		role="presentation"
 		onclick={closeModal}
+		onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') closeModal(); }}
 	>
 		<div
 			bind:this={cardEl}
@@ -89,7 +90,9 @@
 			role="dialog"
 			aria-modal="true"
 			aria-label={pub.title}
+			tabindex="-1"
 			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
 		>
 			<button class="modal-close" onclick={closeModal} aria-label="Close">×</button>
 
