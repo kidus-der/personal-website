@@ -40,7 +40,7 @@
 
 			<p bind:this={subheadline} class="hero__sub">
 				Computing Science + Economics student at the University of Alberta,
-				ML Engineer at Scam AI, and published researcher in AI detection.
+				Founding Engineer at Scam AI, and published researcher in AI detection.
 			</p>
 
 			<div bind:this={cta} class="hero__cta">

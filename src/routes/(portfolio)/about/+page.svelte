@@ -4,39 +4,34 @@
 
 	const experience = [
 		{
-			role: 'ML Engineer',
+			role: 'Founding Engineer',
 			company: 'Scam AI',
 			period: 'Jan 2025 – Present',
 			bullets: [
-				'Building ML pipelines for real-time scam detection across voice, text, and image modalities.',
-				'Designing and deploying inference APIs used in production consumer applications.'
+				'Engineered a synthetic data generation pipeline using LangChain, ElevenLabs, and Qwen-MT to produce high-quality scam samples in 14 languages for ML model training.',
+				'Designed a multi-agent AI system using Deepgram, LiveKit, FastAPI, and a fine-tuned OpenAI 4.1 model to transcribe and score potential scam calls, achieving 80% success rate.',
+				'Developed an agentic SMS scam detection API using FastAPI and a fine-tuned Qwen3.2-32B model via LangChain for adaptive real-time detection.',
+				'Implemented CAM visualization for a deepfake detection model using PyTorch and EfficientNet to produce interpretable AI tampering heatmaps.'
 			]
 		},
 		{
-			role: 'IT Service Desk Analyst',
+			role: 'Service Desk Assistant',
 			company: 'University of Alberta',
 			period: 'May 2025 – Present',
 			bullets: [
-				'Providing technical support and system administration for faculty and staff.',
-				'Documenting recurring issues to streamline future resolution workflows.'
+				'Primary point of contact for 4,000+ residents, resolving high volumes of in-person and telephone inquiries regarding housing policies and maintenance.',
+				'Managed daily operations using StarRez software to process check-ins/outs, occupancy records, and maintenance tickets with 100% data accuracy.',
+				'Assisted students with financial accounts — residence fees, rent schedules, and penalty charges — while auditing files for billing compliance.'
 			]
 		},
 		{
-			role: 'ML Research Intern',
+			role: 'Machine Learning Intern',
 			company: 'Avolta Inc.',
 			period: 'Oct 2023 – Jan 2024',
 			bullets: [
-				'Developed ML models for anomaly detection in operational data streams.',
-				'Collaborated with the data engineering team to build feature pipelines.'
-			]
-		},
-		{
-			role: 'Undergraduate Research Assistant',
-			company: 'U of A — AI4Society',
-			period: 'May 2023 – Aug 2024',
-			bullets: [
-				'Conducted research on deepfake and AI-generated content detection.',
-				'Co-authored 4 peer-reviewed papers on multimodal deepfake detection and LLM benchmarking.'
+				'Fine-tuned a pre-trained YOLOv5 object detection model on a specialized car theft dataset, increasing accuracy by 20%.',
+				'Engineered ETL pipelines for ML data ingestion, streamlining feature processing for continuous model training and evaluation.',
+				'Implemented automated data validation and augmentation scripts to ensure high-quality, consistent data streams.'
 			]
 		}
 	];
@@ -106,7 +101,7 @@
 			<div class="about-bio__body">
 				<p>
 					I'm Kidus Dereje Zewde — a Computing Science + Economics student at the University
-					of Alberta (graduating June 2026), currently working as an ML Engineer at Scam AI.
+					of Alberta (graduating June 2026), currently working as a Founding Engineer at Scam AI.
 					My work sits at the boundary between research and production: I've published 4 papers
 					on deepfake and AI-generated content detection, and I build systems that put those
 					ideas into practice.
