@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { revealOnScroll } from '$lib/actions/revealOnScroll';
 	import { cursorTarget } from '$lib/actions/cursor';
+	import type { Publication } from '$lib/types/content';
 
 	const experience = [
 		{
@@ -36,26 +37,49 @@
 		}
 	];
 
-	const publications = [
+	const publications: Publication[] = [
 		{
-			title: 'Super Resolution-based Vulnerability Analysis in Deepfake Detection Systems',
-			venue: 'IEEE/CVF Workshop on Media Forensics',
-			year: '2024'
+			title: 'Do Deepfake Detectors Work in Reality?',
+			venue: 'IEEE (submitted for review)',
+			year: '2025',
+			url: 'https://arxiv.org/abs/2502.10920',
+			bullets: [
+				'Investigated the vulnerability of deepfake detection methods to real-world data manipulations, particularly super-resolution post-processing.',
+				'Contributed to the creation of a novel real-world faceswap dataset to benchmark deepfake detectors in practical settings.'
+			]
 		},
 		{
-			title: 'Benchmarking Multimodal LLMs for Deepfake and AI-Generated Content Detection',
+			title: 'Can Multi-modal (reasoning) LLMs work as deepfake detectors?',
 			venue: 'arXiv preprint',
-			year: '2024'
+			year: '2025',
+			url: 'https://arxiv.org/abs/2503.20084',
+			bullets: [
+				'Benchmarked 12 state-of-the-art multi-modal LLMs (including GPT-4o, Gemini 2, Claude 3.7) for zero-shot deepfake detection across multiple datasets.',
+				'Conducted ablation studies investigating the impact of model size, version updates, and reasoning capabilities on detection performance.',
+				'Analyzed failure modes and interpretability through score distribution analysis and reasoning pathway examination.'
+			]
 		},
 		{
-			title: 'Cross-Dataset Generalization in Neural Deepfake Detectors',
-			venue: 'ACM Multimedia Workshop on Fake Media',
-			year: '2023'
+			title: 'Can Multi-modal (reasoning) LLMs detect document manipulation?',
+			venue: 'arXiv preprint',
+			year: '2025',
+			url: 'https://arxiv.org/abs/2508.11021',
+			bullets: [
+				'Benchmarked GPT-4o, Gemini, and Llama 3.2 for detecting document fraud across diverse forgery types.',
+				'Demonstrated that top-performing LLMs show superior zero-shot generalization over traditional SVM and CNN baselines for out-of-distribution forgeries.',
+				'Revealed that model size and advanced reasoning show limited correlation with detection accuracy, while providing interpretable and scalable fraud mitigation.'
+			]
 		},
 		{
-			title: 'Towards Robust AI-Generated Text Detection: A Comparative Study',
-			venue: 'AAAI Student Workshop',
-			year: '2023'
+			title: 'How well are open-source AI-generated image detection models out-of-the-box?',
+			venue: 'arXiv preprint',
+			year: '2026',
+			url: 'https://arxiv.org/abs/2602.07814',
+			bullets: [
+				'Led the first large-scale zero-shot benchmark of AI-generated image detectors: 23 pretrained models, 12 datasets, 2.6 million image samples.',
+				'Identified critical generalization gaps — detector performance is highly context-dependent (Spearman ρ as low as 0.01) and training data alignment outweighs architecture.',
+				'Developed deployment guidelines showing that modern generators (Midjourney, Flux) frequently defeat existing detectors, with a framework for threat-specific model selection.'
+			]
 		}
 	];
 
