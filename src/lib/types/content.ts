@@ -30,3 +30,11 @@ export interface Experience {
 	description: string[];
 	url?: string;
 }
+
+export interface Publication {
+	title: string;
+	venue: string;
+	year: string;
+	url: string;
+	bullets: string[];
+}
