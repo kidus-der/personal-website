@@ -101,6 +101,14 @@ lenis.on('scroll', ScrollTrigger.update)
 ```
 Destroyed/re-initialized around SvelteKit `beforeNavigate` / `afterNavigate`.
 
+### Publication Modal
+- `PublicationModal` component lives in `src/lib/components/ui/PublicationModal.svelte`
+- Accepts `pub: Publication` (type from `$lib/types/content`) and `index: number` props
+- Self-contained: owns `$state(open)`, GSAP open/close timelines, and Escape key handler
+- Opens with GSAP spring animation (`back.out(1.4)`), closes in `onComplete` callback
+- Glassmorphism card: `backdrop-filter: blur(24px)`, `:global([data-theme="light"])` override
+- Publications data lives in `src/routes/(portfolio)/about/+page.svelte` as `Publication[]`
+
 ## Adding Content
 
 **New blog post:** Add a `.md` file to `src/content/posts/` with frontmatter:

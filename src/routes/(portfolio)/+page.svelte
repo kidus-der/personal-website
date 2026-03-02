@@ -20,8 +20,8 @@
 </script>
 
 <svelte:head>
-	<title>Kidus Dereje — ML Engineer & Builder</title>
-	<meta name="description" content="Kidus Dereje Zewde — ML Engineer, researcher, and software builder. Computing Science + Economics at the University of Alberta." />
+	<title>Kidus Dereje — Founding Engineer & Builder</title>
+	<meta name="description" content="Kidus Dereje Zewde — Founding Engineer, researcher, and software builder. Computing Science + Economics at the University of Alberta." />
 </svelte:head>
 
 <main>
