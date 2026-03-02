@@ -177,9 +177,8 @@
 			<h2 class="about-section__title">Publications</h2>
 			<div class="pub-list">
 				{#each publications as pub, i}
-					<div class="pub-item" use:revealOnScroll={{ delay: i * 0.06 }}>
-						<p class="pub-item__title">{pub.title}</p>
-						<span class="pub-item__meta">{pub.venue} · {pub.year}</span>
+					<div use:revealOnScroll={{ delay: i * 0.06 }}>
+						<PublicationModal {pub} index={i} />
 					</div>
 				{/each}
 			</div>
@@ -381,29 +380,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1.5rem;
-	}
-
-	.pub-item {
-		padding-bottom: 1.5rem;
-		border-bottom: 1px solid var(--border);
-
-		&:last-child {
-			border-bottom: none;
-			padding-bottom: 0;
-		}
-	}
-
-	.pub-item__title {
-		font-size: var(--text-base);
-		color: var(--text);
-		line-height: 1.6;
-		margin-bottom: 0.4rem;
-	}
-
-	.pub-item__meta {
-		font-size: var(--text-xs);
-		color: var(--text-muted);
-		letter-spacing: 0.04em;
 	}
 
 	/* ── Skills ─────────────────────────────────── */
