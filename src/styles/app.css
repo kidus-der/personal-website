@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Design tokens — single source of truth.
+   Both Tailwind utilities and CSS custom properties derive from here.
+   ============================================================ */
+@theme {
+	/* Typography */
+	--font-display: "Neue Montreal", "Inter", system-ui, sans-serif;
+	--font-body: "Neue Montreal", "Inter", system-ui, sans-serif;
+	--font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+	/* Color — semantic (resolved from data-theme on <html>) */
+	--color-bg: var(--bg);
+	--color-surface: var(--surface);
+	--color-surface-raised: var(--surface-raised);
+	--color-border: var(--border);
+	--color-text: var(--text);
+	--color-text-muted: var(--text-muted);
+	--color-accent: var(--accent);
+	--color-accent-dim: var(--accent-dim);
+
+	/* Spacing scale */
+	--spacing-section: clamp(5rem, 12vw, 10rem);
+	--spacing-container: clamp(1.25rem, 5vw, 4rem);
+
+	/* Animation easings as CSS tokens */
+	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+	--ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+	--ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+	--ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+	/* Border radius */
+	--radius-sm: 4px;
+	--radius-md: 8px;
+	--radius-lg: 16px;
+	--radius-full: 9999px;
+}
+
+/* ============================================================
+   Theme: Dark (default)
+   ============================================================ */
+[data-theme="dark"],
+:root {
+	--bg: #0a0a0a;
+	--surface: #111111;
+	--surface-raised: #1a1a1a;
+	--border: rgba(255, 255, 255, 0.08);
+	--text: #f0f0f0;
+	--text-muted: rgba(240, 240, 240, 0.45);
+	--accent: #e8ff47;
+	--accent-dim: rgba(232, 255, 71, 0.15);
+}
+
+/* ============================================================
+   Theme: Light
+   ============================================================ */
+[data-theme="light"] {
+	--bg: #fafafa;
+	--surface: #f0f0f0;
+	--surface-raised: #ffffff;
+	--border: rgba(0, 0, 0, 0.08);
+	--text: #0a0a0a;
+	--text-muted: rgba(10, 10, 10, 0.5);
+	--accent: #1a1a1a;
+	--accent-dim: rgba(26, 26, 26, 0.08);
+}
+
+/* ============================================================
+   Base reset & global styles
+   ============================================================ */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	font-size: 16px;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+}
+
+body {
+	background-color: var(--bg);
+	color: var(--text);
+	font-family: var(--font-body);
+	line-height: 1.6;
+	overflow-x: hidden;
+}
+
+/* Hide scrollbar while keeping scroll — Lenis handles the visual */
+html.lenis,
+html.lenis body {
+	height: auto;
+}
+.lenis.lenis-smooth {
+	scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+	overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+	overflow: hidden;
+}
+
+/* Focus ring */
+:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 3px;
+	border-radius: var(--radius-sm);
+}
+
+/* Selection */
+::selection {
+	background: var(--accent);
+	color: var(--bg);
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+img,
+video {
+	max-width: 100%;
+	display: block;
+}
+
+button {
+	cursor: pointer;
+	border: none;
+	background: none;
+	font-family: inherit;
+}

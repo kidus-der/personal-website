@@ -1,0 +1,12 @@
+node_modules
+.svelte-kit
+build
+.vercel
+.env
+.env.*
+!.env.example
+*.pem
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+# CV - do not commit
+my-cv.pdf

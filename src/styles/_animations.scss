@@ -1,0 +1,91 @@
+// CSS keyframes and clip-path animations.
+// GSAP handles most animations, but CSS handles:
+// - cursor blink
+// - loading spinner
+// - simple hover states that don't need JS
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes slide-up {
+	from {
+		opacity: 0;
+		transform: translateY(24px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes reveal-clip {
+	from {
+		clip-path: inset(0 0 100% 0);
+	}
+	to {
+		clip-path: inset(0 0 0% 0);
+	}
+}
+
+@keyframes pulse-accent {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.4;
+	}
+}
+
+// Utility class for clip-path reveal
+.reveal-clip {
+	clip-path: inset(0 0 100% 0);
+	animation: reveal-clip 0.6s $ease-out-expo forwards;
+}
+
+// Cursor — the custom cursor overlay
+.cursor {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background: var(--accent);
+	pointer-events: none;
+	z-index: 9999;
+	transform: translate(-50%, -50%);
+	transition: width 0.3s $ease-out-expo, height 0.3s $ease-out-expo,
+		background 0.3s $ease-out-expo, opacity 0.3s;
+
+	&--hover {
+		width: 40px;
+		height: 40px;
+		background: transparent;
+		border: 1.5px solid var(--accent);
+	}
+
+	&--text {
+		width: 4px;
+		height: 32px;
+		border-radius: 2px;
+		background: var(--accent);
+	}
+
+	&--drag {
+		width: 60px;
+		height: 60px;
+		background: var(--accent-dim);
+		border: 1.5px solid var(--accent);
+	}
+
+	&--hidden {
+		opacity: 0;
+	}
+}

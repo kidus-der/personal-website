@@ -1,0 +1,24 @@
+// Type scale and font-face declarations.
+// Self-hosted fonts go in src/assets/fonts/
+
+// Uncomment and adapt when fonts are added:
+// @font-face {
+//   font-family: 'Neue Montreal';
+//   src: url('/fonts/NeueMontreal-Regular.woff2') format('woff2');
+//   font-weight: 400;
+//   font-style: normal;
+//   font-display: swap;
+// }
+
+// Fluid type scale — uses clamp() for responsive sizing
+:root {
+	--text-xs: clamp(0.7rem, 0.65rem + 0.25vw, 0.8rem);
+	--text-sm: clamp(0.85rem, 0.8rem + 0.25vw, 0.95rem);
+	--text-base: clamp(1rem, 0.95rem + 0.25vw, 1.1rem);
+	--text-lg: clamp(1.1rem, 1rem + 0.5vw, 1.3rem);
+	--text-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.6rem);
+	--text-2xl: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+	--text-3xl: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
+	--text-4xl: clamp(2.5rem, 1.5rem + 5vw, 6rem);
+	--text-display: clamp(3.5rem, 2rem + 7.5vw, 9rem);
+}
