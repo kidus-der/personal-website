@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { revealOnScroll } from '$lib/actions/revealOnScroll';
-	import { cursorTarget } from '$lib/actions/cursor';
 	import type { Publication } from '$lib/types/content';
+	import PublicationModal from '$lib/components/ui/PublicationModal.svelte';
 
 	const experience = [
 		{
@@ -200,17 +200,6 @@
 					</div>
 				{/each}
 			</div>
-		</section>
-
-		<!-- Contact CTA -->
-		<section class="about-cta" use:revealOnScroll>
-			<h2 class="about-cta__heading">Let's build something.</h2>
-			<p class="about-cta__sub">
-				Open to internships, research collaborations, and interesting full-time roles starting mid-2026.
-			</p>
-			<a href="mailto:kidus@ualberta.ca" class="btn" use:cursorTarget={'hover'}>
-				Get in touch
-			</a>
 		</section>
 
 	</div>
@@ -444,41 +433,4 @@
 		}
 	}
 
-	/* ── CTA ─────────────────────────────────────── */
-	.about-cta {
-		padding-top: 1rem;
-		border-top: 1px solid var(--border);
-	}
-
-	.about-cta__heading {
-		font-size: var(--text-2xl);
-		font-weight: 600;
-		letter-spacing: -0.02em;
-		margin-bottom: 1rem;
-	}
-
-	.about-cta__sub {
-		font-size: var(--text-base);
-		color: var(--text-muted);
-		max-width: 480px;
-		line-height: 1.7;
-		margin-bottom: 2rem;
-	}
-
-	.btn {
-		display: inline-flex;
-		align-items: center;
-		padding: 0.85rem 2rem;
-		background: var(--accent);
-		color: var(--bg);
-		border-radius: var(--radius-full);
-		font-size: var(--text-sm);
-		font-weight: 500;
-		letter-spacing: 0.04em;
-		transition: transform 0.2s var(--ease-out-expo), opacity 0.2s;
-
-		&:hover {
-			transform: translateY(-2px);
-		}
-	}
 </style>

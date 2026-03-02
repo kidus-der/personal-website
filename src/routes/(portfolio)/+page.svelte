@@ -91,6 +91,21 @@
 			</div>
 		</div>
 	</section>
+
+	<!-- ================================================
+		CTA
+	================================================ -->
+	<section class="cta" use:revealOnScroll>
+		<div class="cta__inner">
+			<h2 class="cta__heading">Let's build something.</h2>
+			<p class="cta__sub">
+				Open to internships, research collaborations, and interesting full-time roles starting mid-2026.
+			</p>
+			<a href="mailto:kidusdereje41@gmail.com" class="btn btn--primary" use:cursorTarget={'hover'} use:magnetic>
+				Get in touch
+			</a>
+		</div>
+	</section>
 </main>
 
 <style>
@@ -316,5 +331,31 @@
 		color: var(--text-muted);
 		margin-left: auto;
 		margin-top: 0.1rem;
+	}
+
+	/* ── CTA ──────────────────────────────────────── */
+	.cta {
+		padding: var(--spacing-section) var(--spacing-container);
+		border-top: 1px solid var(--border);
+	}
+
+	.cta__inner {
+		max-width: 1400px;
+		margin: 0 auto;
+	}
+
+	.cta__heading {
+		font-size: var(--text-3xl);
+		font-weight: 600;
+		letter-spacing: -0.03em;
+		margin-bottom: 1rem;
+	}
+
+	.cta__sub {
+		font-size: var(--text-lg);
+		color: var(--text-muted);
+		max-width: 480px;
+		line-height: 1.7;
+		margin-bottom: 2.5rem;
 	}
 </style>
