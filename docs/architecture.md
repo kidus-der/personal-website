@@ -46,3 +46,15 @@ The blog is a "second half" of the ecosystem — same design tokens, same domain
 - Projects: `src/content/projects/index.ts` → imported directly in work pages
 - Blog posts: `src/content/posts/*.md` → mdsvex preprocesses → dynamic `import.meta.glob` in `+page.ts`
 - Theme: CSS custom properties on `<html data-theme>` — blocking inline script prevents flash
+- Publications: typed `Publication[]` array defined inline in `src/routes/(portfolio)/about/+page.svelte`
+- Active publication state: `src/lib/stores/publications.ts` — a `writable<number | null>` that lets multiple `PublicationModal` instances close each other when one opens
+
+## Key component: PublicationModal
+
+`src/lib/components/ui/PublicationModal.svelte`
+
+- Accepts `pub: Publication` and `index: number` props
+- Self-contained: owns `$state(open)`, GSAP open/close timelines, and Escape key handler
+- Uses a local **portal action** — on mount, the overlay node is appended to `document.body` so `position: fixed` isn't affected by ancestor `transform` stacking contexts (the `revealOnScroll` GSAP action on parent wrappers would otherwise constrain the overlay)
+- Portal `destroy()` guards with `node.isConnected` to prevent double-remove when Svelte also unmounts the `{#if}` block
+- `activePublicationIndex` store coordinates multi-instance close: when one modal opens, others subscribe and call `closeModal()` if their index no longer matches
