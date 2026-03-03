@@ -8,6 +8,7 @@ build
 *.pem
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+.playwright-mcp/
 # CV - do not commit
 my-cv.pdf
 my-cv.tex
