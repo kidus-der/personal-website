@@ -121,6 +121,16 @@ html {
 }
 ::-webkit-scrollbar-thumb:hover { opacity: 1; }
 
+/* ============================================================
+   Shiki syntax highlighting — always dark regardless of site theme
+   ============================================================ */
+.shiki {
+	background: #22272e !important;
+}
+.shiki code {
+	color: #adbac7;
+}
+
 /* Inline accent links (e.g. "Scam AI") */
 .accent-link {
 	color: var(--accent);

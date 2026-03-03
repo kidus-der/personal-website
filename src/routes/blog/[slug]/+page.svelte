@@ -13,4 +13,4 @@
 	{/if}
 </svelte:head>
 
-<Content />
+<Content readingTime={data.readingTime} />

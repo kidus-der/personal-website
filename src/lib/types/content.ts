@@ -20,6 +20,7 @@ export interface BlogPost {
 	tags: string[];
 	readingTime?: number;
 	draft?: boolean;
+	coverImage?: string;
 }
 
 export interface Experience {
