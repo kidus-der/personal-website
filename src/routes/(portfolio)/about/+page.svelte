@@ -9,10 +9,10 @@
 			company: 'Scam AI',
 			period: 'Jan 2025 – Present',
 			bullets: [
-				'Engineered a synthetic data generation pipeline using LangChain, ElevenLabs, and Qwen-MT to produce high-quality scam samples in 14 languages for ML model training.',
-				'Designed a multi-agent AI system using Deepgram, LiveKit, FastAPI, and a fine-tuned OpenAI 4.1 model to transcribe and score potential scam calls, achieving 80% success rate.',
+				'Engineered a synthetic data generation pipeline using LangChain, ElevenLabs, and Qwen-MT to produce high-quality scam samples in <span class="bullet-accent">14 languages</span> for ML model training.',
+				'Designed a multi-agent AI system using Deepgram, LiveKit, FastAPI, and a fine-tuned OpenAI 4.1 model to transcribe and score potential scam calls, achieving <span class="bullet-accent">80% success rate</span>.',
 				'Developed an agentic SMS scam detection API using FastAPI and a fine-tuned Qwen3.2-32B model via LangChain for adaptive real-time detection.',
-				'Implemented CAM visualization for a deepfake detection model using PyTorch and EfficientNet to produce interpretable AI tampering heatmaps.'
+				'Implemented CAM visualization for a deepfake detection model using PyTorch and EfficientNet to produce <span class="bullet-accent">interpretable AI tampering heatmaps</span>.'
 			]
 		},
 		{
@@ -20,8 +20,8 @@
 			company: 'University of Alberta',
 			period: 'May 2025 – Present',
 			bullets: [
-				'Primary point of contact for 4,000+ residents, resolving high volumes of in-person and telephone inquiries regarding housing policies and maintenance.',
-				'Managed daily operations using StarRez software to process check-ins/outs, occupancy records, and maintenance tickets with 100% data accuracy.',
+				'Primary point of contact for <span class="bullet-accent">4,000+ residents</span>, resolving high volumes of in-person and telephone inquiries regarding housing policies and maintenance.',
+				'Managed daily operations using StarRez software to process check-ins/outs, occupancy records, and maintenance tickets with <span class="bullet-accent">100% data accuracy</span>.',
 				'Assisted students with financial accounts — residence fees, rent schedules, and penalty charges — while auditing files for billing compliance.'
 			]
 		},
@@ -30,9 +30,9 @@
 			company: 'Avolta Inc.',
 			period: 'Oct 2023 – Jan 2024',
 			bullets: [
-				'Fine-tuned a pre-trained YOLOv5 object detection model on a specialized car theft dataset, increasing accuracy by 20%.',
+				'Fine-tuned a pre-trained YOLOv5 object detection model on a specialized car theft dataset, increasing accuracy by <span class="bullet-accent">20%</span>.',
 				'Engineered ETL pipelines for ML data ingestion, streamlining feature processing for continuous model training and evaluation.',
-				'Implemented automated data validation and augmentation scripts to ensure high-quality, consistent data streams.'
+				'Implemented automated data validation and augmentation scripts to ensure <span class="bullet-accent">high-quality, consistent data streams</span>.'
 			]
 		}
 	];
@@ -124,15 +124,17 @@
 			</h1>
 			<div class="about-bio__body">
 				<p>
-					I'm Kidus Dereje Zewde — a Computing Science + Economics student at the University
-					of Alberta (graduating June 2026), currently working as a Founding Engineer at Scam AI.
-					My work sits at the boundary between research and production: I've published 4 papers
-					on deepfake and AI-generated content detection, and I build systems that put those
-					ideas into practice.
+					<span class="bio-highlight">ሰላም</span> and Hello! I'm Kidus Dereje Zewde — a Computing Science + Economics
+					student at <span class="bio-highlight">University of Alberta</span> (graduating June 2026), currently
+					working as a Founding Engineer at
+					<a href="https://www.scam.ai/en" target="_blank" rel="noopener noreferrer" class="accent-link">Scam AI</a>.
+					My work sits at the boundary between research and production: I've published
+					4 papers on deepfake and AI-generated content detection, and I build systems
+					that put those ideas into practice.
 				</p>
 				<p>
 					I care about the full stack — from model architecture to user-facing product — and
-					I'm drawn to problems where rigorous engineering and creative thinking both matter.
+					I'm drawn to problems where <span class="bio-highlight">rigorous engineering</span> and <span class="bio-highlight">creative thinking</span> both matter.
 				</p>
 			</div>
 		</section>
@@ -143,6 +145,7 @@
 			<div class="edu-card">
 				<div class="edu-card__left">
 					<span class="edu-card__degree">BSc Computing Science + Economics Minor</span>
+					<span class="edu-card__cert">with additional Certificate in Innovation and Entrepreneurship</span>
 					<span class="edu-card__school">University of Alberta</span>
 				</div>
 				<span class="edu-card__period">Expected June 2026</span>
@@ -164,7 +167,7 @@
 						</div>
 						<ul class="timeline__bullets">
 							{#each job.bullets as bullet}
-								<li>{bullet}</li>
+								<li>{@html bullet}</li>
 							{/each}
 						</ul>
 					</div>
@@ -267,6 +270,10 @@
 		}
 	}
 
+	.bio-highlight {
+		color: var(--accent);
+	}
+
 	/* ── Education ─────────────────────────────── */
 	.edu-card {
 		display: flex;
@@ -293,6 +300,28 @@
 		font-size: var(--text-base);
 		font-weight: 500;
 		color: var(--text);
+		width: fit-content;
+		background-image: linear-gradient(var(--accent), var(--accent));
+		background-repeat: no-repeat;
+		background-position: 0 100%;
+		background-size: 0% 1px;
+		transition: background-size 0.3s var(--ease-out-expo);
+	}
+
+	.edu-card__cert {
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		width: fit-content;
+		background-image: linear-gradient(var(--accent), var(--accent));
+		background-repeat: no-repeat;
+		background-position: 0 100%;
+		background-size: 0% 1px;
+		transition: background-size 0.3s var(--ease-out-expo);
+	}
+
+	.edu-card:hover .edu-card__degree,
+	.edu-card:hover .edu-card__cert {
+		background-size: 100% 1px;
 	}
 
 	.edu-card__school {
@@ -337,6 +366,16 @@
 		font-weight: 500;
 		color: var(--text);
 		margin-bottom: 0.2rem;
+		width: fit-content;
+		background-image: linear-gradient(var(--accent), var(--accent));
+		background-repeat: no-repeat;
+		background-position: 0 100%;
+		background-size: 0% 1px;
+		transition: background-size 0.3s var(--ease-out-expo);
+	}
+
+	.timeline__item:hover .timeline__role {
+		background-size: 100% 1px;
 	}
 
 	.timeline__company {
@@ -373,6 +412,11 @@
 				color: var(--text-muted);
 			}
 		}
+	}
+
+	:global(.bullet-accent) {
+		color: var(--accent);
+		font-weight: 500;
 	}
 
 	/* ── Publications ──────────────────────────── */

@@ -107,6 +107,31 @@ html.lenis body {
 	overflow: hidden;
 }
 
+/* Custom scrollbar — accent-tinted, minimal */
+html {
+	scrollbar-width: thin;
+	scrollbar-color: var(--accent) transparent;
+}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+	background: var(--accent);
+	border-radius: var(--radius-full);
+	opacity: 0.7;
+}
+::-webkit-scrollbar-thumb:hover { opacity: 1; }
+
+/* Inline accent links (e.g. "Scam AI") */
+.accent-link {
+	color: var(--accent);
+	background-image: linear-gradient(var(--accent), var(--accent));
+	background-repeat: no-repeat;
+	background-position: 0 100%;
+	background-size: 0% 1px;
+	transition: background-size 0.3s ease;
+}
+.accent-link:hover { background-size: 100% 1px; }
+
 /* Focus ring */
 :focus-visible {
 	outline: 2px solid var(--accent);

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { gsap } from '$lib/animation/gsap.config';
 	import type { Publication } from '$lib/types/content';
+	import { activePublicationIndex } from '$lib/stores/publications';
 
 	interface Props {
 		pub: Publication;
@@ -20,6 +21,7 @@
 	function openModal() {
 		bulletEls = [];
 		open = true;
+		activePublicationIndex.set(index);
 		setTimeout(() => {
 			if (!overlayEl || !cardEl) return;
 			activeTl?.kill();
@@ -47,6 +49,7 @@
 		activeTl = gsap.timeline({
 			onComplete: () => {
 				open = false;
+				activePublicationIndex.update((v) => (v === index ? null : v));
 			}
 		});
 		activeTl
@@ -58,9 +61,26 @@
 		if (e.key === 'Escape' && open) closeModal();
 	}
 
+	function portal(node: HTMLElement) {
+		document.body.appendChild(node);
+		return {
+			destroy() {
+				if (node.isConnected) node.remove();
+			}
+		};
+	}
+
 	onMount(() => {
+		const unsub = activePublicationIndex.subscribe((activeIdx) => {
+			if (open && activeIdx !== null && activeIdx !== index) {
+				closeModal();
+			}
+		});
 		window.addEventListener('keydown', handleKeydown);
-		return () => window.removeEventListener('keydown', handleKeydown);
+		return () => {
+			unsub();
+			window.removeEventListener('keydown', handleKeydown);
+		};
 	});
 </script>
 
@@ -78,6 +98,7 @@
 <!-- Modal -->
 {#if open}
 	<div
+		use:portal
 		bind:this={overlayEl}
 		class="modal-overlay"
 		role="presentation"
@@ -194,7 +215,7 @@
 		background: rgba(0, 0, 0, 0.6);
 	}
 
-	/* ── Glass card ─────────────────────────────── */
+	/* ── Modal card ─────────────────────────────── */
 	.modal-card {
 		position: relative;
 		width: 100%;
@@ -203,15 +224,13 @@
 		overflow-y: auto;
 		padding: 2.5rem;
 		border-radius: var(--radius-lg);
-		background: rgba(17, 17, 17, 0.82);
-		backdrop-filter: blur(24px) saturate(180%);
-		-webkit-backdrop-filter: blur(24px) saturate(180%);
-		border: 1px solid rgba(255, 255, 255, 0.10);
+		background: var(--surface-raised);
+		border: 1px solid var(--border);
 		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 	}
 
 	:global([data-theme="light"]) .modal-card {
-		background: rgba(244, 246, 255, 0.88);
+		background: var(--surface);
 		border: 1px solid rgba(43, 92, 230, 0.15);
 		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15);
 	}

@@ -14,10 +14,10 @@
 	<div class="work-page__inner">
 		<header class="work-page__header" use:revealOnScroll>
 			<span class="label">Work</span>
-			<h1 class="work-page__title">Selected projects</h1>
+			<h1 class="work-page__title">My Projects</h1>
 			<p class="work-page__sub">
-				A curated selection of work spanning design systems,
-				interactive experiences, and full-stack applications.
+				Here's a selection of my projects that I am proud of ranging from full-stack AI applications,
+				interactive experiences, and ML research.
 			</p>
 		</header>
 
@@ -38,7 +38,7 @@
 						<p class="work-item__desc">{project.description}</p>
 						<div class="work-item__tags">
 							{#each project.tags as tag}
-								<span class="tag">{tag}</span>
+								<span class="tag" data-text={tag}>{tag}</span>
 							{/each}
 						</div>
 					</div>
@@ -148,6 +148,16 @@
 		font-weight: 600;
 		letter-spacing: -0.02em;
 		line-height: 1.2;
+		width: fit-content;
+		background-image: linear-gradient(var(--accent), var(--accent));
+		background-repeat: no-repeat;
+		background-position: 0 100%;
+		background-size: 0% 1px;
+		transition: background-size 0.3s var(--ease-out-expo);
+	}
+
+	.work-item:hover .work-item__title {
+		background-size: 100% 1px;
 	}
 
 	.work-item__desc {
@@ -170,6 +180,25 @@
 		border: 1px solid var(--border);
 		border-radius: var(--radius-full);
 		color: var(--text-muted);
+		position: relative;
+	}
+
+	.tag::after {
+		content: attr(data-text);
+		position: absolute;
+		inset: 0;
+		padding: 0.2rem 0.65rem;
+		color: var(--accent);
+		clip-path: inset(100% 0 0 0);
+		transition: clip-path 0.35s var(--ease-out-expo);
+		pointer-events: none;
+		font-size: var(--text-xs);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	.work-item:hover .tag::after {
+		clip-path: inset(0% 0 0 0);
 	}
 
 	.work-empty {
