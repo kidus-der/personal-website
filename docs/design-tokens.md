@@ -18,17 +18,21 @@ Two themes: `dark` (default) and `light`. Both are defined as CSS custom propert
 | `--color-border` | Borders and dividers |
 | `--color-text` | Primary text |
 | `--color-text-muted` | Secondary/muted text |
-| `--color-accent` | Primary accent — currently electric yellow (`#e8ff47`) in dark mode |
-| `--color-accent-dim` | Low-opacity accent for backgrounds |
+| `--color-accent` | Primary accent — orange-red `#F05924` dark / royal blue `#2B5CE6` light |
+| `--color-accent-dim` | Low-opacity accent for backgrounds/blobs |
 
 ### Theme values
 
 | Token | Dark | Light |
 |---|---|---|
-| `--bg` | `#0a0a0a` | `#fafafa` |
-| `--surface` | `#111111` | `#f0f0f0` |
-| `--accent` | `#e8ff47` | `#1a1a1a` |
+| `--bg` | `#0a0a0a` | `#ffffff` |
+| `--surface` | `#111111` | `#f4f6ff` (blue-tinted) |
+| `--surface-raised` | `#1a1a1a` | `#eef1ff` (blue-tinted) |
+| `--border` | `rgba(255,255,255,0.08)` | `rgba(43,92,230,0.12)` (blue-tinted) |
 | `--text` | `#f0f0f0` | `#0a0a0a` |
+| `--text-muted` | `rgba(240,240,240,0.45)` | `rgba(10,10,10,0.5)` |
+| `--accent` | `#F05924` (orange-red ember) | `#2B5CE6` (royal blue) |
+| `--accent-dim` | `rgba(240,89,36,0.15)` | `rgba(43,92,230,0.10)` |
 
 ## Typography
 
@@ -61,6 +65,15 @@ CSS custom properties for use in transitions (not GSAP — use the `easings.ts` 
 | `--ease-out-quart` | `cubic-bezier(0.25, 1, 0.5, 1)` |
 | `--ease-in-out-expo` | `cubic-bezier(0.87, 0, 0.13, 1)` |
 | `--ease-in-out-quart` | `cubic-bezier(0.76, 0, 0.24, 1)` |
+
+## Border radius
+
+| Token | Value |
+|---|---|
+| `--radius-sm` | `4px` |
+| `--radius-md` | `8px` |
+| `--radius-lg` | `16px` |
+| `--radius-full` | `9999px` |
 
 ## Spacing
 

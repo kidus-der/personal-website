@@ -20,7 +20,7 @@
 >
 	<nav class="nav__inner">
 		<a href="/" class="nav__logo" use:cursorTarget={'hover'}>
-			<span>KD</span>
+			<span class="nav__logo-inner">KDZ</span>
 		</a>
 
 		<ul class="nav__links">
@@ -84,12 +84,28 @@
 		text-transform: uppercase;
 	}
 
-	.nav__logo:hover span {
-		color: var(--accent);
+	.nav__logo-inner {
+		position: relative;
+		display: inline-block;
+		transition: transform 0.35s var(--ease-out-expo), color 0.2s;
 	}
 
-	.nav__logo span {
-		transition: color 0.2s;
+	.nav__logo-inner::before {
+		content: 'KDZ';
+		position: absolute;
+		inset: 0;
+		color: var(--accent);
+		clip-path: inset(100% 0 0 0);
+		transition: clip-path 0.35s var(--ease-out-expo);
+	}
+
+	.nav__logo:hover .nav__logo-inner {
+		transform: scale(1.1);
+		color: var(--text);
+	}
+
+	.nav__logo:hover .nav__logo-inner::before {
+		clip-path: inset(0% 0 0 0);
 	}
 
 	.nav__links {

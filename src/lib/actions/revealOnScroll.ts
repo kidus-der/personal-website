@@ -34,6 +34,7 @@ export function revealOnScroll(node: HTMLElement, config: RevealConfig = {}) {
 				duration,
 				ease,
 				delay,
+				clearProps: 'transform',
 				scrollTrigger: {
 					trigger: node,
 					start: `top ${Math.round((1 - threshold) * 100)}%`,

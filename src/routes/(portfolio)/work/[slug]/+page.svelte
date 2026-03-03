@@ -91,9 +91,9 @@
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
 		padding: 0.2rem 0.65rem;
-		border: 1px solid var(--border);
+		border: 1px solid var(--accent);
 		border-radius: var(--radius-full);
-		color: var(--text-muted);
+		color: var(--accent);
 	}
 
 	.project-header__title {
@@ -144,8 +144,8 @@
 	}
 
 	.btn--ghost:hover {
-		border-color: var(--text-muted);
-		color: var(--text);
+		border-color: var(--accent);
+		color: var(--accent);
 	}
 
 	.project-visual {

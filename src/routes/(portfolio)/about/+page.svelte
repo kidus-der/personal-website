@@ -1,66 +1,85 @@
 <script lang="ts">
 	import { revealOnScroll } from '$lib/actions/revealOnScroll';
-	import { cursorTarget } from '$lib/actions/cursor';
+	import type { Publication } from '$lib/types/content';
+	import PublicationModal from '$lib/components/ui/PublicationModal.svelte';
 
 	const experience = [
 		{
-			role: 'ML Engineer',
+			role: 'Founding Engineer',
 			company: 'Scam AI',
 			period: 'Jan 2025 – Present',
 			bullets: [
-				'Building ML pipelines for real-time scam detection across voice, text, and image modalities.',
-				'Designing and deploying inference APIs used in production consumer applications.'
+				'Engineered a synthetic data generation pipeline using LangChain, ElevenLabs, and Qwen-MT to produce high-quality scam samples in <span class="bullet-accent">14 languages</span> for ML model training.',
+				'Designed a multi-agent AI system using Deepgram, LiveKit, FastAPI, and a fine-tuned OpenAI 4.1 model to transcribe and score potential scam calls, achieving <span class="bullet-accent">80% success rate</span>.',
+				'Developed an agentic SMS scam detection API using FastAPI and a fine-tuned Qwen3.2-32B model via LangChain for adaptive real-time detection.',
+				'Implemented CAM visualization for a deepfake detection model using PyTorch and EfficientNet to produce <span class="bullet-accent">interpretable AI tampering heatmaps</span>.'
 			]
 		},
 		{
-			role: 'IT Service Desk Analyst',
+			role: 'Service Desk Assistant',
 			company: 'University of Alberta',
 			period: 'May 2025 – Present',
 			bullets: [
-				'Providing technical support and system administration for faculty and staff.',
-				'Documenting recurring issues to streamline future resolution workflows.'
+				'Primary point of contact for <span class="bullet-accent">4,000+ residents</span>, resolving high volumes of in-person and telephone inquiries regarding housing policies and maintenance.',
+				'Managed daily operations using StarRez software to process check-ins/outs, occupancy records, and maintenance tickets with <span class="bullet-accent">100% data accuracy</span>.',
+				'Assisted students with financial accounts — residence fees, rent schedules, and penalty charges — while auditing files for billing compliance.'
 			]
 		},
 		{
-			role: 'ML Research Intern',
+			role: 'Machine Learning Intern',
 			company: 'Avolta Inc.',
 			period: 'Oct 2023 – Jan 2024',
 			bullets: [
-				'Developed ML models for anomaly detection in operational data streams.',
-				'Collaborated with the data engineering team to build feature pipelines.'
-			]
-		},
-		{
-			role: 'Undergraduate Research Assistant',
-			company: 'U of A — AI4Society',
-			period: 'May 2023 – Aug 2024',
-			bullets: [
-				'Conducted research on deepfake and AI-generated content detection.',
-				'Co-authored 4 peer-reviewed papers on multimodal deepfake detection and LLM benchmarking.'
+				'Fine-tuned a pre-trained YOLOv5 object detection model on a specialized car theft dataset, increasing accuracy by <span class="bullet-accent">20%</span>.',
+				'Engineered ETL pipelines for ML data ingestion, streamlining feature processing for continuous model training and evaluation.',
+				'Implemented automated data validation and augmentation scripts to ensure <span class="bullet-accent">high-quality, consistent data streams</span>.'
 			]
 		}
 	];
 
-	const publications = [
+	const publications: Publication[] = [
 		{
-			title: 'Super Resolution-based Vulnerability Analysis in Deepfake Detection Systems',
-			venue: 'IEEE/CVF Workshop on Media Forensics',
-			year: '2024'
+			title: 'Do Deepfake Detectors Work in Reality?',
+			venue: 'IEEE (submitted for review)',
+			year: '2025',
+			url: 'https://arxiv.org/abs/2502.10920',
+			bullets: [
+				'Investigated the vulnerability of deepfake detection methods to real-world data manipulations, particularly super-resolution post-processing.',
+				'Contributed to the creation of a novel real-world faceswap dataset to benchmark deepfake detectors in practical settings.'
+			]
 		},
 		{
-			title: 'Benchmarking Multimodal LLMs for Deepfake and AI-Generated Content Detection',
+			title: 'Can Multi-modal (reasoning) LLMs work as deepfake detectors?',
 			venue: 'arXiv preprint',
-			year: '2024'
+			year: '2025',
+			url: 'https://arxiv.org/abs/2503.20084',
+			bullets: [
+				'Benchmarked 12 state-of-the-art multi-modal LLMs (including GPT-4o, Gemini 2, Claude 3.7) for zero-shot deepfake detection across multiple datasets.',
+				'Conducted ablation studies investigating the impact of model size, version updates, and reasoning capabilities on detection performance.',
+				'Analyzed failure modes and interpretability through score distribution analysis and reasoning pathway examination.'
+			]
 		},
 		{
-			title: 'Cross-Dataset Generalization in Neural Deepfake Detectors',
-			venue: 'ACM Multimedia Workshop on Fake Media',
-			year: '2023'
+			title: 'Can Multi-modal (reasoning) LLMs detect document manipulation?',
+			venue: 'arXiv preprint',
+			year: '2025',
+			url: 'https://arxiv.org/abs/2508.11021',
+			bullets: [
+				'Benchmarked GPT-4o, Gemini, and Llama 3.2 for detecting document fraud across diverse forgery types.',
+				'Demonstrated that top-performing LLMs show superior zero-shot generalization over traditional SVM and CNN baselines for out-of-distribution forgeries.',
+				'Revealed that model size and advanced reasoning show limited correlation with detection accuracy, while providing interpretable and scalable fraud mitigation.'
+			]
 		},
 		{
-			title: 'Towards Robust AI-Generated Text Detection: A Comparative Study',
-			venue: 'AAAI Student Workshop',
-			year: '2023'
+			title: 'How well are open-source AI-generated image detection models out-of-the-box?',
+			venue: 'arXiv preprint',
+			year: '2026',
+			url: 'https://arxiv.org/abs/2602.07814',
+			bullets: [
+				'Led the first large-scale zero-shot benchmark of AI-generated image detectors: 23 pretrained models, 12 datasets, 2.6 million image samples.',
+				'Identified critical generalization gaps — detector performance is highly context-dependent (Spearman ρ as low as 0.01) and training data alignment outweighs architecture.',
+				'Developed deployment guidelines showing that modern generators (Midjourney, Flux) frequently defeat existing detectors, with a framework for threat-specific model selection.'
+			]
 		}
 	];
 
@@ -105,15 +124,17 @@
 			</h1>
 			<div class="about-bio__body">
 				<p>
-					I'm Kidus Dereje Zewde — a Computing Science + Economics student at the University
-					of Alberta (graduating June 2026), currently working as an ML Engineer at Scam AI.
-					My work sits at the boundary between research and production: I've published 4 papers
-					on deepfake and AI-generated content detection, and I build systems that put those
-					ideas into practice.
+					<span class="bio-highlight">ሰላም</span> and Hello! I'm Kidus Dereje Zewde — a Computing Science + Economics
+					student at <span class="bio-highlight">University of Alberta</span> (graduating June 2026), currently
+					working as a Founding Engineer at
+					<a href="https://www.scam.ai/en" target="_blank" rel="noopener noreferrer" class="accent-link">Scam AI</a>.
+					My work sits at the boundary between research and production: I've published
+					4 papers on deepfake and AI-generated content detection, and I build systems
+					that put those ideas into practice.
 				</p>
 				<p>
 					I care about the full stack — from model architecture to user-facing product — and
-					I'm drawn to problems where rigorous engineering and creative thinking both matter.
+					I'm drawn to problems where <span class="bio-highlight">rigorous engineering</span> and <span class="bio-highlight">creative thinking</span> both matter.
 				</p>
 			</div>
 		</section>
@@ -124,6 +145,7 @@
 			<div class="edu-card">
 				<div class="edu-card__left">
 					<span class="edu-card__degree">BSc Computing Science + Economics Minor</span>
+					<span class="edu-card__cert">with additional Certificate in Innovation and Entrepreneurship</span>
 					<span class="edu-card__school">University of Alberta</span>
 				</div>
 				<span class="edu-card__period">Expected June 2026</span>
@@ -145,7 +167,7 @@
 						</div>
 						<ul class="timeline__bullets">
 							{#each job.bullets as bullet}
-								<li>{bullet}</li>
+								<li>{@html bullet}</li>
 							{/each}
 						</ul>
 					</div>
@@ -158,9 +180,8 @@
 			<h2 class="about-section__title">Publications</h2>
 			<div class="pub-list">
 				{#each publications as pub, i}
-					<div class="pub-item" use:revealOnScroll={{ delay: i * 0.06 }}>
-						<p class="pub-item__title">{pub.title}</p>
-						<span class="pub-item__meta">{pub.venue} · {pub.year}</span>
+					<div use:revealOnScroll={{ delay: i * 0.06 }}>
+						<PublicationModal {pub} index={i} />
 					</div>
 				{/each}
 			</div>
@@ -181,17 +202,6 @@
 					</div>
 				{/each}
 			</div>
-		</section>
-
-		<!-- Contact CTA -->
-		<section class="about-cta" use:revealOnScroll>
-			<h2 class="about-cta__heading">Let's build something.</h2>
-			<p class="about-cta__sub">
-				Open to internships, research collaborations, and interesting full-time roles starting mid-2026.
-			</p>
-			<a href="mailto:kidus@ualberta.ca" class="btn" use:cursorTarget={'hover'}>
-				Get in touch
-			</a>
 		</section>
 
 	</div>
@@ -260,6 +270,10 @@
 		}
 	}
 
+	.bio-highlight {
+		color: var(--accent);
+	}
+
 	/* ── Education ─────────────────────────────── */
 	.edu-card {
 		display: flex;
@@ -286,6 +300,28 @@
 		font-size: var(--text-base);
 		font-weight: 500;
 		color: var(--text);
+		width: fit-content;
+		background-image: linear-gradient(var(--accent), var(--accent));
+		background-repeat: no-repeat;
+		background-position: 0 100%;
+		background-size: 0% 1px;
+		transition: background-size 0.3s var(--ease-out-expo);
+	}
+
+	.edu-card__cert {
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		width: fit-content;
+		background-image: linear-gradient(var(--accent), var(--accent));
+		background-repeat: no-repeat;
+		background-position: 0 100%;
+		background-size: 0% 1px;
+		transition: background-size 0.3s var(--ease-out-expo);
+	}
+
+	.edu-card:hover .edu-card__degree,
+	.edu-card:hover .edu-card__cert {
+		background-size: 100% 1px;
 	}
 
 	.edu-card__school {
@@ -330,6 +366,16 @@
 		font-weight: 500;
 		color: var(--text);
 		margin-bottom: 0.2rem;
+		width: fit-content;
+		background-image: linear-gradient(var(--accent), var(--accent));
+		background-repeat: no-repeat;
+		background-position: 0 100%;
+		background-size: 0% 1px;
+		transition: background-size 0.3s var(--ease-out-expo);
+	}
+
+	.timeline__item:hover .timeline__role {
+		background-size: 100% 1px;
 	}
 
 	.timeline__company {
@@ -368,34 +414,16 @@
 		}
 	}
 
+	:global(.bullet-accent) {
+		color: var(--accent);
+		font-weight: 500;
+	}
+
 	/* ── Publications ──────────────────────────── */
 	.pub-list {
 		display: flex;
 		flex-direction: column;
 		gap: 1.5rem;
-	}
-
-	.pub-item {
-		padding-bottom: 1.5rem;
-		border-bottom: 1px solid var(--border);
-
-		&:last-child {
-			border-bottom: none;
-			padding-bottom: 0;
-		}
-	}
-
-	.pub-item__title {
-		font-size: var(--text-base);
-		color: var(--text);
-		line-height: 1.6;
-		margin-bottom: 0.4rem;
-	}
-
-	.pub-item__meta {
-		font-size: var(--text-xs);
-		color: var(--text-muted);
-		letter-spacing: 0.04em;
 	}
 
 	/* ── Skills ─────────────────────────────────── */
@@ -425,41 +453,4 @@
 		}
 	}
 
-	/* ── CTA ─────────────────────────────────────── */
-	.about-cta {
-		padding-top: 1rem;
-		border-top: 1px solid var(--border);
-	}
-
-	.about-cta__heading {
-		font-size: var(--text-2xl);
-		font-weight: 600;
-		letter-spacing: -0.02em;
-		margin-bottom: 1rem;
-	}
-
-	.about-cta__sub {
-		font-size: var(--text-base);
-		color: var(--text-muted);
-		max-width: 480px;
-		line-height: 1.7;
-		margin-bottom: 2rem;
-	}
-
-	.btn {
-		display: inline-flex;
-		align-items: center;
-		padding: 0.85rem 2rem;
-		background: var(--accent);
-		color: var(--bg);
-		border-radius: var(--radius-full);
-		font-size: var(--text-sm);
-		font-weight: 500;
-		letter-spacing: 0.04em;
-		transition: transform 0.2s var(--ease-out-expo), opacity 0.2s;
-
-		&:hover {
-			transform: translateY(-2px);
-		}
-	}
 </style>

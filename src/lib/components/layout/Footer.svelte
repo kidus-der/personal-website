@@ -3,7 +3,7 @@
 
 	const socials = [
 		{ href: 'https://github.com/kidus-der', label: 'GitHub' },
-		{ href: 'https://linkedin.com/in/kidus-der', label: 'LinkedIn' }
+		{ href: 'https://www.linkedin.com/in/kidus-dereje-zewde-804424241/', label: 'LinkedIn' }
 	];
 </script>
 

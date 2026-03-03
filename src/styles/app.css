@@ -48,22 +48,22 @@
 	--border: rgba(255, 255, 255, 0.08);
 	--text: #f0f0f0;
 	--text-muted: rgba(240, 240, 240, 0.45);
-	--accent: #e8ff47;
-	--accent-dim: rgba(232, 255, 71, 0.15);
+	--accent: #F05924;
+	--accent-dim: rgba(240, 89, 36, 0.15);
 }
 
 /* ============================================================
    Theme: Light
    ============================================================ */
 [data-theme="light"] {
-	--bg: #fafafa;
-	--surface: #f0f0f0;
-	--surface-raised: #ffffff;
-	--border: rgba(0, 0, 0, 0.08);
+	--bg: #ffffff;
+	--surface: #f4f6ff;
+	--surface-raised: #eef1ff;
+	--border: rgba(43, 92, 230, 0.12);
 	--text: #0a0a0a;
 	--text-muted: rgba(10, 10, 10, 0.5);
-	--accent: #1a1a1a;
-	--accent-dim: rgba(26, 26, 26, 0.08);
+	--accent: #2B5CE6;
+	--accent-dim: rgba(43, 92, 230, 0.10);
 }
 
 /* ============================================================
@@ -106,6 +106,31 @@ html.lenis body {
 .lenis.lenis-stopped {
 	overflow: hidden;
 }
+
+/* Custom scrollbar — accent-tinted, minimal */
+html {
+	scrollbar-width: thin;
+	scrollbar-color: var(--accent) transparent;
+}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+	background: var(--accent);
+	border-radius: var(--radius-full);
+	opacity: 0.7;
+}
+::-webkit-scrollbar-thumb:hover { opacity: 1; }
+
+/* Inline accent links (e.g. "Scam AI") */
+.accent-link {
+	color: var(--accent);
+	background-image: linear-gradient(var(--accent), var(--accent));
+	background-repeat: no-repeat;
+	background-position: 0 100%;
+	background-size: 0% 1px;
+	transition: background-size 0.3s ease;
+}
+.accent-link:hover { background-size: 100% 1px; }
 
 /* Focus ring */
 :focus-visible {

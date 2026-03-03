@@ -20,8 +20,8 @@
 </script>
 
 <svelte:head>
-	<title>Kidus Dereje — ML Engineer & Builder</title>
-	<meta name="description" content="Kidus Dereje Zewde — ML Engineer, researcher, and software builder. Computing Science + Economics at the University of Alberta." />
+	<title>Kidus Dereje — Founding Engineer & Builder</title>
+	<meta name="description" content="Kidus Dereje Zewde — Founding Engineer, researcher, and software builder. Computing Science + Economics at the University of Alberta." />
 </svelte:head>
 
 <main>
@@ -39,8 +39,9 @@
 			</h1>
 
 			<p bind:this={subheadline} class="hero__sub">
+				Founding Engineer at <a href="https://www.scam.ai/en" target="_blank" rel="noopener noreferrer" class="accent-link">Scam AI</a>,
 				Computing Science + Economics student at the University of Alberta,
-				ML Engineer at Scam AI, and published researcher in AI detection.
+				and a published researcher and lover of all things AI and ML.
 			</p>
 
 			<div bind:this={cta} class="hero__cta">
@@ -48,7 +49,7 @@
 					View my work
 				</a>
 				<a href="/blog" class="btn btn--ghost" use:cursorTarget={'hover'}>
-					Read my writing
+					Read my Blog
 				</a>
 			</div>
 		</div>
@@ -81,7 +82,7 @@
 						<div class="project-card__info">
 							<span class="project-card__index">0{i + 1}</span>
 							<div>
-								<h3 class="project-card__title">{project.title}</h3>
+								<h3 class="project-card__title" data-text={project.title}>{project.title}</h3>
 								<p class="project-card__desc">{project.description}</p>
 							</div>
 							<span class="project-card__year">{project.year}</span>
@@ -89,6 +90,21 @@
 					</a>
 				{/each}
 			</div>
+		</div>
+	</section>
+
+	<!-- ================================================
+		CTA
+	================================================ -->
+	<section class="cta" use:revealOnScroll>
+		<div class="cta__inner">
+			<h2 class="cta__heading">Let's build something.</h2>
+			<p class="cta__sub">
+				Open to interesting research collaborations and any other opportunities!
+			</p>
+			<a href="mailto:kidusdereje41@gmail.com" class="btn btn--primary" use:cursorTarget={'hover'} use:magnetic>
+				Get in touch
+			</a>
 		</div>
 	</section>
 </main>
@@ -211,8 +227,8 @@
 	}
 
 	.btn--ghost:hover {
-		border-color: var(--text-muted);
-		color: var(--text);
+		border-color: var(--accent);
+		color: var(--accent);
 	}
 
 	/* ── Selected work ────────────────────────────── */
@@ -304,11 +320,35 @@
 		font-size: var(--text-lg);
 		font-weight: 500;
 		margin-bottom: 0.25rem;
+		position: relative;
+	}
+
+	.project-card__title::after {
+		content: attr(data-text);
+		position: absolute;
+		inset: 0;
+		color: var(--accent);
+		clip-path: inset(100% 0 0 0);
+		transition: clip-path 0.35s var(--ease-out-expo);
+		pointer-events: none;
+	}
+
+	.project-card:hover .project-card__title::after {
+		clip-path: inset(0% 0 0 0);
 	}
 
 	.project-card__desc {
 		font-size: var(--text-sm);
 		color: var(--text-muted);
+		text-decoration: underline;
+		text-decoration-color: transparent;
+		text-underline-offset: 3px;
+		text-decoration-thickness: 1px;
+		transition: text-decoration-color 0.3s var(--ease-out-expo);
+	}
+
+	.project-card:hover .project-card__desc {
+		text-decoration-color: var(--accent);
 	}
 
 	.project-card__year {
@@ -316,5 +356,31 @@
 		color: var(--text-muted);
 		margin-left: auto;
 		margin-top: 0.1rem;
+	}
+
+	/* ── CTA ──────────────────────────────────────── */
+	.cta {
+		padding: var(--spacing-section) var(--spacing-container);
+		border-top: 1px solid var(--border);
+	}
+
+	.cta__inner {
+		max-width: 1400px;
+		margin: 0 auto;
+	}
+
+	.cta__heading {
+		font-size: var(--text-3xl);
+		font-weight: 600;
+		letter-spacing: -0.03em;
+		margin-bottom: 1rem;
+	}
+
+	.cta__sub {
+		font-size: var(--text-lg);
+		color: var(--text-muted);
+		max-width: 480px;
+		line-height: 1.7;
+		margin-bottom: 2.5rem;
 	}
 </style>
