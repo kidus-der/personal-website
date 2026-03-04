@@ -49,7 +49,7 @@
 		border-radius: 50%;
 		background: var(--accent);
 		pointer-events: none;
-		z-index: 9999;
+		z-index: 10000;
 		transform: translate(-50%, -50%);
 		will-change: transform;
 		transition:

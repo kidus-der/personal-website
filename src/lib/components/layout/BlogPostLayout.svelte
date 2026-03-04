@@ -3,6 +3,8 @@
 	import { gsap } from 'gsap';
 	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 	import { revealOnScroll } from '$lib/actions/revealOnScroll';
+	import { cursorTarget } from '$lib/actions/cursor';
+	import { cursorStore } from '$lib/stores/cursor';
 
 	interface Heading {
 		id: string;
@@ -45,17 +47,47 @@
 			text: el.textContent?.replace(/^#\s*/, '').trim() ?? '',
 			level: el.tagName === 'H2' ? 2 : 3
 		}));
-		if (headings.length < 2) return;
-		const observer = new IntersectionObserver(
-			(entries) => {
-				for (const entry of entries) {
-					if (entry.isIntersecting) activeId = entry.target.id;
-				}
-			},
-			{ rootMargin: '-10% 0px -80% 0px' }
-		);
-		els.forEach((el) => observer.observe(el));
-		return () => observer.disconnect();
+		if (headings.length >= 2) {
+			const observer = new IntersectionObserver(
+				(entries) => {
+					for (const entry of entries) {
+						if (entry.isIntersecting) activeId = entry.target.id;
+					}
+				},
+				{ rootMargin: '-10% 0px -80% 0px' }
+			);
+			els.forEach((el) => observer.observe(el));
+			const disconnectObserver = () => observer.disconnect();
+			// Attach prose link cursor handlers then return combined cleanup
+			const proseLinks = Array.from(proseEl.querySelectorAll('a'));
+			const enter = () => cursorStore.setVariant('hover');
+			const leave = () => cursorStore.setVariant('default');
+			proseLinks.forEach((link) => {
+				link.addEventListener('mouseenter', enter);
+				link.addEventListener('mouseleave', leave);
+			});
+			return () => {
+				disconnectObserver();
+				proseLinks.forEach((link) => {
+					link.removeEventListener('mouseenter', enter);
+					link.removeEventListener('mouseleave', leave);
+				});
+			};
+		}
+		// No TOC — still attach prose link cursor handlers
+		const proseLinks = Array.from(proseEl.querySelectorAll('a'));
+		const enter = () => cursorStore.setVariant('hover');
+		const leave = () => cursorStore.setVariant('default');
+		proseLinks.forEach((link) => {
+			link.addEventListener('mouseenter', enter);
+			link.addEventListener('mouseleave', leave);
+		});
+		return () => {
+			proseLinks.forEach((link) => {
+				link.removeEventListener('mouseenter', enter);
+				link.removeEventListener('mouseleave', leave);
+			});
+		};
 	});
 
 	onMount(() => {
@@ -91,7 +123,7 @@
 
 		<!-- Header — back link + meta -->
 		<header class="post-header" use:revealOnScroll>
-			<a href="/blog" class="back-link">← All posts</a>
+			<a href="/blog" class="back-link" use:cursorTarget={'hover'}>← All posts</a>
 
 			{#if tags.length > 0}
 				<div class="post__tags">
@@ -172,7 +204,7 @@
 									class:toc__item--h3={heading.level === 3}
 									class:toc__item--active={activeId === heading.id}
 								>
-									<a href="#{heading.id}" class="toc__link">{heading.text}</a>
+									<a href="#{heading.id}" class="toc__link" use:cursorTarget={'hover'}>{heading.text}</a>
 								</li>
 							{/each}
 						</ul>
@@ -332,8 +364,8 @@
 		border-radius: var(--radius-lg);
 		padding: 1.5rem;
 		position: sticky;
-		top: 5rem;
-		max-height: calc(100vh - 7rem);
+		top: 9rem;
+		max-height: calc(100vh - 10.5rem);
 		overflow-y: auto;
 		scrollbar-width: none;
 	}
@@ -363,31 +395,29 @@
 		padding-left: 0.75rem;
 	}
 
-	/* Left-to-right underline animation — established site pattern */
+	/* Multi-line underline — text-decoration follows each line of text */
 	.toc__link {
 		display: block;
-		width: fit-content;
 		font-size: var(--text-sm);
 		line-height: 1.5;
 		color: var(--text-muted);
 		padding: 0.25rem 0;
-		text-decoration: none;
-		background-image: linear-gradient(var(--accent), var(--accent));
-		background-repeat: no-repeat;
-		background-position: 0 100%;
-		background-size: 0% 1px;
+		text-decoration: underline;
+		text-decoration-color: transparent;
+		text-underline-offset: 2px;
+		text-decoration-thickness: 1px;
 		transition:
-			background-size 0.3s var(--ease-out-expo),
+			text-decoration-color 0.3s var(--ease-out-expo),
 			color 0.2s;
 	}
 	.toc__link:hover {
 		color: var(--text);
-		background-size: 100% 1px;
+		text-decoration-color: var(--accent);
 	}
 	/* Active: permanent underline + accent color */
 	.toc__item--active .toc__link {
 		color: var(--accent);
-		background-size: 100% 1px;
+		text-decoration-color: var(--accent);
 	}
 
 	/* ── Prose article ───────────────────────────────────────── */

@@ -285,7 +285,7 @@ Everything in a blog post that uses animation is handled automatically — you d
 | Cover image | Page-enter reveal via `BlogPostLayout.svelte` on mount |
 | Post header (title, description, meta) | Page-enter reveal via `BlogPostLayout.svelte` on mount |
 | Cover parallax | GSAP ScrollTrigger in `BlogPostLayout.svelte` — fires automatically if a `coverImage` is present |
-| TOC active item | CSS transition (`background-size: 0% 1px → 100% 1px`) driven by `IntersectionObserver` — no setup |
+| TOC active item | `text-decoration-color` CSS transition driven by `IntersectionObserver` — renders an underline per line of text (multi-line safe), no setup |
 | Prose content | No individual scroll-reveals — intentional for reading focus |
 
 If `coverImage` is omitted, the placeholder still gets the page-enter reveal. The GSAP parallax only fires when a real `<img>` element is present.

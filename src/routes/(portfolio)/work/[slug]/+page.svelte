@@ -72,6 +72,7 @@
 		color: var(--text-muted);
 		transition: color 0.2s;
 		display: inline-block;
+		margin-top: 2rem;
 		margin-bottom: 3rem;
 
 		&:hover {

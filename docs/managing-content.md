@@ -22,7 +22,10 @@ import type { Project } from '$lib/types/content';
   year: number;
   url?: string;           // Live demo / product URL (renders a "Live" button)
   githubUrl?: string;     // GitHub repo URL (renders a "GitHub" button)
-  images: string[];       // Reserved for future project screenshots — use [] for now
+  images: string[];       // Project image paths from the static/ directory (e.g. ['/coeus/coeus-project-picture.png'])
+                          // First entry (images[0]) is displayed as the project thumbnail on /work, /work/[slug], and the home teaser
+                          // Images are rendered with object-fit: cover — use landscape screenshots or logos with safe center-crop
+                          // Use [] if no image is available yet; a grey placeholder renders automatically
   featured: boolean;      // true = eligible to appear on the home page teaser
 }
 ```
@@ -106,11 +109,13 @@ Each `.timeline__item` uses `use:revealOnScroll={{ delay: i * 0.08 }}`. The stag
 import type { Publication } from '$lib/types/content';
 
 {
-  title: string;      // Full paper title
-  venue: string;      // Conference or journal, e.g. "IEEE (submitted for review)" or "arXiv preprint"
-  year: string;       // Publication or submission year, e.g. "2025"
-  url: string;        // Direct link — arXiv abstract URL or DOI
-  bullets: string[];  // 2–4 key findings or contributions shown inside the modal
+  title: string;         // Full paper title
+  venue: string;         // Conference or journal, e.g. "ACM" or "arXiv preprint"
+  year: string;          // Publication or submission year, e.g. "2025"
+  url: string;           // arXiv abstract URL — always shown as the ghost "arXiv →" button
+  officialUrl?: string;  // Optional — link to officially published version (ACM DL, IEEE Xplore, etc.)
+                         // When set, a filled "Read Publication →" button appears alongside the arXiv button
+  bullets: string[];     // 2–4 key findings or contributions shown inside the modal
 }
 ```
 

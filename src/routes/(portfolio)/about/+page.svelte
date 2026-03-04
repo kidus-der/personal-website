@@ -2,6 +2,8 @@
 	import { revealOnScroll } from '$lib/actions/revealOnScroll';
 	import type { Publication } from '$lib/types/content';
 	import PublicationModal from '$lib/components/ui/PublicationModal.svelte';
+	import { gsap } from 'gsap';
+	import { cursorTarget } from '$lib/actions/cursor';
 
 	const experience = [
 		{
@@ -40,7 +42,7 @@
 	const publications: Publication[] = [
 		{
 			title: 'Do Deepfake Detectors Work in Reality?',
-			venue: 'ACM · IEEE',
+			venue: 'ACM',
 			year: '2025',
 			url: 'https://arxiv.org/abs/2502.10920',
 			officialUrl: 'https://dl.acm.org/doi/10.1145/3709022.3736545',
@@ -84,6 +86,34 @@
 		}
 	];
 
+	let tooltipEl: HTMLSpanElement | undefined = $state();
+	let tooltipTl: gsap.core.Timeline | null = null;
+
+	function showTooltip() {
+		if (!tooltipEl) return;
+		tooltipTl?.kill();
+		tooltipTl = gsap.timeline();
+		tooltipTl.fromTo(
+			tooltipEl,
+			{ opacity: 0, y: 8, scale: 0.93 },
+			{ opacity: 1, y: 0, scale: 1, duration: 0.3, ease: 'back.out(1.4)', transformOrigin: 'bottom left' }
+		);
+	}
+
+	function hideTooltip() {
+		if (!tooltipEl) return;
+		tooltipTl?.kill();
+		tooltipTl = gsap.timeline();
+		tooltipTl.to(tooltipEl, {
+			opacity: 0,
+			y: 6,
+			scale: 0.93,
+			duration: 0.18,
+			ease: 'power2.in',
+			transformOrigin: 'bottom left'
+		});
+	}
+
 	const skills = [
 		{
 			category: 'Languages',
@@ -125,7 +155,26 @@
 			</h1>
 			<div class="about-bio__body">
 				<p>
-					<span class="bio-highlight">ሰላም</span> and Hello! I'm Kidus Dereje Zewde — a Computing Science + Economics
+					<!-- svelte-ignore a11y_interactive_supports_focus -->
+					<span
+						class="selam-wrap"
+						role="button"
+						tabindex="0"
+						use:cursorTarget={'hover'}
+						onmouseenter={showTooltip}
+						onmouseleave={hideTooltip}
+						onfocus={showTooltip}
+						onblur={hideTooltip}
+						onkeydown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') showTooltip();
+							else if (e.key === 'Escape') hideTooltip();
+						}}
+					><span class="bio-highlight">ሰላም</span><span
+							bind:this={tooltipEl}
+							class="selam-tooltip"
+							role="tooltip"
+							aria-hidden="true"
+						>In the Amharic language, <strong class="selam-hl">ሰላም</strong> (pronounced sälam) means <strong class="selam-hl">Peace</strong>. It is the standard way of greeting someone in Ethiopia and Eritrea.</span></span> and Hello! I'm Kidus Dereje Zewde — a Computing Science + Economics
 					student at <span class="bio-highlight">University of Alberta</span> (graduating June 2026), currently
 					working as a Founding Engineer at
 					<a href="https://www.scam.ai/en" target="_blank" rel="noopener noreferrer" class="accent-link">Scam AI</a>.
@@ -451,6 +500,58 @@
 		li {
 			font-size: var(--text-sm);
 			color: var(--text);
+		}
+	}
+
+	/* ── Selam tooltip ──────────────────────────────── */
+	.selam-wrap {
+		position: relative;
+		display: inline-block;
+		cursor: none;
+	}
+
+	.selam-tooltip {
+		position: absolute;
+		bottom: calc(100% + 10px);
+		left: 0;
+		width: 280px;
+		padding: 0.875rem 1rem;
+		border-radius: var(--radius-md);
+		font-size: var(--text-sm);
+		line-height: 1.65;
+		font-weight: 400;
+		font-style: normal;
+		pointer-events: none;
+		opacity: 0;
+		z-index: 10;
+		white-space: normal;
+
+		/* Dark mode (default) */
+		background: rgb(255, 255, 255, 1);
+		border: 3px solid var(--accent);
+		color: rgba(35, 35, 37, 0.9);
+	}
+
+	:global([data-theme='light']) .selam-tooltip {
+		background: rgba(43, 92, 230, 1);
+		border-color: 3px solid var(--accent);
+		color: rgba(255, 255, 255, 0.92);
+	}
+
+	.selam-hl {
+		color: var(--accent);
+		font-weight: 700;
+		font-style: normal;
+	}
+
+	:global([data-theme='light']) .selam-hl {
+		color: #F05924;
+		font-weight: 700;
+	}
+
+	@media (max-width: 640px) {
+		.selam-tooltip {
+			display: none;
 		}
 	}
 

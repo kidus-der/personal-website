@@ -3,6 +3,7 @@
 	import { gsap } from '$lib/animation/gsap.config';
 	import type { Publication } from '$lib/types/content';
 	import { activePublicationIndex } from '$lib/stores/publications';
+	import { cursorTarget } from '$lib/actions/cursor';
 
 	interface Props {
 		pub: Publication;
@@ -85,7 +86,7 @@
 </script>
 
 <!-- Trigger button -->
-<button class="pub-trigger" onclick={openModal} aria-haspopup="dialog">
+<button class="pub-trigger" onclick={openModal} aria-haspopup="dialog" use:cursorTarget={'hover'}>
 	<div class="pub-trigger__inner">
 		<div class="pub-trigger__text">
 			<p class="pub-trigger__title">{pub.title}</p>
@@ -115,18 +116,18 @@
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 		>
-			<button class="modal-close" onclick={closeModal} aria-label="Close">×</button>
+			<button class="modal-close" onclick={closeModal} aria-label="Close" use:cursorTarget={'hover'}>×</button>
 
 			<span class="modal-label">Publication</span>
 
 			<h2 class="modal-title">{pub.title}</h2>
 
 			<div class="modal-links">
-				<a href={pub.url} target="_blank" rel="noopener noreferrer" class="modal-link modal-link--ghost">
+				<a href={pub.url} target="_blank" rel="noopener noreferrer" class="modal-link modal-link--ghost" use:cursorTarget={'hover'}>
 					arXiv →
 				</a>
 				{#if pub.officialUrl}
-					<a href={pub.officialUrl} target="_blank" rel="noopener noreferrer" class="modal-link modal-link--primary">
+					<a href={pub.officialUrl} target="_blank" rel="noopener noreferrer" class="modal-link modal-link--primary" use:cursorTarget={'hover'}>
 						Read Publication →
 					</a>
 				{/if}
@@ -151,7 +152,7 @@
 		padding: 1.5rem 0;
 		border-bottom: 1px solid var(--border);
 		transition: border-color 0.2s;
-		cursor: pointer;
+		cursor: none;
 		font-family: inherit;
 		background: none;
 	}
@@ -215,6 +216,7 @@
 		justify-content: center;
 		padding: 1.5rem;
 		background: rgba(0, 0, 0, 0.6);
+		cursor: none;
 	}
 
 	/* ── Modal card ─────────────────────────────── */
@@ -246,7 +248,7 @@
 		line-height: 1;
 		transition: color 0.2s;
 		font-family: inherit;
-		cursor: pointer;
+		cursor: none;
 		background: none;
 		border: none;
 	}

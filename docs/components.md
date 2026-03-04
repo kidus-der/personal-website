@@ -12,7 +12,7 @@ Key reusable components in `src/lib/components/`.
 
 ```ts
 interface Props {
-  pub: Publication;   // { title, venue, year, url, bullets[] }
+  pub: Publication;   // { title, venue, year, url, officialUrl?, bullets[] }
   index: number;      // position in the parent list — used for store coordination
 }
 ```
@@ -76,6 +76,30 @@ function closeModal() {
 ```
 
 Single `activeTl` variable — always killed before creating a new one to prevent competing animations.
+
+### Cursor integration
+
+`PublicationModal` uses `use:cursorTarget={'hover'}` on the trigger button, close button, arXiv link, and Read Publication link. All of these elements also have explicit `cursor: none` in their CSS — without this the user-agent `cursor: pointer` would show through even though the site-wide reset is in the universal selector.
+
+The modal overlay (`position: fixed`, `z-index: 9999`) is portaled to `document.body`. `CustomCursor` is at `z-index: 10000` so it renders above the overlay.
+
+### Link buttons
+
+The modal renders one or two link buttons below the title, wrapped in a `div.modal-links` flex row:
+
+- **arXiv button** (`.modal-link--ghost`): always rendered from `pub.url` — outline accent style
+- **Read Publication button** (`.modal-link--primary`): only rendered when `pub.officialUrl` is set — filled accent style, links to the officially published version (e.g. ACM DL, IEEE Xplore, Springer)
+
+```svelte
+<div class="modal-links">
+  <a href={pub.url} class="modal-link modal-link--ghost">arXiv →</a>
+  {#if pub.officialUrl}
+    <a href={pub.officialUrl} class="modal-link modal-link--primary">Read Publication →</a>
+  {/if}
+</div>
+```
+
+To add a "Read Publication" button to a paper, set `officialUrl` in its `Publication` entry. See [`docs/managing-content.md`](./managing-content.md) for the data format.
 
 ### Svelte 5 notes
 
@@ -150,13 +174,70 @@ headings = Array.from(els).map((el) => ({
 
 - Only renders if `headings.length >= 2`
 - Hidden below 1100px via CSS (`display: none`)
-- Active section tracking via `IntersectionObserver` with `rootMargin: '-10% 0px -80% 0px'` — the active item gets `background: var(--accent-dim)` plus the left-to-right underline CSS animation
+- Active section tracking via `IntersectionObserver` with `rootMargin: '-10% 0px -80% 0px'` — the active item gets `background: var(--accent-dim)` plus a `text-decoration-color: var(--accent)` underline (multi-line safe; fades in rather than drawing left-to-right)
 - TOC items are plain anchor links (`href="#id"`) — Lenis handles smooth scroll to them
+- TOC links use `use:cursorTarget={'hover'}` so the custom cursor ring animates on hover
 
 ### Svelte 5 / reactivity notes
 
 - `coverWrapEl` and `coverImgEl` bound with `bind:this` — declared as `$state()` because they're referenced asynchronously in `onMount`
 - `headings` and `activeId` are `$state()` arrays/strings updated by the `IntersectionObserver` callback
+
+---
+
+---
+
+## CustomCursor
+
+**File:** `src/lib/components/animation/CustomCursor.svelte`
+
+The site uses a fully custom cursor — the native OS cursor is hidden site-wide and replaced by this component.
+
+### How it works
+
+- `cursor: none` is set on `*,*::before,*::after` in `app.css` as an author-level direct rule — this overrides the browser's `cursor: pointer` on `<a>` elements (which is a UA rule, always weaker than author rules)
+- `CustomCursor` is rendered in both the portfolio and blog layouts; it sits at `z-index: 10000` with `pointer-events: none` so it's always above all content but never blocks clicks
+- The `cursorStore` (`src/lib/stores/cursor`) holds the current variant (`'default'` | `'hover'` | `'drag'`)
+
+### Triggering cursor variants
+
+```svelte
+<a href="/" use:cursorTarget={'hover'}>Link</a>
+<div use:cursorTarget={'drag'}>Draggable</div>
+```
+
+Add `use:cursorTarget={'hover'}` to **every** interactive element (links, buttons, modal triggers). The action handles `mouseenter`/`mouseleave` and updates the store.
+
+**For mdsvex-generated prose links** (can't use Svelte actions on markdown output):
+
+```ts
+onMount(() => {
+  const links = proseEl.querySelectorAll('a');
+  const enter = () => cursorStore.setVariant('hover');
+  const leave = () => cursorStore.setVariant('default');
+  links.forEach((l) => {
+    l.addEventListener('mouseenter', enter);
+    l.addEventListener('mouseleave', leave);
+  });
+  return () => links.forEach((l) => {
+    l.removeEventListener('mouseenter', enter);
+    l.removeEventListener('mouseleave', leave);
+  });
+});
+```
+
+### Navigation reset
+
+SPA navigation fires before `mouseleave` on the clicked link, leaving the store in `'hover'`. Always reset in `afterNavigate`:
+
+```ts
+afterNavigate(() => {
+  cursorStore.setVariant('default');
+  // ... rest of afterNavigate
+});
+```
+
+This is already wired in both `(portfolio)/+layout.svelte` and `blog/+layout.svelte`.
 
 ---
 

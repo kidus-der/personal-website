@@ -49,6 +49,7 @@
 			onclick={() => themeStore.toggle()}
 			aria-label="Toggle theme"
 			use:magnetic
+			use:cursorTarget={'hover'}
 		>
 			<span class="nav__theme-icon" aria-hidden="true">
 				{#if $themeStore === 'dark'}☀{:else}☾{/if}
@@ -71,8 +72,12 @@
 
 	.nav--scrolled {
 		padding: 1rem var(--spacing-container);
-		background: rgba(0, 0, 0, 0.8);
+		background: rgba(0, 0, 0, 0.4);
 		backdrop-filter: blur(16px) saturate(1.5);
+	}
+
+	:global([data-theme="light"]) .nav--scrolled {
+		background: rgba(240, 240, 240, 0.75);
 	}
 
 	.nav__inner {
@@ -142,7 +147,7 @@
 		justify-content: center;
 		color: var(--text-muted);
 		transition: color 0.2s;
-		font-size: 1rem;
+		font-size: 1.75rem;
 	}
 
 	.nav__theme-toggle:hover {

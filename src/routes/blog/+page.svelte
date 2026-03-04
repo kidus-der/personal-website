@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { BlogPost } from '$lib/types/content';
+	import { cursorTarget } from '$lib/actions/cursor';
 
 	let { data }: { data: PageData } = $props();
 
@@ -47,7 +48,7 @@
 
 		<!-- Featured post -->
 		{#if featured}
-			<a href="/blog/{featured.slug}" class="featured-card">
+			<a href="/blog/{featured.slug}" class="featured-card" use:cursorTarget={'hover'}>
 				<div class="featured-card__visual" style="background: {getGradient(0)}">
 					<div class="featured-card__overlay"></div>
 					<span class="featured-card__badge">
@@ -75,7 +76,7 @@
 				<h2 class="recent-section__heading">More posts</h2>
 				<div class="posts-grid">
 					{#each rest as post, i}
-						<a href="/blog/{post.slug}" class="post-card">
+						<a href="/blog/{post.slug}" class="post-card" use:cursorTarget={'hover'}>
 							<div class="post-card__thumb" style="background: {getGradient(i + 1)}">
 								<span class="post-card__category">{post.tags[0] ?? 'Writing'}</span>
 							</div>

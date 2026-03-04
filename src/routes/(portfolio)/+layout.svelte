@@ -5,6 +5,7 @@
 	import Nav from '$lib/components/layout/Nav.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
 	import CustomCursor from '$lib/components/animation/CustomCursor.svelte';
+	import { cursorStore } from '$lib/stores/cursor';
 
 	interface Props {
 		children: import('svelte').Snippet;
@@ -20,6 +21,7 @@
 	});
 
 	afterNavigate(() => {
+		cursorStore.setVariant('default');
 		if (!pageEl) return;
 		const tl = createPageEnterTimeline(pageEl);
 		tl.play();
