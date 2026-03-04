@@ -151,8 +151,31 @@ Trade-off: this fades in rather than drawing left-to-right. If directional revea
 
 ## Page transitions
 
-Page enter/exit timelines live in `src/lib/animation/timelines/pageEnter.ts`. The portfolio layout manages them:
+Page enter/exit timelines live in `src/lib/animation/timelines/pageEnter.ts`. Both the portfolio layout and the blog layout use the same timeline factory:
 
-- On mount: play `createPageEnterTimeline(pageEl)`
-- `beforeNavigate`: cancel navigation, play `createPageExitTimeline(pageEl)`, then allow navigation
-- `afterNavigate`: play enter timeline on new page
+- **Portfolio** (`src/routes/(portfolio)/+layout.svelte`): on mount + `afterNavigate` play `createPageEnterTimeline(pageEl)`; `beforeNavigate` plays `createPageExitTimeline(pageEl)`
+- **Blog** (`src/routes/blog/+layout.svelte`): on mount + `afterNavigate` play `createPageEnterTimeline(pageEl)` — same factory, no exit timeline (navigation exits are instant for the blog section)
+
+## Blog post cover parallax
+
+`BlogPostLayout.svelte` applies a GSAP ScrollTrigger parallax to the cover image when a `coverImage` is present:
+
+```ts
+gsap.to(coverImgEl, {
+  yPercent: -15,
+  ease: 'none',
+  scrollTrigger: {
+    trigger: coverWrapEl,
+    start: 'top top',
+    end: 'bottom top',
+    scrub: true
+  }
+});
+```
+
+**Key details:**
+
+- The `<img>` is set to `height: 120%` and initially translated `translateY(-8.33%)` to center it — the extra 20% height is the room the parallax moves through
+- `ease: 'none'` + `scrub: true` means movement is 1:1 with scroll position (no spring)
+- The cover wrapper has `overflow: hidden` so the extra height is clipped — the gradient `::after` pseudo-element sits above the image at `z-index: 1`
+- The GSAP context is created inside `onMount` and cleaned up on component destroy via `gsap.context()`
