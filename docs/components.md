@@ -85,6 +85,81 @@ Single `activeTl` variable — always killed before creating a new one to preven
 
 ---
 
+## BlogPostLayout
+
+**File:** `src/lib/components/layout/BlogPostLayout.svelte`
+
+This is the mdsvex layout — every `.md` blog post is automatically wrapped in this component. It is configured as the default mdsvex layout in `svelte.config.js` via the `_` key. Frontmatter fields are passed as props automatically by mdsvex.
+
+### Props
+
+```ts
+interface Props {
+  title: string;
+  description: string;
+  publishedAt: string;
+  updatedAt?: string;
+  tags: string[];
+  readingTime?: number;    // calculated in +page.ts, passed via <Content readingTime={...} />
+  coverImage?: string;     // optional — if omitted, a gradient placeholder renders
+  children: Snippet;       // the compiled post body (injected by mdsvex)
+}
+```
+
+### Structure
+
+```
+┌─ .post-cover-wrap ─────────────────────────────────┐
+│  <img> or .post-cover__placeholder                  │
+│  ::after gradient (transparent → var(--bg))         │
+└─────────────────────────────────────────────────────┘
+┌─ .post-header ──────────────────────────────────────┐
+│  ← Back to writing   [tag pills]                    │
+│  <h1> title                                         │
+│  description · date · reading time                  │
+└─────────────────────────────────────────────────────┘
+┌─ .post-body (2-column grid: 1fr 260px) ─────────────┐
+│  ┌─ .prose-article ──────┐  ┌─ .toc-card ─────────┐ │
+│  │  <slot /> post body   │  │  Table of contents  │ │
+│  │  (prose styles)       │  │  (sticky, ≥2 h2/h3) │ │
+│  └───────────────────────┘  └─────────────────────┘ │
+└─────────────────────────────────────────────────────┘
+```
+
+The `.prose-article` comes **first** in DOM order so it naturally fills full width when the TOC is absent (e.g. on mobile, or when < 2 headings exist). The TOC is the second grid child and sits in the right column.
+
+### Cover image
+
+- Height: `clamp(220px, 50vh, 520px)` — caps at 520px on large screens
+- `overflow: hidden` + `border-radius: var(--radius-lg)` on the wrapper
+- The `::after` pseudo-element fades the bottom 55% of the cover into `var(--bg)` — creating the "melt" effect between image and content
+- When `coverImage` is provided: a `<img>` at `height: 120%; transform: translateY(-8.33%)` — the extra height + initial offset gives GSAP room to parallax. See [animation-system.md](./animation-system.md) for the full parallax setup.
+- When `coverImage` is omitted: a `div.post-cover__placeholder` with a CSS gradient renders in its place (no parallax applied)
+
+### Table of contents
+
+```ts
+// Built in onMount — runs after prose is in the DOM
+const els = proseEl.querySelectorAll('h2[id], h3[id]');
+headings = Array.from(els).map((el) => ({
+  id: el.id,
+  text: el.textContent ?? '',
+  level: el.tagName === 'H2' ? 2 : 3
+}));
+```
+
+- Only renders if `headings.length >= 2`
+- Hidden below 1100px via CSS (`display: none`)
+- Active section tracking via `IntersectionObserver` with `rootMargin: '-10% 0px -80% 0px'` — the active item gets `background: var(--accent-dim)` plus the left-to-right underline CSS animation
+- TOC items are plain anchor links (`href="#id"`) — Lenis handles smooth scroll to them
+
+### Svelte 5 / reactivity notes
+
+- `coverWrapEl` and `coverImgEl` bound with `bind:this` — declared as `$state()` because they're referenced asynchronously in `onMount`
+- `headings` and `activeId` are `$state()` arrays/strings updated by the `IntersectionObserver` callback
+
+---
+
 ## Button (`btn`)
 
 Not a standalone component — a CSS class convention used across portfolio pages.
