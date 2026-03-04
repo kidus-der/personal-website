@@ -45,12 +45,28 @@
 			</p>
 
 			<div bind:this={cta} class="hero__cta">
-				<a href="/work" class="btn btn--primary" use:cursorTarget={'hover'} use:magnetic>
-					View my work
-				</a>
-				<a href="/blog" class="btn btn--ghost" use:cursorTarget={'hover'}>
-					Read my Blog
-				</a>
+				<div class="hero__cta-buttons">
+					<a href="/work" class="btn btn--primary" use:cursorTarget={'hover'} use:magnetic>
+						View my work
+					</a>
+					<a href="/blog" class="btn btn--ghost" use:cursorTarget={'hover'}>
+						Read my Blog
+					</a>
+				</div>
+				<div class="hero__socials">
+					<a href="https://github.com/kidus-der" target="_blank" rel="noopener noreferrer"
+					   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="GitHub">
+						<img src="/icons/github.gif" alt="GitHub" class="hero__social-icon" />
+					</a>
+					<a href="https://www.linkedin.com/in/kidus-dereje-zewde-804424241/" target="_blank" rel="noopener noreferrer"
+					   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="LinkedIn">
+						<img src="/icons/linkedin.gif" alt="LinkedIn" class="hero__social-icon" />
+					</a>
+					<a href="https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ" target="_blank" rel="noopener noreferrer"
+					   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="Google Scholar">
+						<img src="/icons/google.gif" alt="Google Scholar" class="hero__social-icon" />
+					</a>
+				</div>
 			</div>
 		</div>
 
@@ -182,8 +198,39 @@
 
 	.hero__cta {
 		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1.25rem;
+	}
+
+	.hero__cta-buttons {
+		display: flex;
 		gap: 1rem;
 		flex-wrap: wrap;
+	}
+
+	.hero__socials {
+		display: flex;
+		gap: 0.75rem;
+		align-items: center;
+	}
+
+	.hero__social-link {
+		display: block;
+		border-radius: var(--radius-sm);
+		transition: opacity 0.2s, transform 0.2s var(--ease-out-expo);
+	}
+
+	.hero__social-link:hover {
+		opacity: 0.8;
+		transform: translateY(-2px);
+	}
+
+	.hero__social-icon {
+		display: block;
+		height: 2.75rem;
+		width: 2.75rem;
+		object-fit: contain;
 	}
 
 	.hero__blob {
