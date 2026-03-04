@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { revealOnScroll } from '$lib/actions/revealOnScroll';
 	import { cursorTarget } from '$lib/actions/cursor';
-	import type { Project } from '$lib/types/content';
 	import { projects } from '$content/projects';
 </script>
 
@@ -30,7 +29,11 @@
 					use:cursorTarget={'hover'}
 				>
 					<div class="work-item__thumb">
-						<div class="work-item__placeholder"></div>
+						{#if project.images[0]}
+							<img src={project.images[0]} alt={project.title} class="work-item__img" />
+						{:else}
+							<div class="work-item__placeholder"></div>
+						{/if}
 					</div>
 					<div class="work-item__meta">
 						<span class="work-item__year">{project.year}</span>
@@ -129,6 +132,12 @@
 		width: 100%;
 		height: 100%;
 		background: var(--surface-raised);
+	}
+
+	.work-item__img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
 	}
 
 	.work-item__meta {

@@ -5,6 +5,7 @@
 	import { cursorTarget } from '$lib/actions/cursor';
 	import { magnetic } from '$lib/actions/magnetic';
 	import { projects } from '$content/projects';
+	import { themeStore } from '$lib/stores/theme';
 
 	let eyebrow: HTMLElement;
 	let headline: HTMLElement;
@@ -30,7 +31,7 @@
 	================================================ -->
 	<section class="hero">
 		<div class="hero__inner">
-			<span bind:this={eyebrow} class="hero__eyebrow">ML Engineer · Researcher · Builder</span>
+			<span bind:this={eyebrow} class="hero__eyebrow"><span class="hero__eyebrow-name">Kidus: </span>ML Engineer · Researcher · Builder</span>
 
 			<h1 bind:this={headline} class="hero__headline">
 				<span class="line">Building intelligent</span>
@@ -41,7 +42,7 @@
 			<p bind:this={subheadline} class="hero__sub">
 				Founding Engineer at <a href="https://www.scam.ai/en" target="_blank" rel="noopener noreferrer" class="accent-link">Scam AI</a>,
 				Computing Science + Economics student at the University of Alberta,
-				and a published researcher and lover of all things AI and ML.
+				and a published <a href="https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ" target="_blank" rel="noopener noreferrer" class="accent-link">researcher</a> and lover of all things AI and ML.
 			</p>
 
 			<div bind:this={cta} class="hero__cta">
@@ -56,15 +57,21 @@
 				<div class="hero__socials">
 					<a href="https://github.com/kidus-der" target="_blank" rel="noopener noreferrer"
 					   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="GitHub">
-						<img src="/icons/github.gif" alt="GitHub" class="hero__social-icon" />
+						<img
+						src={$themeStore === 'dark'
+							? '/icons/github/GitHub_Invertocat_White.svg'
+							: '/icons/github/GitHub_Invertocat_Black.svg'}
+						alt="GitHub"
+						class="hero__social-icon"
+					/>
 					</a>
 					<a href="https://www.linkedin.com/in/kidus-dereje-zewde-804424241/" target="_blank" rel="noopener noreferrer"
 					   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="LinkedIn">
-						<img src="/icons/linkedin.gif" alt="LinkedIn" class="hero__social-icon" />
+						<img src="/icons/linkedin.svg" alt="LinkedIn" class="hero__social-icon" />
 					</a>
 					<a href="https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ" target="_blank" rel="noopener noreferrer"
 					   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="Google Scholar">
-						<img src="/icons/google.gif" alt="Google Scholar" class="hero__social-icon" />
+						<img src="/icons/google-scholar-icon.svg" alt="Google Scholar" class="hero__social-icon" />
 					</a>
 				</div>
 			</div>
@@ -93,7 +100,11 @@
 						use:cursorTarget={'hover'}
 					>
 						<div class="project-card__thumb">
-							<div class="project-card__placeholder"></div>
+							{#if project.images[0]}
+								<img src={project.images[0]} alt={project.title} class="project-card__img" />
+							{:else}
+								<div class="project-card__placeholder"></div>
+							{/if}
 						</div>
 						<div class="project-card__info">
 							<span class="project-card__index">0{i + 1}</span>
@@ -147,11 +158,15 @@
 		padding-top: 6rem;
 	}
 
+	.hero__eyebrow-name {
+		color: var(--accent);
+	}
+
 	.hero__eyebrow {
 		display: inline-flex;
 		align-items: center;
 		gap: 0.6rem;
-		font-size: var(--text-xs);
+		font-size: calc(var(--text-xs) * 1.4);
 		letter-spacing: 0.12em;
 		text-transform: uppercase;
 		color: var(--text-muted);
@@ -173,7 +188,7 @@
 	}
 
 	.hero__headline {
-		font-size: var(--text-display);
+		font-size: calc(var(--text-display) * 1.2);
 		font-weight: 600;
 		line-height: 1.05;
 		letter-spacing: -0.03em;
@@ -189,7 +204,7 @@
 	}
 
 	.hero__sub {
-		font-size: var(--text-lg);
+		font-size: calc(var(--text-lg) * 1.2);
 		color: var(--text-muted);
 		max-width: 480px;
 		line-height: 1.7;
@@ -347,6 +362,12 @@
 		width: 100%;
 		height: 100%;
 		background: var(--surface-raised);
+	}
+
+	.project-card__img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
 	}
 
 	.project-card__info {

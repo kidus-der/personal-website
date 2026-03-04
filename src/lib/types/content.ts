@@ -37,5 +37,6 @@ export interface Publication {
 	venue: string;
 	year: string;
 	url: string;
+	officialUrl?: string;
 	bullets: string[];
 }

@@ -121,14 +121,16 @@
 
 			<h2 class="modal-title">{pub.title}</h2>
 
-			<a
-				href={pub.url}
-				target="_blank"
-				rel="noopener noreferrer"
-				class="modal-link"
-			>
-				Read on arXiv →
-			</a>
+			<div class="modal-links">
+				<a href={pub.url} target="_blank" rel="noopener noreferrer" class="modal-link modal-link--ghost">
+					arXiv →
+				</a>
+				{#if pub.officialUrl}
+					<a href={pub.officialUrl} target="_blank" rel="noopener noreferrer" class="modal-link modal-link--primary">
+						Read Publication →
+					</a>
+				{/if}
+			</div>
 
 			<hr class="modal-divider" />
 
@@ -272,24 +274,38 @@
 		padding-right: 2rem;
 	}
 
+	.modal-links {
+		display: flex;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		margin-bottom: 1.75rem;
+	}
+
 	.modal-link {
 		display: inline-flex;
 		align-items: center;
 		gap: 0.4rem;
 		padding: 0.6rem 1.4rem;
-		background: var(--accent);
-		color: var(--bg);
 		border-radius: var(--radius-full);
 		font-size: var(--text-sm);
 		font-weight: 500;
 		letter-spacing: 0.04em;
 		transition: transform 0.2s var(--ease-out-expo), opacity 0.2s;
-		margin-bottom: 1.75rem;
 	}
 
 	.modal-link:hover {
 		transform: translateY(-2px);
 		opacity: 0.9;
+	}
+
+	.modal-link--primary {
+		background: var(--accent);
+		color: var(--bg);
+	}
+
+	.modal-link--ghost {
+		border: 1px solid var(--accent);
+		color: var(--accent);
 	}
 
 	.modal-divider {

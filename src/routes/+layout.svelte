@@ -48,6 +48,13 @@
 			} catch(e) {}
 		})();
 	</script>`}
+	<link
+		rel="icon"
+		type="image/jpeg"
+		href={$themeStore === 'light'
+			? '/icons/website-icon/website-icon-light-mode.png'
+			: '/icons/website-icon/website-icon-dark-mode.png'}
+	/>
 </svelte:head>
 
 {@render children()}

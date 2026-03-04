@@ -40,9 +40,10 @@
 	const publications: Publication[] = [
 		{
 			title: 'Do Deepfake Detectors Work in Reality?',
-			venue: 'IEEE (submitted for review)',
+			venue: 'ACM · IEEE',
 			year: '2025',
 			url: 'https://arxiv.org/abs/2502.10920',
+			officialUrl: 'https://dl.acm.org/doi/10.1145/3709022.3736545',
 			bullets: [
 				'Investigated the vulnerability of deepfake detection methods to real-world data manipulations, particularly super-resolution post-processing.',
 				'Contributed to the creation of a novel real-world faceswap dataset to benchmark deepfake detectors in practical settings.'

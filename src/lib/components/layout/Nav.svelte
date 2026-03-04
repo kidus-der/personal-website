@@ -20,7 +20,13 @@
 >
 	<nav class="nav__inner">
 		<a href="/" class="nav__logo" use:cursorTarget={'hover'}>
-			<span class="nav__logo-inner">KDZ</span>
+			<img
+				src={$themeStore === 'light'
+					? '/icons/website-logo/website-logo-light-mode.png'
+					: '/icons/website-logo/website-logo-dark-mode.png'}
+				alt="Home"
+				class="nav__logo-img"
+			/>
 		</a>
 
 		<ul class="nav__links">
@@ -78,34 +84,19 @@
 	}
 
 	.nav__logo {
-		font-size: var(--text-base);
-		font-weight: 600;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
+		display: block;
+		line-height: 0;
 	}
 
-	.nav__logo-inner {
-		position: relative;
-		display: inline-block;
-		transition: transform 0.35s var(--ease-out-expo), color 0.2s;
+	.nav__logo-img {
+		height: 5.6rem;
+		width: auto;
+		border-radius: var(--radius-sm);
+		transition: transform 0.35s var(--ease-out-expo);
 	}
 
-	.nav__logo-inner::before {
-		content: 'KDZ';
-		position: absolute;
-		inset: 0;
-		color: var(--accent);
-		clip-path: inset(100% 0 0 0);
-		transition: clip-path 0.35s var(--ease-out-expo);
-	}
-
-	.nav__logo:hover .nav__logo-inner {
+	.nav__logo:hover .nav__logo-img {
 		transform: scale(1.1);
-		color: var(--text);
-	}
-
-	.nav__logo:hover .nav__logo-inner::before {
-		clip-path: inset(0% 0 0 0);
 	}
 
 	.nav__links {

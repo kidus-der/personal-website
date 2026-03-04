@@ -48,7 +48,11 @@
 		</header>
 
 		<div class="project-visual" use:revealOnScroll={{ threshold: 0.1 }}>
-			<div class="project-visual__placeholder"></div>
+			{#if project?.images[0]}
+				<img src={project.images[0]} alt={project.title} class="project-visual__img" />
+			{:else}
+				<div class="project-visual__placeholder"></div>
+			{/if}
 		</div>
 	</div>
 </main>
@@ -157,5 +161,12 @@
 	.project-visual__placeholder {
 		aspect-ratio: 16/9;
 		background: var(--surface-raised);
+	}
+
+	.project-visual__img {
+		display: block;
+		width: 100%;
+		aspect-ratio: 16/9;
+		object-fit: cover;
 	}
 </style>

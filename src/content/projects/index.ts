@@ -10,7 +10,7 @@ export const projects: Project[] = [
 		tags: ['Next.js', 'Gemini API', 'NextAuth', 'Prisma', 'PostgreSQL'],
 		year: 2025,
 		githubUrl: 'https://github.com/kidus-der/coeus-ai',
-		images: [],
+		images: ['/coeus/coeus-project-picture.png'],
 		featured: true
 	},
 	{
@@ -34,7 +34,7 @@ export const projects: Project[] = [
 		tags: ['AWS Lambda', 'AWS S3', 'AWS Bedrock', 'Python'],
 		year: 2024,
 		githubUrl: 'https://github.com/kidus-der/Poseidon-AWSHackathon',
-		images: [],
+		images: ['/poseidon/Poseidon-Logo.png'],
 		featured: false
 	}
 ];
