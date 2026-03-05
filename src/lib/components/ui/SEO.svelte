@@ -31,7 +31,7 @@
 
 	const canonical = $derived($page.url.href);
 
-	const ogImage = $derived(() => {
+	const ogImage = $derived.by(() => {
 		if (coverImage) {
 			// Absolute-ify relative paths (e.g. /images/cover.jpg)
 			return coverImage.startsWith('http') ? coverImage : `${SITE_URL}${coverImage}`;
@@ -53,14 +53,14 @@
 	<meta property="og:description" content={description} />
 	<meta property="og:url" content={canonical} />
 	<meta property="og:type" content={type} />
-	<meta property="og:image" content={ogImage()} />
+	<meta property="og:image" content={ogImage} />
 	<meta property="og:site_name" content={SITE_NAME} />
 
 	<!-- Twitter / X Card -->
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content={fullTitle} />
 	<meta name="twitter:description" content={description} />
-	<meta name="twitter:image" content={ogImage()} />
+	<meta name="twitter:image" content={ogImage} />
 
 	<!-- Article-specific tags -->
 	{#if type === 'article' && publishedAt}
