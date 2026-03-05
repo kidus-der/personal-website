@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 	import type { BlogPost } from '$lib/types/content';
 	import { cursorTarget } from '$lib/actions/cursor';
+	import SEO from '$lib/components/ui/SEO.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -29,10 +30,10 @@
 	const rest = $derived(data.posts.slice(1) as BlogPost[]);
 </script>
 
-<svelte:head>
-	<title>Blog — Kidus Dereje</title>
-	<meta name="description" content="Writing on machine learning, AI research, and software engineering." />
-</svelte:head>
+<SEO
+	title="Blog"
+	description="Writing on machine learning, AI research, and software engineering."
+/>
 
 <div class="blog-listing">
 	<header class="blog-listing__header">

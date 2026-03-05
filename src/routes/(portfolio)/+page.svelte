@@ -6,6 +6,7 @@
 	import { magnetic } from '$lib/actions/magnetic';
 	import { projects } from '$content/projects';
 	import { themeStore } from '$lib/stores/theme';
+	import SEO from '$lib/components/ui/SEO.svelte';
 
 	let eyebrow: HTMLElement;
 	let headline: HTMLElement;
@@ -20,10 +21,10 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Kidus Dereje — Founding Engineer & Builder</title>
-	<meta name="description" content="Kidus Dereje Zewde — Founding Engineer, researcher, and software builder. Computing Science + Economics at the University of Alberta." />
-</svelte:head>
+<SEO
+	title="Kidus Dereje"
+	description="Kidus Dereje Zewde — Founding Engineer, researcher, and software builder. Computing Science + Economics at the University of Alberta."
+/>
 
 <main>
 	<!-- ================================================

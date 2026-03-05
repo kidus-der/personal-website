@@ -4,6 +4,7 @@
 	import PublicationModal from '$lib/components/ui/PublicationModal.svelte';
 	import { gsap } from 'gsap';
 	import { cursorTarget } from '$lib/actions/cursor';
+	import SEO from '$lib/components/ui/SEO.svelte';
 
 	const experience = [
 		{
@@ -138,9 +139,24 @@
 	];
 </script>
 
+<SEO
+	title="About"
+	description="About Kidus Dereje Zewde — ML Engineer, researcher, and Computing Science student at the University of Alberta."
+/>
 <svelte:head>
-	<title>About — Kidus Dereje</title>
-	<meta name="description" content="About Kidus Dereje Zewde — ML Engineer, researcher, and Computing Science student at the University of Alberta." />
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'Person',
+		name: 'Kidus Dereje Zewde',
+		url: 'https://kidus.dev',
+		sameAs: [
+			'https://github.com/kidus-der',
+			'https://www.linkedin.com/in/kidus-dereje-zewde-804424241/',
+			'https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ'
+		],
+		jobTitle: 'Founding Engineer',
+		alumniOf: { '@type': 'CollegeOrUniversity', name: 'University of Alberta' }
+	})}</script>`}
 </svelte:head>
 
 <main class="about-page">

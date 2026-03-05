@@ -2,12 +2,13 @@
 	import { revealOnScroll } from '$lib/actions/revealOnScroll';
 	import { cursorTarget } from '$lib/actions/cursor';
 	import { projects } from '$content/projects';
+	import SEO from '$lib/components/ui/SEO.svelte';
 </script>
 
-<svelte:head>
-	<title>Work — Kidus</title>
-	<meta name="description" content="Selected projects by Kidus — design, engineering, and everything in between." />
-</svelte:head>
+<SEO
+	title="Work"
+	description="Selected projects by Kidus Dereje — design, engineering, and everything in between."
+/>
 
 <main class="work-page">
 	<div class="work-page__inner">
