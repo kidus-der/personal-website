@@ -7,6 +7,7 @@
 	import { projects } from '$content/projects';
 	import { themeStore } from '$lib/stores/theme';
 	import SEO from '$lib/components/ui/SEO.svelte';
+	import VantaBackground from '$lib/components/animation/VantaBackground.svelte';
 
 	let eyebrow: HTMLElement;
 	let headline: HTMLElement;
@@ -31,55 +32,56 @@
 		HERO
 	================================================ -->
 	<section class="hero">
+		<VantaBackground effect="GLOBE" interactive={false} />
 		<div class="hero__inner">
-			<span bind:this={eyebrow} class="hero__eyebrow"><span class="hero__eyebrow-name">Kidus: </span>ML Engineer · Researcher · Builder</span>
+			<div class="hero__content">
+				<span bind:this={eyebrow} class="hero__eyebrow"><span class="hero__eyebrow-name">Kidus: </span>ML Engineer · Researcher · Builder</span>
 
-			<h1 bind:this={headline} class="hero__headline">
-				<span class="line">Building intelligent</span>
-				<span class="line">systems with</span>
-				<span class="line hero__headline--accent">intention.</span>
-			</h1>
+				<h1 bind:this={headline} class="hero__headline">
+					<span class="line">Building intelligent</span>
+					<span class="line">systems with</span>
+					<span class="line hero__headline--accent">intention.</span>
+				</h1>
 
-			<p bind:this={subheadline} class="hero__sub">
-				Founding Engineer at <a href="https://www.scam.ai/en" target="_blank" rel="noopener noreferrer" class="accent-link">Scam AI</a>,
-				Computing Science + Economics student at the University of Alberta,
-				and a published <a href="https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ" target="_blank" rel="noopener noreferrer" class="accent-link">researcher</a> and lover of all things AI and ML.
-			</p>
+				<p bind:this={subheadline} class="hero__sub">
+					Founding Engineer at <a href="https://www.scam.ai/en" target="_blank" rel="noopener noreferrer" class="accent-link">Scam AI</a>,
+					Computing Science + Economics student at the University of Alberta,
+					and a published <a href="https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ" target="_blank" rel="noopener noreferrer" class="accent-link">researcher</a> and lover of all things AI and ML.
+				</p>
 
-			<div bind:this={cta} class="hero__cta">
-				<div class="hero__cta-buttons">
-					<a href="/work" class="btn btn--primary" use:cursorTarget={'hover'} use:magnetic>
-						View my work
-					</a>
-					<a href="/blog" class="btn btn--ghost" use:cursorTarget={'hover'}>
-						Read my Blog
-					</a>
-				</div>
-				<div class="hero__socials">
-					<a href="https://github.com/kidus-der" target="_blank" rel="noopener noreferrer"
-					   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="GitHub">
-						<img
-						src={$themeStore === 'dark'
-							? '/icons/github/GitHub_Invertocat_White.svg'
-							: '/icons/github/GitHub_Invertocat_Black.svg'}
-						alt="GitHub"
-						class="hero__social-icon"
-					/>
-					</a>
-					<a href="https://www.linkedin.com/in/kidus-dereje-zewde-804424241/" target="_blank" rel="noopener noreferrer"
-					   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="LinkedIn">
-						<img src="/icons/linkedin.svg" alt="LinkedIn" class="hero__social-icon" />
-					</a>
-					<a href="https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ" target="_blank" rel="noopener noreferrer"
-					   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="Google Scholar">
-						<img src="/icons/google-scholar-icon.svg" alt="Google Scholar" class="hero__social-icon" />
-					</a>
+				<div bind:this={cta} class="hero__cta">
+					<div class="hero__cta-buttons">
+						<a href="/work" class="btn btn--primary" use:cursorTarget={'hover'} use:magnetic>
+							View my work
+						</a>
+						<a href="/blog" class="btn btn--ghost" use:cursorTarget={'hover'}>
+							Read my Blog
+						</a>
+					</div>
+					<div class="hero__socials">
+						<a href="https://github.com/kidus-der" target="_blank" rel="noopener noreferrer"
+						   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="GitHub">
+							<img
+							src={$themeStore === 'dark'
+								? '/icons/github/GitHub_Invertocat_White.svg'
+								: '/icons/github/GitHub_Invertocat_Black.svg'}
+							alt="GitHub"
+							class="hero__social-icon"
+						/>
+						</a>
+						<a href="https://www.linkedin.com/in/kidus-dereje-zewde-804424241/" target="_blank" rel="noopener noreferrer"
+						   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="LinkedIn">
+							<img src="/icons/linkedin.svg" alt="LinkedIn" class="hero__social-icon" />
+						</a>
+						<a href="https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ" target="_blank" rel="noopener noreferrer"
+						   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="Google Scholar">
+							<img src="/icons/google-scholar-icon.svg" alt="Google Scholar" class="hero__social-icon" />
+						</a>
+					</div>
 				</div>
 			</div>
 		</div>
 
-		<!-- Ambient accent blob -->
-		<div class="hero__blob" aria-hidden="true"></div>
 	</section>
 
 	<!-- ================================================
@@ -157,6 +159,12 @@
 		margin: 0 auto;
 		width: 100%;
 		padding-top: 6rem;
+		position: relative;
+		z-index: 1;
+	}
+
+	.hero__content {
+		max-width: 640px;
 	}
 
 	.hero__eyebrow-name {
@@ -247,19 +255,6 @@
 		height: 2.75rem;
 		width: 2.75rem;
 		object-fit: contain;
-	}
-
-	.hero__blob {
-		position: absolute;
-		width: 600px;
-		height: 600px;
-		border-radius: 50%;
-		background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
-		top: 10%;
-		right: -10%;
-		pointer-events: none;
-		filter: blur(80px);
-		z-index: -1;
 	}
 
 	/* ── Buttons ──────────────────────────────────── */

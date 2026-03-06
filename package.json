@@ -18,6 +18,7 @@
     "@tailwindcss/vite": "^4.0.12",
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.14",
+    "@types/three": "0.134.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-svelte": "^2.46.1",
@@ -43,7 +44,9 @@
     "gsap": "^3.12.7",
     "lenis": "^1.2.3",
     "react": "^19.2.4",
-    "tailwindcss": "^4.0.12"
+    "tailwindcss": "^4.0.12",
+    "three": "0.134.0",
+    "vanta": "^0.5.24"
   },
   "type": "module",
   "pnpm": {

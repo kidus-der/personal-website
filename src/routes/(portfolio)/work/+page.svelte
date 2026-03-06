@@ -3,12 +3,15 @@
 	import { cursorTarget } from '$lib/actions/cursor';
 	import { projects } from '$content/projects';
 	import SEO from '$lib/components/ui/SEO.svelte';
+	import VantaBackground from '$lib/components/animation/VantaBackground.svelte';
 </script>
 
 <SEO
 	title="Work"
 	description="Selected projects by Kidus Dereje — design, engineering, and everything in between."
 />
+
+<VantaBackground effect="NET" opacity={0.3} interactive={false} />
 
 <main class="work-page">
 	<div class="work-page__inner">
