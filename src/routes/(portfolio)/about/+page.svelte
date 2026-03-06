@@ -5,6 +5,7 @@
 	import { gsap } from 'gsap';
 	import { cursorTarget } from '$lib/actions/cursor';
 	import SEO from '$lib/components/ui/SEO.svelte';
+	import VantaBackground from '$lib/components/animation/VantaBackground.svelte';
 
 	const experience = [
 		{
@@ -158,6 +159,8 @@
 		alumniOf: { '@type': 'CollegeOrUniversity', name: 'University of Alberta' }
 	})}</script>`}
 </svelte:head>
+
+<VantaBackground effect="NET" opacity={0.3} interactive={false} />
 
 <main class="about-page">
 	<div class="about-page__inner">

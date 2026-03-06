@@ -3,6 +3,7 @@
 	import type { BlogPost } from '$lib/types/content';
 	import { cursorTarget } from '$lib/actions/cursor';
 	import SEO from '$lib/components/ui/SEO.svelte';
+	import VantaBackground from '$lib/components/animation/VantaBackground.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -34,6 +35,8 @@
 	title="Blog"
 	description="Writing on machine learning, AI research, and software engineering."
 />
+
+<VantaBackground effect="NET" opacity={0.3} interactive={false} />
 
 <div class="blog-listing">
 	<header class="blog-listing__header">
