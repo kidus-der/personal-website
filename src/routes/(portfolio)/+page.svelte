@@ -8,6 +8,7 @@
 	import { themeStore } from '$lib/stores/theme';
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import VantaBackground from '$lib/components/animation/VantaBackground.svelte';
+	import ContactModal from '$lib/components/ui/ContactModal.svelte';
 
 	let eyebrow: HTMLElement;
 	let headline: HTMLElement;
@@ -132,9 +133,7 @@
 			<p class="cta__sub">
 				Open to interesting research collaborations and any other opportunities!
 			</p>
-			<a href="mailto:kidusdereje41@gmail.com" class="btn btn--primary" use:cursorTarget={'hover'} use:magnetic>
-				Get in touch
-			</a>
+			<ContactModal />
 		</div>
 	</section>
 </main>
