@@ -4,6 +4,7 @@
 	import { revealOnScroll } from '$lib/actions/revealOnScroll';
 	import { cursorTarget } from '$lib/actions/cursor';
 	import { error } from '@sveltejs/kit';
+	import SEO from '$lib/components/ui/SEO.svelte';
 
 	const slug = $page.params.slug;
 	const project = projects.find((p) => p.slug === slug);
@@ -13,10 +14,10 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{project?.title} — Kidus</title>
-	<meta name="description" content={project?.description} />
-</svelte:head>
+<SEO
+	title={project?.title ?? 'Project'}
+	description={project?.description ?? ''}
+/>
 
 <main class="project-page">
 	<div class="project-page__inner">

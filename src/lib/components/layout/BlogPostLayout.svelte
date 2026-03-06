@@ -5,6 +5,10 @@
 	import { revealOnScroll } from '$lib/actions/revealOnScroll';
 	import { cursorTarget } from '$lib/actions/cursor';
 	import { cursorStore } from '$lib/stores/cursor';
+	import SEO from '$lib/components/ui/SEO.svelte';
+	import { page } from '$app/stores';
+
+	const pageUrl = $derived($page.url.href);
 
 	interface Heading {
 		id: string;
@@ -16,14 +20,23 @@
 		title?: string;
 		description?: string;
 		publishedAt?: string;
+		updatedAt?: string;
 		tags?: string[];
 		readingTime?: number;
 		coverImage?: string;
 		children?: import('svelte').Snippet;
 	}
 
-	let { title, description, publishedAt, tags = [], readingTime, coverImage, children }: Props =
-		$props();
+	let {
+		title,
+		description,
+		publishedAt,
+		updatedAt,
+		tags = [],
+		readingTime,
+		coverImage,
+		children
+	}: Props = $props();
 
 	let proseEl: HTMLDivElement | undefined = $state();
 	let coverWrapEl: HTMLDivElement | undefined = $state();
@@ -105,9 +118,29 @@
 	});
 </script>
 
+<SEO
+	title={title ?? 'Blog'}
+	description={description ?? ''}
+	type="article"
+	{publishedAt}
+	{updatedAt}
+	{tags}
+	{coverImage}
+/>
 <svelte:head>
-	{#if title}<title>{title} — Kidus</title>{/if}
-	{#if description}<meta name="description" content={description} />{/if}
+	{#if title}
+		{@html `<script type="application/ld+json">${JSON.stringify({
+			'@context': 'https://schema.org',
+			'@type': 'Article',
+			headline: title,
+			description: description ?? '',
+			author: { '@type': 'Person', name: 'Kidus Dereje Zewde', url: 'https://kidus.dev' },
+			datePublished: publishedAt,
+			dateModified: updatedAt ?? publishedAt,
+			url: pageUrl,
+			image: coverImage ? `https://kidus.dev${coverImage}` : undefined
+		})}</script>`}
+	{/if}
 </svelte:head>
 
 <main class="post-page">

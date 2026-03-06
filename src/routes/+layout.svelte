@@ -5,6 +5,8 @@
 	import { initLenis, destroyLenis } from '$lib/animation/lenis.config';
 	import { themeStore } from '$lib/stores/theme';
 	import '../styles/app.css';
+	import { injectAnalytics } from '@vercel/analytics/sveltekit';
+	import { injectSpeedInsights } from '@vercel/speed-insights/sveltekit';
 
 	interface Props {
 		children: import('svelte').Snippet;
@@ -15,6 +17,10 @@
 	onMount(() => {
 		// Register GSAP plugins once
 		registerGSAPPlugins();
+
+		// Inject Vercel Analytics + Speed Insights (client-side, auto page-view tracking)
+		injectAnalytics();
+		injectSpeedInsights();
 
 		// Init smooth scroll
 		initLenis();
@@ -38,6 +44,17 @@
 	This must stay synchronous and inline.
 -->
 <svelte:head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="theme-color" content="#0a0a0a" />
+	<!-- WebSite structured data -->
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'WebSite',
+		name: 'Kidus Dereje',
+		url: 'https://kidus.dev',
+		author: { '@type': 'Person', name: 'Kidus Dereje Zewde' }
+	})}</script>`}
 	<!-- svelte-ignore -->
 	{@html `<script>
 		(function() {
