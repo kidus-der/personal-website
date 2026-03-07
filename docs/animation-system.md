@@ -156,6 +156,75 @@ Page enter/exit timelines live in `src/lib/animation/timelines/pageEnter.ts`. Bo
 - **Portfolio** (`src/routes/(portfolio)/+layout.svelte`): on mount + `afterNavigate` play `createPageEnterTimeline(pageEl)`; `beforeNavigate` plays `createPageExitTimeline(pageEl)`
 - **Blog** (`src/routes/blog/+layout.svelte`): on mount + `afterNavigate` play `createPageEnterTimeline(pageEl)` — same factory, no exit timeline (navigation exits are instant for the blog section)
 
+## Vanta.js WebGL backgrounds
+
+**Component:** `src/lib/components/animation/VantaBackground.svelte`
+
+WebGL ambient animations powered by Vanta.js + three.js. Two effects are in use: GLOBE (home hero) and NET (about, blog listing).
+
+### Packages
+
+```
+three@0.134.0   — pinned; Vanta depends on r134 internals. Versions ≥r135 break it.
+vanta           — imports specific effect modules: vanta/dist/vanta.globe.min, vanta/dist/vanta.net.min
+```
+
+### Async import pattern
+
+Both `three` and the Vanta effect module are dynamically imported inside `onMount` to avoid SSR execution. A `callId` integer guards against race conditions when the theme changes faster than the imports resolve:
+
+```ts
+let callId = 0;
+
+themeStore.subscribe(async (theme) => {
+  const myId = ++callId;
+  vantaEffect?.destroy();
+
+  const THREE = await import('three');
+  if (myId !== callId) return;  // theme changed again while we awaited — bail out
+
+  const { default: GLOBE } = await import('vanta/dist/vanta.globe.min');
+  if (myId !== callId) return;
+
+  vantaEffect = GLOBE({ el: containerEl, THREE, ...colors });
+});
+```
+
+The cleanup function (`return () => { ... }`) returned from `onMount` unsubscribes from the store and destroys the current effect.
+
+### CSS positioning modes
+
+The component applies a BEM modifier class based on the effect:
+
+```css
+/* GLOBE — fills a positioned container */
+.vanta-container--globe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* NET — full-viewport fixed background */
+.vanta-container--net {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+```
+
+Both modes have `pointer-events: none` — the WebGL canvas never captures mouse events. The GLOBE effect's mouse tracking works through its own internal event listeners bound to the container, which is separate from pointer-events CSS.
+
+### Theme color mapping
+
+Colors reinitialize on every theme switch (no hot-update API in Vanta — full destroy + reinit):
+
+| Theme | GLOBE bg | GLOBE color | GLOBE color2 | NET bg | NET color |
+|---|---|---|---|---|---|
+| Dark | `0x0a0a0a` | `0xF05924` | `0xffffff` | `0x0a0a0a` | `0xF05924` |
+| Light | `0xffffff` | `0x2B5CE6` | `0xF05924` | `0xffffff` | `0x2B5CE6` |
+
 ## Blog post cover parallax
 
 `BlogPostLayout.svelte` applies a GSAP ScrollTrigger parallax to the cover image when a `coverImage` is present:

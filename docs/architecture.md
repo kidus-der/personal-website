@@ -26,6 +26,10 @@ src/routes/
 │   ├── work/               → /work, /work/[slug]
 │   └── about/              → /about
 │
+├── api/
+│   └── contact/
+│       └── +server.ts      ← POST /api/contact — Resend email, rate-limited, server-only
+│
 └── blog/
     ├── +layout.svelte      ← Blog chrome: same portfolio Nav/Footer/CustomCursor + page transitions
     ├── +page.svelte        → /blog
@@ -49,6 +53,7 @@ The blog is a "second half" of the ecosystem — same design tokens, same domain
 - Theme: CSS custom properties on `<html data-theme>` — blocking inline script prevents flash
 - Publications: typed `Publication[]` array defined inline in `src/routes/(portfolio)/about/+page.svelte`
 - Active publication state: `src/lib/stores/publications.ts` — a `writable<number | null>` that lets multiple `PublicationModal` instances close each other when one opens
+- Contact form: `ContactModal` component → `POST /api/contact` → Resend SDK (server-side only) → email delivered to destination address. The destination address and API key never reach the client bundle.
 
 ## Blog post processing pipeline
 
@@ -65,7 +70,26 @@ The `BlogPostLayout.svelte` mdsvex layout receives frontmatter fields as props a
 
 > **Note on callouts.js:** The plugin is `.js` (not `.ts`) because `svelte.config.js` loads it directly via Node ESM with no TypeScript transpilation. It has `// @ts-nocheck` at the top because `checkJs: true` is enabled.
 
-## Key component: PublicationModal
+## Key components
+
+### SEO
+
+`src/lib/components/ui/SEO.svelte` — drop into any route's `<svelte:head>` equivalent. Handles `<title>`, meta description, canonical URL, Open Graph, Twitter Card, and article-specific tags (published/updated time, article:tag). Used on every portfolio page and every blog post.
+
+### VantaBackground
+
+`src/lib/components/animation/VantaBackground.svelte` — wraps Vanta.js WebGL effects. Two modes:
+
+- **GLOBE** — used on the home page hero, fills a positioned container (`position: absolute; inset: 0`). Mouse-interactive by default. three.js + vanta dynamically imported inside `onMount` to avoid SSR.
+- **NET** — used on the About and Blog listing pages as a `position: fixed; z-index: -1` full-viewport background layer. Non-interactive, `opacity: 0.35` by default.
+
+Subscribes to `themeStore` and reinitializes the WebGL effect with correct colors whenever the theme changes. A `callId` cancellation guard prevents race conditions when the theme switches faster than the async imports resolve.
+
+### ContactModal
+
+`src/lib/components/ui/ContactModal.svelte` — renders a `.btn--primary` trigger button that opens a GSAP-animated modal contact form. Submits to `POST /api/contact` with JSON. Owns its own portal, open/close GSAP timelines, and Escape key handler. Three UI states: idle/loading/success/error. On success, displays a confirmation and resets status on close. See [`docs/components.md`](./components.md) for full reference.
+
+### PublicationModal
 
 `src/lib/components/ui/PublicationModal.svelte`
 
@@ -74,3 +98,11 @@ The `BlogPostLayout.svelte` mdsvex layout receives frontmatter fields as props a
 - Uses a local **portal action** — on mount, the overlay node is appended to `document.body` so `position: fixed` isn't affected by ancestor `transform` stacking contexts (the `revealOnScroll` GSAP action on parent wrappers would otherwise constrain the overlay)
 - Portal `destroy()` guards with `node.isConnected` to prevent double-remove when Svelte also unmounts the `{#if}` block
 - `activePublicationIndex` store coordinates multi-instance close: when one modal opens, others subscribe and call `closeModal()` if their index no longer matches
+
+## Security
+
+See [`docs/security.md`](./security.md) for the full reference. Key points:
+
+- `RESEND_API_KEY` and the destination email address live in `$env/static/private` — never bundled into client JS. Confirmed by grepping the production build output.
+- `/api/contact` has server-side field validation + IP-based rate limiting (3 req / 15 min) + HTML escaping of all user input before interpolation into the email template.
+- HTTP security headers (`X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`) are applied globally via `vercel.json`.
