@@ -1,4 +1,5 @@
 .worktrees
+docs/
 node_modules
 .svelte-kit
 build
