@@ -40,9 +40,9 @@
 
 <div class="blog-listing">
 	<header class="blog-listing__header">
-		<h1 class="blog-listing__title">Writing</h1>
+		<h1 class="blog-listing__title">The Buna Print | የቡና እትም</h1>
 		<p class="blog-listing__sub">
-			Notes on machine learning, AI research, and the process of building things that matter.
+			A home for ideas, perspectives, thoughts, and everything else.
 		</p>
 	</header>
 
@@ -53,7 +53,7 @@
 		<!-- Featured post -->
 		{#if featured}
 			<a href="/blog/{featured.slug}" class="featured-card" use:cursorTarget={'hover'}>
-				<div class="featured-card__visual" style="background: {getGradient(0)}">
+				<div class="featured-card__visual" style={featured.coverImage ? `background-image: url('${featured.coverImage}'); background-size: cover; background-position: center;` : `background: ${getGradient(0)}`}>
 					<div class="featured-card__overlay"></div>
 					<span class="featured-card__badge">
 						{featured.tags[0] ?? 'Writing'}
@@ -81,7 +81,7 @@
 				<div class="posts-grid">
 					{#each rest as post, i}
 						<a href="/blog/{post.slug}" class="post-card" use:cursorTarget={'hover'}>
-							<div class="post-card__thumb" style="background: {getGradient(i + 1)}">
+							<div class="post-card__thumb" style={post.coverImage ? `background-image: url('${post.coverImage}'); background-size: cover; background-position: center;` : `background: ${getGradient(i + 1)}`}>
 								<span class="post-card__category">{post.tags[0] ?? 'Writing'}</span>
 							</div>
 							<div class="post-card__body">
@@ -110,7 +110,7 @@
 	.blog-listing {
 		max-width: 1100px;
 		margin: 0 auto;
-		padding: 4rem var(--spacing-container) 6rem;
+		padding: 7.5rem var(--spacing-container) 6rem;
 	}
 
 	.blog-listing__header {

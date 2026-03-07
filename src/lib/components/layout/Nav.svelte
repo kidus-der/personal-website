@@ -10,7 +10,7 @@
 	const navLinks = [
 		{ href: '/work', label: 'Work' },
 		{ href: '/about', label: 'About' },
-		{ href: '/blog', label: 'Blog' }
+		{ href: '/blog', label: 'The Buna Print' }
 	];
 </script>
 
@@ -65,7 +65,7 @@
 		left: 0;
 		right: 0;
 		z-index: 100;
-		padding: 1.5rem var(--spacing-container);
+		padding: 1.25rem var(--spacing-container);
 		transition: padding 0.4s var(--ease-out-expo), background 0.4s var(--ease-out-expo),
 			backdrop-filter 0.4s;
 	}

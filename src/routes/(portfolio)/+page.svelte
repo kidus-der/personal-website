@@ -33,7 +33,7 @@
 		HERO
 	================================================ -->
 	<section class="hero">
-		<VantaBackground effect="GLOBE" interactive={false} />
+		<VantaBackground effect="GLOBE" interactive={true} />
 		<div class="hero__inner">
 			<div class="hero__content">
 				<span bind:this={eyebrow} class="hero__eyebrow"><span class="hero__eyebrow-name">Kidus: </span>ML Engineer · Researcher · Builder</span>

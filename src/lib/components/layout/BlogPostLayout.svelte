@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { gsap } from 'gsap';
-	import { ScrollTrigger } from 'gsap/ScrollTrigger';
 	import { revealOnScroll } from '$lib/actions/revealOnScroll';
 	import { cursorTarget } from '$lib/actions/cursor';
 	import { cursorStore } from '$lib/stores/cursor';
@@ -39,7 +37,6 @@
 	}: Props = $props();
 
 	let proseEl: HTMLDivElement | undefined = $state();
-	let coverWrapEl: HTMLDivElement | undefined = $state();
 	let coverImgEl: HTMLImageElement | undefined = $state();
 	let headings: Heading[] = $state([]);
 	let activeId: string = $state('');
@@ -103,19 +100,6 @@
 		};
 	});
 
-	onMount(() => {
-		if (!coverImgEl || !coverWrapEl) return;
-		gsap.to(coverImgEl, {
-			yPercent: -15,
-			ease: 'none',
-			scrollTrigger: {
-				trigger: coverWrapEl,
-				start: 'top top',
-				end: 'bottom top',
-				scrub: true
-			}
-		});
-	});
 </script>
 
 <SEO
@@ -146,7 +130,7 @@
 <main class="post-page">
 	<div class="post-page__inner">
 		<!-- Cover image — smaller, gradient melt, parallax -->
-		<div class="post-cover-wrap" bind:this={coverWrapEl}>
+		<div class="post-cover-wrap">
 			{#if coverImage}
 				<img bind:this={coverImgEl} src={coverImage} alt={title ?? 'Post cover'} />
 			{:else}
@@ -265,26 +249,13 @@
 		margin: 0 auto;
 	}
 
-	/* ── Cover image — smaller, gradient melt, parallax ─────── */
+	/* ── Cover image ─────────────────────────────────────────── */
 	.post-cover-wrap {
-		position: relative;
 		overflow: hidden;
 		border-radius: var(--radius-lg);
 		border: 1px solid var(--border);
-		height: clamp(220px, 50vh, 520px);
+		height: clamp(275px, 62.5vh, 650px);
 		margin-bottom: 0;
-	}
-	/* Gradient fades image bottom into page background */
-	.post-cover-wrap::after {
-		content: '';
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		height: 55%;
-		background: linear-gradient(to bottom, transparent, var(--bg));
-		pointer-events: none;
-		z-index: 1;
 	}
 	.post-cover__placeholder {
 		width: 100%;
@@ -293,11 +264,9 @@
 	}
 	.post-cover-wrap img {
 		width: 100%;
-		height: 120%; /* Extra height for parallax room */
+		height: 100%;
 		object-fit: cover;
 		display: block;
-		transform: translateY(-8.33%); /* Center image in container */
-		will-change: transform;
 	}
 
 	/* ── Post header ─────────────────────────────────────────── */
@@ -519,10 +488,11 @@
 
 	:global(.prose strong) {
 		font-weight: 700;
-		color: var(--text);
+		color: var(--accent);
 	}
 	:global(.prose em) {
 		font-style: italic;
+		color: var(--accent);
 	}
 
 	/* Inline code — accent tint for readability in both themes */
@@ -632,6 +602,12 @@
 		border-radius: var(--radius-md);
 		border: 1px solid var(--border);
 	}
+	/* The Frame | እይታ — portrait and landscape both constrained */
+	:global(.prose h2[id^="the-frame"] ~ p img) {
+		max-width: 70%;
+		max-height: 70vh;
+	}
+
 	:global(.prose img + em) {
 		display: block;
 		text-align: center;
