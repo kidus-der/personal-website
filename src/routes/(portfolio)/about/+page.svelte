@@ -149,7 +149,7 @@
 		'@context': 'https://schema.org',
 		'@type': 'Person',
 		name: 'Kidus Dereje Zewde',
-		url: 'https://kidus.dev',
+		url: 'https://kidusder.com',
 		sameAs: [
 			'https://github.com/kidus-der',
 			'https://www.linkedin.com/in/kidus-dereje-zewde-804424241/',

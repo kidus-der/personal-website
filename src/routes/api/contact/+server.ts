@@ -55,7 +55,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 		from: 'Contact Form <onboarding@resend.dev>',
 		to: ['kidusdereje41@gmail.com'],
 		replyTo: email.trim(),
-		subject: `[kidus.dev] ${safeSubject}`,
+		subject: `[kidusder.com] ${safeSubject}`,
 		html: `
       <p><strong>From:</strong> ${safeName} (${safeEmail})</p>
       <p><strong>Subject:</strong> ${safeSubject}</p>

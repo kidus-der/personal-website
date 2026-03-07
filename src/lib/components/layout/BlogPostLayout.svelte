@@ -118,11 +118,11 @@
 			'@type': 'Article',
 			headline: title,
 			description: description ?? '',
-			author: { '@type': 'Person', name: 'Kidus Dereje Zewde', url: 'https://kidus.dev' },
+			author: { '@type': 'Person', name: 'Kidus Dereje Zewde', url: 'https://kidusder.com' },
 			datePublished: publishedAt,
 			dateModified: updatedAt ?? publishedAt,
 			url: pageUrl,
-			image: coverImage ? `https://kidus.dev${coverImage}` : undefined
+			image: coverImage ? `https://kidusder.com${coverImage}` : undefined
 		})}</script>`}
 	{/if}
 </svelte:head>

@@ -2,7 +2,7 @@ import type { RequestHandler } from './$types';
 import { projects } from '$content/projects';
 import type { BlogPost } from '$lib/types/content';
 
-const SITE_URL = 'https://kidus.dev';
+const SITE_URL = 'https://kidusder.com';
 
 type SitemapEntry = {
 	url: string;

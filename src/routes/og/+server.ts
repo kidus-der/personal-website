@@ -76,7 +76,7 @@ export const GET: RequestHandler = async ({ url }) => {
 						alignItems: 'center'
 					}
 				},
-				h('span', { style: { color: MUTED, fontSize: '20px', fontWeight: 400 } }, 'kidus.dev'),
+				h('span', { style: { color: MUTED, fontSize: '20px', fontWeight: 400 } }, 'kidusder.com'),
 				type === 'article'
 					? h(
 							'span',

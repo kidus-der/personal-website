@@ -52,7 +52,7 @@
 		'@context': 'https://schema.org',
 		'@type': 'WebSite',
 		name: 'Kidus Dereje',
-		url: 'https://kidus.dev',
+		url: 'https://kidusder.com',
 		author: { '@type': 'Person', name: 'Kidus Dereje Zewde' }
 	})}</script>`}
 	<!-- svelte-ignore -->

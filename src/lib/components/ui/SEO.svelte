@@ -13,7 +13,7 @@
 	}
 
 	const SITE_NAME = 'Kidus Dereje';
-	const SITE_URL = 'https://kidus.dev';
+	const SITE_URL = 'https://kidusder.com';
 
 	let {
 		title,
