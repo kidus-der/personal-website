@@ -17,6 +17,6 @@ export default defineConfig({
 		}
 	},
 	ssr: {
-		noExternal: ['gsap', 'lenis']
+		noExternal: ['gsap', 'lenis', 'resend']
 	}
 });
