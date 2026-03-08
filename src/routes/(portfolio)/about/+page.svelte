@@ -278,7 +278,7 @@
 
 <style>
 	.about-page {
-		padding: 8rem var(--spacing-container) var(--spacing-section);
+		padding: 6rem var(--spacing-container) var(--spacing-section);
 	}
 
 	.about-page__inner {
@@ -286,7 +286,7 @@
 		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-section);
+		gap: clamp(2.5rem, 5vw, 4rem);
 	}
 
 	.label {
