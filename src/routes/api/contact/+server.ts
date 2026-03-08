@@ -2,33 +2,12 @@ import { Resend } from 'resend';
 import { RESEND_API_KEY } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { createRateLimiter } from '$lib/server/rateLimit';
+import { escapeHtml, EMAIL_REGEX } from '$lib/server/validation';
 
-// In-memory rate limiter: 3 submissions per IP per 15 minutes.
+// 3 submissions per IP per 15 minutes.
 // Resets per serverless instance — sufficient protection for a personal site.
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 3;
-const RATE_WINDOW_MS = 15 * 60 * 1000;
-
-function checkRateLimit(ip: string): boolean {
-	const now = Date.now();
-	const entry = rateLimitMap.get(ip);
-	if (!entry || now > entry.resetAt) {
-		rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
-		return true;
-	}
-	if (entry.count >= RATE_LIMIT) return false;
-	entry.count++;
-	return true;
-}
-
-function escapeHtml(str: string): string {
-	return str
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#x27;');
-}
+const checkRateLimit = createRateLimiter(3, 15 * 60 * 1000);
 
 export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	const ip = getClientAddress();
@@ -41,7 +20,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	if (!name?.trim() || !email?.trim() || !subject?.trim() || !message?.trim()) {
 		return json({ error: 'All fields are required.' }, { status: 400 });
 	}
-	if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+	if (!EMAIL_REGEX.test(email)) {
 		return json({ error: 'Invalid email address.' }, { status: 400 });
 	}
 
