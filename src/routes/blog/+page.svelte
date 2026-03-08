@@ -4,6 +4,7 @@
 	import { cursorTarget } from '$lib/actions/cursor';
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import VantaBackground from '$lib/components/animation/VantaBackground.svelte';
+	import SubscribeSection from '$lib/components/ui/SubscribeSection.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -104,6 +105,8 @@
 		{/if}
 
 	{/if}
+
+	<SubscribeSection />
 </div>
 
 <style>
