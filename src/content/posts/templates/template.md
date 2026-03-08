@@ -23,4 +23,4 @@ Brief line about what/where the image is.
 
 Your reflection on the image here.
 
-*Kidus*
+*Kidus* | *ቅዱስ*
