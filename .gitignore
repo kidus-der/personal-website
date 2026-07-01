@@ -14,3 +14,4 @@ vite.config.ts.timestamp-*
 # CV - do not commit
 my-cv.pdf
 my-cv.tex
+.env*
