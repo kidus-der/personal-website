@@ -17,9 +17,17 @@
 
 	const featured = projects.filter((p) => p.featured).slice(0, 2);
 
+	let isMobile = $state(false);
+
 	onMount(() => {
+		isMobile = window.innerWidth <= 768;
+		const handleResize = () => (isMobile = window.innerWidth <= 768);
+		window.addEventListener('resize', handleResize);
+
 		const tl = createHeroRevealTimeline({ eyebrow, headline, subheadline, cta });
 		tl.play();
+
+		return () => window.removeEventListener('resize', handleResize);
 	});
 </script>
 
@@ -33,7 +41,7 @@
 		HERO
 	================================================ -->
 	<section class="hero">
-		<VantaBackground effect="GLOBE" interactive={true} />
+		<VantaBackground effect="GLOBE" interactive={true} opacity={isMobile ? 0.2 : 1} />
 		<div class="hero__inner">
 			<div class="hero__content">
 				<span bind:this={eyebrow} class="hero__eyebrow"><span class="hero__eyebrow-name">Kidus: </span>ML Engineer · Researcher · Builder</span>
@@ -162,6 +170,12 @@
 		z-index: 1;
 	}
 
+	@media (max-width: 768px) {
+		.hero__inner {
+			padding-top: 5rem;
+		}
+	}
+
 	.hero__content {
 		max-width: 640px;
 	}
@@ -188,6 +202,10 @@
 			background: var(--accent);
 			animation: pulse-accent 2s ease-in-out infinite;
 		}
+	}
+
+	:global([data-theme='light']) .hero__eyebrow {
+		color: #0a0a0a;
 	}
 
 	@keyframes pulse-accent {
@@ -217,6 +235,10 @@
 		max-width: 480px;
 		line-height: 1.7;
 		margin-bottom: 3rem;
+	}
+
+	:global([data-theme='light']) .hero__sub {
+		color: #0a0a0a;
 	}
 
 	.hero__cta {
