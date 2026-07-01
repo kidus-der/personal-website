@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { revealOnScroll } from '$lib/actions/revealOnScroll';
 	import type { Publication } from '$lib/types/content';
 	import PublicationModal from '$lib/components/ui/PublicationModal.svelte';
@@ -6,6 +7,7 @@
 	import { cursorTarget } from '$lib/actions/cursor';
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import VantaBackground from '$lib/components/animation/VantaBackground.svelte';
+	import { scrollStore } from '$lib/stores/scroll';
 
 	const experience = [
 		{
@@ -85,11 +87,51 @@
 				'Identified critical generalization gaps — detector performance is highly context-dependent (Spearman ρ as low as 0.01) and training data alignment outweighs architecture.',
 				'Developed deployment guidelines showing that modern generators (Midjourney, Flux) frequently defeat existing detectors, with a framework for threat-specific model selection.'
 			]
+		},
+		{
+			title: 'A Synthetic Eye Movement Dataset for Script Reading Detection: Real Trajectory Replay on a 3D Simulator',
+			venue: 'arXiv preprint',
+			year: '2026',
+			url: 'https://arxiv.org/abs/2604.05475',
+			bullets: [
+				'Released "final_dataset_v1", 144 sessions (72 reading, 72 conversation) totaling 12 hours of synthetic eye movement video at 25fps for script-reading detection in video interviews.',
+				'Demonstrated that generated trajectories preserve temporal dynamics of source data (KS D < 0.14 across all metrics).'
+			]
+		},
+		{
+			title: 'When the Forger Is the Judge: GPT-Image-2 Cannot Recognize Its Own Faked Documents',
+			venue: 'arXiv preprint',
+			year: '2026',
+			url: 'https://arxiv.org/abs/2604.25213',
+			bullets: [
+				'Introduced AIForge-Doc v2: 3,066 GPT-Image-2 forgeries with pixel-precise masks.',
+				'Found that GPT-Image-2 achieves only 0.532 AUC at recognizing its own forgeries — near chance level.'
+			]
+		},
+		{
+			title: 'GPT-Image-2 in the Wild: A Twitter Dataset of Self-Reported AI-Generated Images from the First Week of Deployment',
+			venue: 'arXiv preprint',
+			year: '2026',
+			url: 'https://arxiv.org/abs/2604.25370',
+			bullets: [
+				'Curated 10,217 confirmed GPT-image-2 images from Twitter over six days using multilingual heuristics and badge verification.',
+				'Found that 82.0% of generated images contain detectable text and 59.2% contain faces; C2PA credentials are systematically stripped by Twitter\'s CDN.'
+			]
 		}
 	];
 
 	let tooltipEl: HTMLSpanElement | undefined = $state();
 	let tooltipTl: gsap.core.Timeline | null = null;
+
+	onMount(() => {
+		const hint = document.querySelector('.scroll-hint');
+		const unsubscribe = scrollStore.scrollY.subscribe((y) => {
+			if (y > 40 && hint) {
+				hint.classList.add('scroll-hint--hidden');
+			}
+		});
+		return unsubscribe;
+	});
 
 	function showTooltip() {
 		if (!tooltipEl) return;
@@ -207,6 +249,11 @@
 				</p>
 			</div>
 		</section>
+
+		<div class="scroll-hint" aria-hidden="true">
+			<span class="scroll-hint__text">Scroll to explore</span>
+			<span class="scroll-hint__icon">↓</span>
+		</div>
 
 		<!-- Education -->
 		<section class="about-section" use:revealOnScroll>
@@ -572,6 +619,40 @@
 		.selam-tooltip {
 			display: none;
 		}
+	}
+
+	/* ── Scroll hint ───────────────────────────── */
+	.scroll-hint {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 2rem 0;
+		color: var(--text-muted);
+		font-size: var(--text-xs);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		animation: scroll-hint-fade 2s ease-in-out infinite;
+	}
+
+	.scroll-hint--hidden {
+		display: none;
+	}
+
+	.scroll-hint__icon {
+		color: var(--accent);
+		font-size: 1rem;
+		animation: scroll-hint-bounce 1.5s ease-in-out infinite;
+	}
+
+	@keyframes scroll-hint-bounce {
+		0%, 100% { transform: translateY(0); }
+		50% { transform: translateY(4px); }
+	}
+
+	@keyframes scroll-hint-fade {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.4; }
 	}
 
 </style>
