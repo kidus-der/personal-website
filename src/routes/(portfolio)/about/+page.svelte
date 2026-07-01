@@ -13,22 +13,22 @@
 		{
 			role: 'Founding Engineer',
 			company: 'Scam AI',
-			period: 'Jan 2025 – Present',
+			period: 'June 2026 – Present',
+			bullets: [
+				'Contributed to the development of Scam AI\'s <span class="bullet-accent">Eva-v1</span> deepfake and AI-generated media detection models, building ML pipelines to detect face swaps, expression and facial-attribute manipulations, and synthetic imagery from Stable Diffusion, DALL·E, Midjourney, and Flux across image and video, reaching <span class="bullet-accent">98.2% accuracy</span> with confidence scores and manipulated-region heatmaps served via a RESTful API at <span class="bullet-accent">sub-4-second inference</span> for KYC and content-moderation use cases',
+				'Worked across <a href="https://checkreality.ai/" class="bullet-link" target="_blank" rel="noopener noreferrer">CheckReality.ai\'s</a> enterprise forensic detection stack including AI-generated image detection (GAN fingerprints, diffusion signatures, pixel-level noise, frequency domain anomalies, metadata forensics, C2PA credential validation), document forgery analysis (bank statements, pay stubs, IDs), active liveness and age estimation for identity verification, and remote interview integrity — and implemented CAM-based explainability outputs using PyTorch and EfficientNet to support <span class="bullet-accent">SOC 2 Type II compliant</span>, audit-ready forensic reporting',
+				'Built Scam AI\'s <span class="bullet-accent">voice clone and synthetic audio detection</span> models, identifying cloned voices across languages and accents, text-to-speech from ElevenLabs, PlayHT, and Azure TTS, and audio manipulations such as splicing, pitch, and speed alterations — reaching <span class="bullet-accent">98.5% accuracy in under 3 seconds</span> per clip, with real-time and batch REST API endpoints powering live call verification for vishing prevention'
+			]
+		},
+		{
+			role: 'Machine Learning Intern',
+			company: 'Scam AI',
+			period: 'Jan 2025 – June 2026',
 			bullets: [
 				'Engineered a synthetic data generation pipeline using LangChain, ElevenLabs, and Qwen-MT to produce high-quality scam samples in <span class="bullet-accent">14 languages</span> for ML model training.',
 				'Designed a multi-agent AI system using Deepgram, LiveKit, FastAPI, and a fine-tuned OpenAI 4.1 model to transcribe and score potential scam calls, achieving <span class="bullet-accent">80% success rate</span>.',
 				'Developed an agentic SMS scam detection API using FastAPI and a fine-tuned Qwen3.2-32B model via LangChain for adaptive real-time detection.',
 				'Implemented CAM visualization for a deepfake detection model using PyTorch and EfficientNet to produce <span class="bullet-accent">interpretable AI tampering heatmaps</span>.'
-			]
-		},
-		{
-			role: 'Service Desk Assistant',
-			company: 'University of Alberta',
-			period: 'May 2025 – Present',
-			bullets: [
-				'Primary point of contact for <span class="bullet-accent">4,000+ residents</span>, resolving high volumes of in-person and telephone inquiries regarding housing policies and maintenance.',
-				'Managed daily operations using StarRez software to process check-ins/outs, occupancy records, and maintenance tickets with <span class="bullet-accent">100% data accuracy</span>.',
-				'Assisted students with financial accounts — residence fees, rent schedules, and penalty charges — while auditing files for billing compliance.'
 			]
 		},
 		{
@@ -512,7 +512,7 @@
 		list-style: none;
 		display: flex;
 		flex-direction: column;
-		gap: 0.4rem;
+		gap: 0.95rem;
 
 		li {
 			font-size: var(--text-sm);
@@ -533,6 +533,22 @@
 	:global(.bullet-accent) {
 		color: var(--accent);
 		font-weight: 500;
+	}
+
+	:global(.bullet-link) {
+		display: inline-block;
+		width: fit-content;
+		color: var(--accent);
+		font-weight: 500;
+		background-image: linear-gradient(var(--accent), var(--accent));
+		background-repeat: no-repeat;
+		background-position: 0 100%;
+		background-size: 0% 1px;
+		transition: background-size 0.3s var(--ease-out-expo);
+	}
+
+	:global(.bullet-link:hover) {
+		background-size: 100% 1px;
 	}
 
 	/* ── Publications ──────────────────────────── */
