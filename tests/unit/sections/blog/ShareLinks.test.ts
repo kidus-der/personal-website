@@ -62,6 +62,26 @@ describe('ShareLinks', () => {
 		await waitFor(() => expect(getByRole('button', { name: 'Copy link' })).toBeInTheDocument());
 	});
 
+	it('says so when the clipboard write rejects', async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		writeText.mockRejectedValueOnce(new Error('denied'));
+		const { getByRole, findByRole } = setup();
+		await fireEvent.click(getByRole('button', { name: 'Copy link' }));
+		await findByRole('button', { name: 'Copy failed' });
+
+		await vi.advanceTimersByTimeAsync(1500);
+		await waitFor(() => expect(getByRole('button', { name: 'Copy link' })).toBeInTheDocument());
+	});
+
+	it('says so when there is no clipboard at all', async () => {
+		// Insecure origins expose no `navigator.clipboard`; reading `.writeText`
+		// off `undefined` throws, which the component has to catch too.
+		Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+		const { getByRole, findByRole } = setup();
+		await fireEvent.click(getByRole('button', { name: 'Copy link' }));
+		await findByRole('button', { name: 'Copy failed' });
+	});
+
 	it('uses sentence-case labels and no interpunct', () => {
 		const { container } = setup();
 		expect(container.textContent).not.toContain('·');

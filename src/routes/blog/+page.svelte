@@ -34,7 +34,7 @@
 	description="Writing on machine learning, research, and everything else."
 />
 
-<div class="blog">
+<main class="blog">
 	<div class="blog__masthead">
 		<BeamsBackground intensity="subtle" />
 		<div class="container">
@@ -76,7 +76,7 @@
 			<SubscribeSection />
 		</div>
 	</div>
-</div>
+</main>
 
 <style>
 	.blog {

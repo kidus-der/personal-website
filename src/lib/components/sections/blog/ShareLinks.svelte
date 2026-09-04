@@ -6,8 +6,8 @@
 	`aria-live` since the only visible change is the label itself.
 
 	`navigator.clipboard` is missing on insecure origins and in older browsers, so
-	the write is guarded and a failure simply leaves the label alone rather than
-	claiming a copy that never happened.
+	the write is guarded: a failure says "Copy failed" rather than claiming a copy
+	that never happened or silently doing nothing, which reads as a dead button.
 -->
 <script lang="ts">
 	import { onDestroy } from 'svelte';
@@ -23,11 +23,17 @@
 
 	let { title, url, class: className = '' }: Props = $props();
 
-	/** How long the "Copied" label stands before reverting. */
+	/** How long the copy result stands before the label reverts. */
 	const CONFIRM_MS = 1500;
 
-	let copied = $state(false);
+	type CopyState = 'idle' | 'copied' | 'failed';
+
+	let copyState = $state<CopyState>('idle');
 	let timer: ReturnType<typeof setTimeout> | undefined;
+
+	const copyLabel = $derived(
+		copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : 'Copy link'
+	);
 
 	const xHref = $derived(
 		`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`
@@ -37,15 +43,16 @@
 	);
 
 	async function copy() {
+		// `navigator.clipboard` is undefined on insecure origins, so the whole
+		// expression — not just the write — has to sit inside the try.
 		try {
 			await navigator.clipboard.writeText(url);
+			copyState = 'copied';
 		} catch {
-			// No clipboard access — say nothing rather than claim a copy.
-			return;
+			copyState = 'failed';
 		}
-		copied = true;
 		clearTimeout(timer);
-		timer = setTimeout(() => (copied = false), CONFIRM_MS);
+		timer = setTimeout(() => (copyState = 'idle'), CONFIRM_MS);
 	}
 
 	onDestroy(() => clearTimeout(timer));
@@ -56,7 +63,7 @@
 
 	<div class="share-links__row">
 		<a
-			class="share-links__item"
+			class="chip share-links__item"
 			href={xHref}
 			target="_blank"
 			rel="noopener noreferrer"
@@ -71,7 +78,7 @@
 		</a>
 
 		<a
-			class="share-links__item"
+			class="chip share-links__item"
 			href={linkedInHref}
 			target="_blank"
 			rel="noopener noreferrer"
@@ -85,8 +92,13 @@
 			<span>LinkedIn</span>
 		</a>
 
-		<button type="button" class="share-links__item" onclick={copy}>
-			{#if copied}
+		<button
+			type="button"
+			class="chip share-links__item"
+			class:share-links__item--failed={copyState === 'failed'}
+			onclick={copy}
+		>
+			{#if copyState === 'copied'}
 				<svg
 					width="14"
 					height="14"
@@ -116,7 +128,7 @@
 					<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
 				</svg>
 			{/if}
-			<span aria-live="polite">{copied ? 'Copied' : 'Copy link'}</span>
+			<span aria-live="polite">{copyLabel}</span>
 		</button>
 	</div>
 </div>
@@ -143,33 +155,10 @@
 		gap: 0.5rem;
 	}
 
-	.share-links__item {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4375rem;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-chip);
-		background-color: color-mix(in srgb, var(--surface-raised) 60%, transparent);
-		padding: 0.3125rem 0.75rem;
-		font-family: var(--font-body);
-		font-size: var(--text-sm);
-		line-height: 1.4;
-		color: var(--text-muted);
-		cursor: pointer;
-		transition:
-			border-color 200ms var(--ease-out-quart),
-			color 200ms var(--ease-out-quart);
-	}
-
-	.share-links__item:hover,
-	.share-links__item:focus-visible {
-		border-color: var(--border-strong);
-		color: var(--text);
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.share-links__item {
-			transition: none;
-		}
+	/* The pill itself is the global `.chip` utility; only the failure tint is
+	   local. Doubled up so it outranks `.chip:hover` regardless of order. */
+	.chip.share-links__item--failed {
+		border-color: color-mix(in srgb, var(--accent-strong) 45%, transparent);
+		color: var(--accent-strong);
 	}
 </style>

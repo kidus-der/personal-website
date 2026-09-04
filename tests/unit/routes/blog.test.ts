@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type MockInstance } from 'vitest';
 import { render, cleanup, fireEvent, waitFor } from '@testing-library/svelte';
 import { readable } from 'svelte/store';
 import { createRawSnippet } from 'svelte';
+import { scroll } from '$lib/motion';
 import { pickNeighbours } from '$lib/utils/posts';
 import type { BlogPost } from '$lib/types/content';
-import { resetMotionMocks } from '../kokonut/motionMock';
+import { animateMock, resetMotionMocks } from '../kokonut/motionMock';
 
 vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
 vi.mock('$app/stores', () => ({
@@ -61,13 +62,23 @@ describe('pickNeighbours', () => {
 });
 
 describe('blog listing page', () => {
+	// The masthead's BeamsBackground reaches for a 2D context jsdom does not
+	// implement; it bails out cleanly on null, this just silences the warning.
+	// Scoped to this block and restored, so the prototype is left as found —
+	// `vi.restoreAllMocks()` is avoided because it would also flatten the shared
+	// `$lib/motion` doubles the next describe relies on.
+	let getContextSpy: MockInstance;
+
 	beforeEach(() => {
 		resetMotionMocks();
-		// The masthead's BeamsBackground reaches for a 2D context jsdom does not
-		// implement; it bails out cleanly on null, this just silences the warning.
-		HTMLCanvasElement.prototype.getContext = () => null;
+		getContextSpy = vi
+			.spyOn(HTMLCanvasElement.prototype, 'getContext')
+			.mockReturnValue(null) as unknown as MockInstance;
 	});
-	afterEach(cleanup);
+	afterEach(() => {
+		cleanup();
+		getContextSpy.mockRestore();
+	});
 
 	function setup(posts: BlogPost[] = threePosts) {
 		return render(BlogListing, { props: { data: { posts } } });
@@ -224,9 +235,25 @@ describe('BlogPostLayout', () => {
 		expect(getByRole('link', { name: /Older post/ })).toHaveAttribute('href', '/blog/older');
 	});
 
-	it('applies parallax to the cover image', () => {
+	it('scrubs the cover image on the scroll timeline', () => {
 		const { container } = setup({ coverImage: '/images/cover.jpg' });
 		const cover = container.querySelector('.post-cover__image') as HTMLImageElement;
 		expect(cover).toHaveAttribute('src', '/images/cover.jpg');
+		// `use:parallax` hands the image to `animate` and scrubs it with `scroll`.
+		expect(vi.mocked(animateMock)).toHaveBeenCalledWith(
+			cover,
+			expect.objectContaining({ y: expect.any(Array) }),
+			expect.anything()
+		);
+		expect(vi.mocked(scroll)).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({ target: cover })
+		);
+	});
+
+	it('leaves the cover alone when there is no cover image', () => {
+		const { container } = setup();
+		expect(container.querySelector('.post-cover__image')).toBeNull();
+		expect(container.querySelector('.post-cover__placeholder')).toBeInTheDocument();
 	});
 });

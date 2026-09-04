@@ -33,7 +33,10 @@
 		position: fixed;
 		top: 0;
 		left: 0;
-		z-index: 60;
+		/* Above the fixed nav (z-index 100), which would otherwise cover the bar
+		   the moment it grows past a hairline. `pointer-events: none` keeps it
+		   from stealing clicks from the nav it sits on top of. */
+		z-index: 110;
 		width: 100%;
 		height: 2px;
 		background-color: var(--accent);

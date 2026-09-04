@@ -95,7 +95,7 @@
 				</ParticleButton>
 
 				{#if formState === 'error'}
-					<p class="subscribe__error">{errorMessage}</p>
+					<p class="subscribe__error" role="alert">{errorMessage}</p>
 				{/if}
 			</form>
 		{/if}

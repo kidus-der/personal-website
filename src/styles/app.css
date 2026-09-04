@@ -169,6 +169,40 @@ button {
 	padding-inline: var(--spacing-container);
 }
 
+/* The interactive counterpart to the `Tag` primitive: a small hairline pill that
+   is a button or a link. Shared by the blog tag filter and the share row, which
+   otherwise carried the same dozen declarations twice. */
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4375rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-chip);
+	background-color: color-mix(in srgb, var(--surface-raised) 60%, transparent);
+	padding: 0.3125rem 0.75rem;
+	font-family: var(--font-body);
+	font-size: var(--text-sm);
+	line-height: 1.4;
+	color: var(--text-muted);
+	cursor: pointer;
+	transition:
+		border-color 200ms var(--ease-out-quart),
+		background-color 200ms var(--ease-out-quart),
+		color 200ms var(--ease-out-quart);
+}
+
+.chip:hover,
+.chip:focus-visible {
+	border-color: var(--border-strong);
+	color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.chip {
+		transition: none;
+	}
+}
+
 /* Faint dot grid for light-mode section bands (KokonutUI spotlight cards). */
 .dot-grid {
 	background-image: radial-gradient(circle, var(--border-strong) 1px, transparent 1px);

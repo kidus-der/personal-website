@@ -12,6 +12,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { site } from '$content/site';
 	import { parallax } from '$lib/actions/parallax';
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import Tag from '$lib/components/ui/Tag.svelte';
@@ -60,7 +61,6 @@
 		children
 	}: Props = $props();
 
-	const SITE_URL = 'https://kidusder.com';
 	/** The TOC is a map, not a list: below two entries it is noise. */
 	const MIN_TOC_HEADINGS = 2;
 
@@ -103,11 +103,11 @@
 			'@type': 'Article',
 			headline: title,
 			description: description ?? '',
-			author: { '@type': 'Person', name: 'Kidus Dereje Zewde', url: SITE_URL },
+			author: { '@type': 'Person', name: site.name, url: site.url },
 			datePublished: publishedAt,
 			dateModified: updatedAt ?? publishedAt,
 			url: pageUrl,
-			image: coverImage ? `${SITE_URL}${coverImage}` : undefined
+			image: coverImage ? `${site.url}${coverImage}` : undefined
 		})
 	);
 </script>
