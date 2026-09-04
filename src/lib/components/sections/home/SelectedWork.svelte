@@ -6,6 +6,7 @@
 	forward, not back.
 -->
 <script lang="ts">
+	import { GRID_REVEAL } from '$lib/motion';
 	import { reveal } from '$lib/actions/reveal';
 	import ProjectCard from '$lib/components/sections/work/ProjectCard.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -18,8 +19,6 @@
 	}
 
 	let { class: className = '' }: Props = $props();
-
-	const GRID_STAGGER = { stagger: 0.06 };
 
 	const projects = featuredProjects();
 
@@ -35,7 +34,7 @@
 			{/snippet}
 		</SectionHeading>
 
-		<div class="selected-work__grid" use:reveal={GRID_STAGGER}>
+		<div class="selected-work__grid" use:reveal={GRID_REVEAL}>
 			{#each projects as project (project.slug)}
 				<ProjectCard
 					{project}

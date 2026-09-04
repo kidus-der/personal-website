@@ -26,7 +26,8 @@
 	<div class="container">
 		<MouseEffectCard class="contact-cta__card">
 			<div class="contact-cta__body">
-				<h2 class="contact-cta__title">Let's build something.</h2>
+				<!-- The dialog keeps "Let's build something." — the band is the invitation. -->
+				<h2 class="contact-cta__title">Say hello.</h2>
 				<p class="contact-cta__lede">
 					Open to interesting research collaborations and any other opportunities.
 				</p>

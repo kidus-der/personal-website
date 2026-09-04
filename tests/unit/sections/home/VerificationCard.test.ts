@@ -64,6 +64,16 @@ describe('VerificationCard', () => {
 		expect(verdict).toHaveTextContent('0.98');
 	});
 
+	it('derives the verdict confidence from the score rather than hard-coding it', () => {
+		const { container } = setup({ score: 91.4 });
+		expect(container.querySelector('.verification-card__verdict-score')).toHaveTextContent('0.91');
+	});
+
+	it('pads the confidence to two decimals for a round score', () => {
+		const { container } = setup({ score: 90 });
+		expect(container.querySelector('.verification-card__verdict-score')).toHaveTextContent('0.90');
+	});
+
 	it('draws a scan line that sweeps the card and pauses for reduced motion', () => {
 		const { container } = setup();
 		expect(container.querySelector('.verification-card__scan')).toBeInTheDocument();

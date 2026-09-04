@@ -12,7 +12,7 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { animate, reducedMotion } from '$lib/motion';
+	import { animate, GRID_REVEAL, reducedMotion } from '$lib/motion';
 	import { reveal } from '$lib/actions/reveal';
 	import BarChart from '$lib/components/charts/BarChart.svelte';
 	import BentoCard from '$lib/components/kokonut/BentoCard.svelte';
@@ -26,6 +26,7 @@
 	import type { BlogPost } from '$lib/types/content';
 	import { cn } from '$lib/utils/cn';
 	import { formatDate } from '$lib/utils/dates';
+	import { firstClause } from '$lib/utils/text';
 
 	interface Props {
 		/** The newest post; the writing tile is dropped when there is none. */
@@ -36,7 +37,6 @@
 	let { latestPost, class: className = '' }: Props = $props();
 
 	const COUNTER_DURATION = 1.2;
-	const GRID_STAGGER = { stagger: 0.06 };
 	/** The two systems worth naming on a tile this small. */
 	const SHIPPED = ['Halo with Qualcomm', 'Eva V1.6'];
 
@@ -61,12 +61,6 @@
 
 	const graduation = formatMonth(education.graduation);
 
-	/** The first clause of a bullet — everything before it starts enumerating. */
-	function firstClause(sentence: string): string {
-		const [clause] = sentence.split(':');
-		return `${clause.trim().replace(/[.,;]$/, '')}.`;
-	}
-
 	/**
 	 * Starts at the final count so the server-rendered tile, and anyone whose
 	 * script never runs, reads correctly; the count-up rewinds it on mount.
@@ -86,7 +80,7 @@
 
 <section class={cn('glance', className)}>
 	<div class="container">
-		<div class="glance__grid" use:reveal={GRID_STAGGER}>
+		<div class="glance__grid" use:reveal={GRID_REVEAL}>
 			<BentoCard
 				title="{role.role}, {role.company}"
 				description={firstClause(role.bullets[0])}

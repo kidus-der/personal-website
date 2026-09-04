@@ -10,6 +10,7 @@ export {
 	springs,
 	easings,
 	durations,
+	GRID_REVEAL,
 	reducedMotion,
 	type SpringToken,
 	type SpringName,

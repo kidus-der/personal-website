@@ -20,8 +20,10 @@
 	description="Kidus Dereje Zewde — Founding Engineer at Scam AI, researcher in deepfake and document forensics, Computing Science and Economics at the University of Alberta."
 />
 
-<Hero />
-<Glance latestPost={data.posts[0]} />
-<SelectedWork />
-<LatestWriting posts={data.posts} />
-<ContactCta />
+<main class="home">
+	<Hero />
+	<Glance latestPost={data.posts[0]} />
+	<SelectedWork />
+	<LatestWriting posts={data.posts} />
+	<ContactCta />
+</main>

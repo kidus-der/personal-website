@@ -14,19 +14,24 @@
 	The hide happens in `onMount`, so the server-rendered card is complete for
 	anyone who never runs the script.
 -->
+<script lang="ts" module>
+	/**
+	 * A type alias rather than an interface on purpose: `BarChart` takes
+	 * `Record<string, unknown>[]`, and only anonymous object types get the
+	 * implicit index signature that makes them assignable to it.
+	 *
+	 * In `module` scope so a consumer can `import type { Modality }` without
+	 * instantiating the component.
+	 */
+	export type Modality = { label: string; value: number };
+</script>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { animate, durations, easings, reducedMotion } from '$lib/motion';
 	import BarChart from '$lib/components/charts/BarChart.svelte';
 	import RingChart from '$lib/components/charts/RingChart.svelte';
 	import { cn } from '$lib/utils/cn';
-
-	/**
-	 * A type alias rather than an interface on purpose: `BarChart` takes
-	 * `Record<string, unknown>[]`, and only anonymous object types get the
-	 * implicit index signature that makes them assignable to it.
-	 */
-	export type Modality = { label: string; value: number };
 
 	interface Props {
 		/** Headline detection rate, as a percentage. */
@@ -56,15 +61,22 @@
 	const ring = $derived([{ label: 'Deepfakes caught', value: score, maxValue: 100 }]);
 	const percent = (value: number) => `${value.toFixed(1)}%`;
 
+	/** The verdict's confidence is the same number the ring shows, as a 0–1 score. */
+	const confidence = $derived((score / 100).toFixed(2));
+
 	let chartsEl = $state<HTMLDivElement | undefined>();
 	/** Whether the charts have been handed back to the stylesheet. */
 	let revealed = false;
+	let fade: ReturnType<typeof animate> | undefined;
 
 	onMount(() => {
 		// Nothing to hide: either the card was told to draw straight away, or the
 		// user has asked for no motion and the charts are already at full.
 		if (animateOnMount || reducedMotion()) return;
 		chartsEl?.style.setProperty('opacity', '0');
+		// Unmounting mid-fade would otherwise leave the animation running against
+		// a detached node.
+		return () => fade?.stop();
 	});
 
 	$effect(() => {
@@ -75,12 +87,14 @@
 			element.style.removeProperty('opacity');
 			return;
 		}
-		animate(
+		fade = animate(
 			element,
 			{ opacity: [0, 1] },
 			// Spread: Motion normalises the array, and the token is shared.
 			{ duration: durations.base, ease: [...easings.outQuart] }
-		).finished.then(() => element.style.removeProperty('opacity'));
+		);
+		fade.finished.then(() => element.style.removeProperty('opacity'));
+		return () => fade?.stop();
 	});
 </script>
 
@@ -122,7 +136,7 @@
 	<div class="verification-card__verdict">
 		<span class="verification-card__verdict-label">Verdict</span>
 		<span class="verification-card__verdict-value">Authentic</span>
-		<span class="verification-card__verdict-score">0.98</span>
+		<span class="verification-card__verdict-score">{confidence}</span>
 	</div>
 </div>
 

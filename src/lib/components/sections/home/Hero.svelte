@@ -7,6 +7,11 @@
 	on the site reveals on scroll with `use:reveal`; this is the exception the
 	motion brief allows.
 
+	The handover is `DynamicText`'s `onDone` rather than a guessed delay, so the
+	headline never lands on top of a greeting that is still cycling. A fallback
+	timer covers the case where that callback never arrives, and `startEntrance`
+	is idempotent so whichever gets there first wins.
+
 	The staged elements are hidden in `onMount`, not in the stylesheet, and only
 	when the animation is actually going to run. Server-rendered markup is
 	therefore complete and visible: a reader with no JavaScript, or with reduced
@@ -45,13 +50,20 @@
 		{ label: 'Google Scholar', href: site.socials.scholar, icon: 'scholar' }
 	] as const;
 
-	/** Seconds. The greeting has settled into its first word by here. */
-	const HEADLINE_DELAY = 0.25;
+	/** `DynamicText`'s own default, restated so the fallback can be derived. */
+	const GREETING_INTERVAL = 320;
+	/**
+	 * Milliseconds. If `onDone` never arrives — the component unmounts its timer,
+	 * a future refactor drops the callback — the rest of the hero still shows up.
+	 * One interval longer than the full cycle, plus a little slack.
+	 */
+	const GREETING_FALLBACK = GREETING_WORDS.length * GREETING_INTERVAL + 200;
+
 	const LINE_STAGGER = 0.08;
 	/** Gap between the sub, the buttons and the social row. */
 	const STEP = 0.1;
-	const SUB_DELAY = 0.55;
-	/** Milliseconds; the card starts drawing while the buttons are still arriving. */
+	const SUB_DELAY = 0.3;
+	/** Milliseconds after the entrance starts; the card draws while the buttons arrive. */
 	const CARD_DELAY = 600;
 	const LIFT = 24;
 
@@ -63,17 +75,31 @@
 	/** The verification card's cue. True from the start when nothing animates. */
 	let cardStarted = $state(false);
 
-	onMount(() => {
-		if (reducedMotion()) {
-			cardStarted = true;
-			return;
-		}
+	type Animation = ReturnType<typeof animate>;
+
+	/** Everything in flight, so unmounting mid-entrance stops it dead. */
+	let running: Animation[] = [];
+	let timers: ReturnType<typeof setTimeout>[] = [];
+	/** The entrance is a one-shot: `onDone` and the fallback both aim at it. */
+	let started = false;
+
+	function stopEverything() {
+		for (const animation of running) animation.stop();
+		running = [];
+		for (const timer of timers) clearTimeout(timer);
+		timers = [];
+	}
+
+	/**
+	 * Runs when the greeting has settled — chained off `DynamicText`'s `onDone`
+	 * rather than a guessed delay, so the two never overlap however long the
+	 * cycle takes.
+	 */
+	function startEntrance() {
+		if (started || reducedMotion()) return;
+		started = true;
 
 		const lines = [...(headlineEl?.querySelectorAll<HTMLElement>('.hero__line') ?? [])];
-		const staged = [...lines, subEl, buttonsEl, socialsEl].filter(
-			(element): element is HTMLElement => element !== undefined
-		);
-		for (const element of staged) element.style.opacity = '0';
 
 		// Spread: Motion normalises the easing array, and the token is shared.
 		// The tuple annotation is what makes it a cubic bezier rather than a
@@ -85,17 +111,32 @@
 		const rise = { y: [LIFT, 0], opacity: [0, 1] };
 
 		if (lines.length > 0) {
-			animate(lines, rise, {
-				...timing,
-				delay: stagger(LINE_STAGGER, { startDelay: HEADLINE_DELAY })
-			});
+			running.push(animate(lines, rise, { ...timing, delay: stagger(LINE_STAGGER) }));
 		}
-		if (subEl) animate(subEl, rise, { ...timing, delay: SUB_DELAY });
-		if (buttonsEl) animate(buttonsEl, rise, { ...timing, delay: SUB_DELAY + STEP });
-		if (socialsEl) animate(socialsEl, rise, { ...timing, delay: SUB_DELAY + STEP * 2 });
+		if (subEl) running.push(animate(subEl, rise, { ...timing, delay: SUB_DELAY }));
+		if (buttonsEl) running.push(animate(buttonsEl, rise, { ...timing, delay: SUB_DELAY + STEP }));
+		if (socialsEl)
+			running.push(animate(socialsEl, rise, { ...timing, delay: SUB_DELAY + STEP * 2 }));
 
-		const timer = setTimeout(() => (cardStarted = true), CARD_DELAY);
-		return () => clearTimeout(timer);
+		timers.push(setTimeout(() => (cardStarted = true), CARD_DELAY));
+	}
+
+	onMount(() => {
+		if (reducedMotion()) {
+			cardStarted = true;
+			return;
+		}
+
+		const staged = [
+			...(headlineEl?.querySelectorAll<HTMLElement>('.hero__line') ?? []),
+			subEl,
+			buttonsEl,
+			socialsEl
+		].filter((element): element is HTMLElement => element !== undefined);
+		for (const element of staged) element.style.opacity = '0';
+
+		timers.push(setTimeout(startEntrance, GREETING_FALLBACK));
+		return stopEverything;
 	});
 </script>
 
@@ -109,7 +150,12 @@
 				handed to a component is not touched by Svelte's style scoping.
 			-->
 			<div class="hero__greeting">
-				<DynamicText words={GREETING_WORDS} final={GREETING_FINAL} />
+				<DynamicText
+					words={GREETING_WORDS}
+					final={GREETING_FINAL}
+					interval={GREETING_INTERVAL}
+					onDone={startEntrance}
+				/>
 			</div>
 
 			<h1 class="hero__headline" bind:this={headlineEl}>
@@ -251,8 +297,16 @@
 		font-weight: 500;
 		letter-spacing: -0.02em;
 		line-height: 1.02;
-		text-wrap: balance;
 		color: var(--text);
+	}
+
+	/*
+		The balance belongs on the spans, not the flex container above: the
+		container holds no text of its own, and each span is the block that can
+		actually wrap on a narrow screen.
+	*/
+	.hero__line {
+		text-wrap: balance;
 	}
 
 	/* The single permitted emphasis on the page. */

@@ -2,7 +2,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import Hero from '$lib/components/sections/home/Hero.svelte';
 import { site } from '$content/site';
-import { animateMock, preferReducedMotion, resetMotionMocks } from '../../kokonut/motionMock';
+import {
+	animateMock,
+	animations,
+	preferReducedMotion,
+	resetMotionMocks
+} from '../../kokonut/motionMock';
 import { resetActionMocks } from '../../kokonut/actionsMock';
 import { magneticCalls, resetHomeActionMocks } from './homeMocks';
 
@@ -10,6 +15,12 @@ vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).mo
 vi.mock('$lib/actions/tilt', async () => (await import('../../kokonut/actionsMock')).tiltModule());
 vi.mock('$lib/actions/reveal', async () => (await import('./homeMocks')).revealModule());
 vi.mock('$lib/actions/magnetic', async () => (await import('./homeMocks')).magneticModule());
+
+/** Mirrors the hero's own greeting timings; see `GREETING_INTERVAL` there. */
+const GREETING_WORDS = 6;
+const GREETING_INTERVAL = 320;
+const GREETING_CYCLE_MS = GREETING_WORDS * GREETING_INTERVAL;
+const FALLBACK_MS = GREETING_CYCLE_MS + 200;
 
 /** Collapses the whitespace the split headline spans introduce. */
 function text(node: Element | null): string {
@@ -100,14 +111,69 @@ describe('Hero', () => {
 		expect(container.querySelector('.background-paths')).toBeInTheDocument();
 	});
 
-	it('hides the staged elements and animates them in when motion is allowed', () => {
-		const { lines, container } = setup();
+	it('hides the staged elements on mount, before anything has moved', () => {
+		const { lines } = setup();
 		// The pre-hide happens on mount only, so the server-rendered markup is
 		// visible for anyone who never runs the script.
 		expect(lines()[0].style.opacity).toBe('0');
-		expect(animateMock).toHaveBeenCalled();
-		const targets = animateMock.mock.calls.map((call) => call[0]);
-		expect(targets).toContain(container.querySelector('.hero__sub'));
+	});
+
+	it('holds the headline back until the greeting has settled', async () => {
+		vi.useFakeTimers();
+		try {
+			const { container } = setup();
+			const sub = container.querySelector('.hero__sub');
+			const animated = () => animateMock.mock.calls.some((call) => call[0] === sub);
+
+			// The greeting is still cycling: nothing else has been touched.
+			expect(animated()).toBe(false);
+			await vi.advanceTimersByTimeAsync(GREETING_CYCLE_MS / 2);
+			expect(animated()).toBe(false);
+
+			// `DynamicText` settles and fires `onDone`.
+			await vi.advanceTimersByTimeAsync(GREETING_CYCLE_MS);
+			expect(animated()).toBe(true);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('runs the entrance exactly once, even after the fallback deadline passes', async () => {
+		vi.useFakeTimers();
+		try {
+			const { container } = setup();
+			const sub = container.querySelector('.hero__sub');
+			await vi.advanceTimersByTimeAsync(GREETING_CYCLE_MS + FALLBACK_MS + 1000);
+			const runs = animateMock.mock.calls.filter((call) => call[0] === sub);
+			expect(runs).toHaveLength(1);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('stops its own entrance animations when the hero unmounts mid-flight', async () => {
+		vi.useFakeTimers();
+		try {
+			const { container, unmount } = setup();
+			const staged = ['.hero__sub', '.hero__actions', '.hero__socials'].map((selector) =>
+				container.querySelector(selector)
+			);
+			await vi.advanceTimersByTimeAsync(GREETING_CYCLE_MS);
+
+			// `animations` is every animation the mock handed out, including
+			// `DynamicText`'s; only the ones aimed at the hero's own staged
+			// elements are the hero's to stop, and they line up by call index.
+			const owned = animateMock.mock.calls
+				.map((call, index) => ({ target: call[0], animation: animations[index] }))
+				.filter(({ target }) => staged.includes(target as Element));
+			expect(owned).toHaveLength(staged.length);
+
+			unmount();
+
+			for (const { animation } of owned) expect(animation.stop).toHaveBeenCalled();
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 
 	it('leaves everything visible and animates nothing under reduced motion', () => {

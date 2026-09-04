@@ -26,7 +26,14 @@ describe('ContactCta', () => {
 
 	it('makes the invitation the band heading', () => {
 		const { getByRole } = render(ContactCta);
-		expect(getByRole('heading', { name: "Let's build something." })).toBeInTheDocument();
+		expect(getByRole('heading', { name: 'Say hello.' })).toBeInTheDocument();
+	});
+
+	it('leaves the longer line to the dialog', async () => {
+		const { getByRole } = render(ContactCta);
+		expect(screen.queryByText("Let's build something.")).toBeNull();
+		await fireEvent.click(getByRole('button', { name: 'Say hello' }));
+		expect(screen.getByText("Let's build something.")).toBeInTheDocument();
 	});
 
 	it('states what it is open to, once', () => {

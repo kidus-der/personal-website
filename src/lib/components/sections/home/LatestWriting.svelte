@@ -7,6 +7,7 @@
 	when there is only one post.
 -->
 <script lang="ts">
+	import { GRID_REVEAL } from '$lib/motion';
 	import { reveal } from '$lib/actions/reveal';
 	import FeaturedPost from '$lib/components/sections/blog/FeaturedPost.svelte';
 	import PostCard from '$lib/components/sections/blog/PostCard.svelte';
@@ -22,8 +23,6 @@
 	}
 
 	let { posts, class: className = '' }: Props = $props();
-
-	const GRID_STAGGER = { stagger: 0.06 };
 
 	const featured = $derived(posts[0]);
 	const rest = $derived(posts.slice(1, 3));
@@ -46,7 +45,7 @@
 			</div>
 
 			{#if rest.length > 0}
-				<div class="latest-writing__grid" use:reveal={GRID_STAGGER}>
+				<div class="latest-writing__grid" use:reveal={GRID_REVEAL}>
 					{#each rest as post, index (post.slug)}
 						<PostCard {post} {index} />
 					{/each}
