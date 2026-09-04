@@ -27,3 +27,29 @@ export function loadPosts(modules: Record<string, unknown>): BlogPost[] {
 		.filter((post): post is BlogPost => post !== null && !post.draft)
 		.sort((a, b) => publishedAtMs(b) - publishedAtMs(a));
 }
+
+/** The posts either side of `slug` in a newest-first archive. */
+export interface PostNeighbours {
+	/** The next post up the list — newer than `slug`. */
+	prev: BlogPost | null;
+	/** The next post down the list — older than `slug`. */
+	next: BlogPost | null;
+}
+
+/**
+ * Neighbours of `slug` within `posts`, which must already be sorted newest
+ * first (as `loadPosts` returns them).
+ *
+ * "prev" is the newer post and "next" the older one: reading order down the
+ * archive, which is how the post footer labels them ("Newer" / "Older").
+ * An unknown slug yields two nulls rather than throwing — the caller has
+ * already 404'd on a missing post, so there is nothing left to signal.
+ */
+export function pickNeighbours(posts: BlogPost[], slug: string): PostNeighbours {
+	const index = posts.findIndex((post) => post.slug === slug);
+	if (index === -1) return { prev: null, next: null };
+	return {
+		prev: posts[index - 1] ?? null,
+		next: posts[index + 1] ?? null
+	};
+}
