@@ -28,11 +28,19 @@ describe('ShimmerText', () => {
 		expect(options).toMatchObject({ repeat: Infinity, ease: 'linear' });
 	});
 
-	it('skips the shimmer under reduced motion', () => {
+	it('skips the shimmer under reduced motion and paints flat text instead', () => {
 		preferReducedMotion();
 		const { getByText } = render(ShimmerText, { props: { text: 'hi' } });
 		expect(animateMock).not.toHaveBeenCalled();
 		expect(getByText('hi')).toBeInTheDocument();
+		// A frozen gradient would leave the word permanently half-faded; the still
+		// state drops the gradient and paints solid `--text`.
+		expect(getByText('hi')).toHaveClass('shimmer-text--still');
+	});
+
+	it('does not mark the still state while animating', () => {
+		const { getByText } = render(ShimmerText, { props: { text: 'hi' } });
+		expect(getByText('hi')).not.toHaveClass('shimmer-text--still');
 	});
 
 	it('stops the animation when destroyed', () => {

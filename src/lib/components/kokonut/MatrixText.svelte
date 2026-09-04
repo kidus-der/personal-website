@@ -11,6 +11,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { reducedMotion } from '$lib/motion';
+	import { cn } from '$lib/utils/cn';
 
 	interface Props {
 		text: string;
@@ -77,7 +78,12 @@
 	});
 </script>
 
-<span class="matrix-text {className}" aria-label={text}>
+<!--
+	`role="img"` makes the `aria-label` authoritative: without a role, a label on
+	a bare span whose every glyph is `aria-hidden` can be announced as nothing at
+	all. The role treats the scrambling string as one opaque object named `text`.
+-->
+<span class={cn('matrix-text', className)} role="img" aria-label={text}>
 	{#each characters as character, index (index)}
 		<span
 			class="matrix-text__char"

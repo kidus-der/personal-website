@@ -63,9 +63,13 @@ describe('DynamicText', () => {
 	});
 
 	it('exposes the final string to assistive tech while cycling', () => {
-		const { container } = setup({ final: 'Kidus' });
+		const { container, getByRole } = setup({ final: 'Kidus' });
 		const wrapper = container.querySelector('.dynamic-text');
+		// `role="img"` is what makes the label authoritative: without a role, a
+		// label on a span whose children are all hidden can be announced as nothing.
+		expect(wrapper).toHaveAttribute('role', 'img');
 		expect(wrapper).toHaveAttribute('aria-label', 'Kidus');
+		expect(getByRole('img', { name: 'Kidus' })).toBe(wrapper);
 		expect(container.querySelector('.dynamic-text__current')).toHaveAttribute(
 			'aria-hidden',
 			'true'

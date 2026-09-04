@@ -13,6 +13,7 @@
 <script lang="ts">
 	import type { Action } from 'svelte/action';
 	import { animate, reducedMotion } from '$lib/motion';
+	import { cn } from '$lib/utils/cn';
 	import { buildPathSets, type AestheticPath } from './backgroundPaths';
 
 	interface Props {
@@ -48,7 +49,7 @@
 </script>
 
 <div
-	class="background-paths {className}"
+	class={cn('background-paths', className)}
 	aria-hidden="true"
 	style:opacity={reduce ? STATIC_OPACITY : opacity}
 >

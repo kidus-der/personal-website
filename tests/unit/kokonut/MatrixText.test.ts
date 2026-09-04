@@ -71,8 +71,12 @@ describe('MatrixText', () => {
 	});
 
 	it('exposes the real string to assistive tech', () => {
-		const { wrapper, container } = setup();
+		const { wrapper, container, getByRole } = setup();
+		// `role="img"` is what makes the label authoritative: without a role, a
+		// label on a span whose glyphs are all hidden can be announced as nothing.
+		expect(wrapper()).toHaveAttribute('role', 'img');
 		expect(wrapper()).toHaveAttribute('aria-label', TEXT);
+		expect(getByRole('img', { name: TEXT })).toBe(wrapper());
 		expect(container.querySelector('.matrix-text__char')).toHaveAttribute('aria-hidden', 'true');
 	});
 

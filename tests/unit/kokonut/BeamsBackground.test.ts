@@ -2,13 +2,17 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import BeamsBackground from '$lib/components/kokonut/BeamsBackground.svelte';
 import { theme } from '$lib/state/theme.svelte';
-import { preferReducedMotion, resetMotionMocks } from './motionMock';
+import { animations, preferReducedMotion, resetMotionMocks } from './motionMock';
 
 vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
 
+interface GradientRecord {
+	stops: [number, string][];
+}
+
 /** Records what the component asked the 2D context to do. */
 function createContextStub() {
-	const gradients: { stops: [number, string][] }[] = [];
+	const gradients: GradientRecord[] = [];
 	const ctx = {
 		scale: vi.fn(),
 		clearRect: vi.fn(),
@@ -30,9 +34,28 @@ function createContextStub() {
 	return { ctx, gradients };
 }
 
+/** Every HSL hue the component actually painted, in call order. */
+function huesFrom(gradients: GradientRecord[]): number[] {
+	return gradients
+		.flatMap((gradient) => gradient.stops.map(([, color]) => color))
+		.map((color) => Number(color.match(/hsla\((-?[\d.]+)/)?.[1]))
+		.filter((hue) => Number.isFinite(hue));
+}
+
+function expectHuesWithin(gradients: GradientRecord[], min: number, max: number) {
+	const hues = huesFrom(gradients);
+	expect(hues.length).toBeGreaterThan(0);
+	for (const hue of hues) {
+		expect(hue).toBeGreaterThanOrEqual(min);
+		expect(hue).toBeLessThanOrEqual(max);
+	}
+}
+
 let contextStub: ReturnType<typeof createContextStub>;
 let frames: FrameRequestCallback[];
 let cancelled: number[];
+let documentHidden: boolean;
+let resizeCallbacks: ResizeObserverCallback[];
 
 describe('BeamsBackground', () => {
 	beforeEach(() => {
@@ -51,6 +74,23 @@ describe('BeamsBackground', () => {
 		});
 		vi.stubGlobal('cancelAnimationFrame', (id: number) => cancelled.push(id));
 
+		// Captured so tests can drive container resizes by hand.
+		resizeCallbacks = [];
+		vi.stubGlobal(
+			'ResizeObserver',
+			class {
+				constructor(callback: ResizeObserverCallback) {
+					resizeCallbacks.push(callback);
+				}
+				observe() {}
+				unobserve() {}
+				disconnect() {}
+			}
+		);
+
+		documentHidden = false;
+		vi.spyOn(document, 'hidden', 'get').mockImplementation(() => documentHidden);
+
 		theme.set('dark');
 	});
 
@@ -59,6 +99,9 @@ describe('BeamsBackground', () => {
 		vi.unstubAllGlobals();
 		vi.restoreAllMocks();
 	});
+
+	/** The veil pulse is this component's only `animate` call. */
+	const veil = () => animations[0];
 
 	it('mounts a decorative canvas', () => {
 		const { container } = render(BeamsBackground);
@@ -109,42 +152,18 @@ describe('BeamsBackground', () => {
 
 	it('derives warm hues from the dark theme', () => {
 		render(BeamsBackground);
-		const hues = contextStub.gradients
-			.flatMap((gradient) => gradient.stops.map(([, color]) => color))
-			.map((color) => Number(color.match(/hsla\((-?[\d.]+)/)?.[1]))
-			.filter((hue) => Number.isFinite(hue));
-		expect(hues.length).toBeGreaterThan(0);
-		for (const hue of hues) {
-			expect(hue).toBeGreaterThanOrEqual(10);
-			expect(hue).toBeLessThanOrEqual(40);
-		}
+		expectHuesWithin(contextStub.gradients, 10, 40);
 	});
 
 	it('derives cool hues from the light theme', () => {
 		theme.set('light');
 		render(BeamsBackground);
-		const hues = contextStub.gradients
-			.flatMap((gradient) => gradient.stops.map(([, color]) => color))
-			.map((color) => Number(color.match(/hsla\((-?[\d.]+)/)?.[1]))
-			.filter((hue) => Number.isFinite(hue));
-		expect(hues.length).toBeGreaterThan(0);
-		for (const hue of hues) {
-			expect(hue).toBeGreaterThanOrEqual(205);
-			expect(hue).toBeLessThanOrEqual(230);
-		}
+		expectHuesWithin(contextStub.gradients, 205, 230);
 	});
 
 	it('honours an explicit hueRange over the theme default', () => {
 		render(BeamsBackground, { props: { hueRange: [300, 320] as [number, number] } });
-		const hues = contextStub.gradients
-			.flatMap((gradient) => gradient.stops.map(([, color]) => color))
-			.map((color) => Number(color.match(/hsla\((-?[\d.]+)/)?.[1]))
-			.filter((hue) => Number.isFinite(hue));
-		expect(hues.length).toBeGreaterThan(0);
-		for (const hue of hues) {
-			expect(hue).toBeGreaterThanOrEqual(300);
-			expect(hue).toBeLessThanOrEqual(320);
-		}
+		expectHuesWithin(contextStub.gradients, 300, 320);
 	});
 
 	it('draws exactly one frame under reduced motion', () => {
@@ -152,11 +171,54 @@ describe('BeamsBackground', () => {
 		render(BeamsBackground);
 		expect(contextStub.ctx.fillRect).toHaveBeenCalledTimes(30);
 		expect(frames).toHaveLength(0);
+		// No veil pulse either — nothing should be animating at all.
+		expect(animations).toHaveLength(0);
+	});
+
+	it('repaints the static frame when the container resizes under reduced motion', () => {
+		preferReducedMotion();
+		vi.stubGlobal('devicePixelRatio', 1);
+		const clientWidth = vi
+			.spyOn(HTMLDivElement.prototype, 'clientWidth', 'get')
+			.mockReturnValue(400);
+		vi.spyOn(HTMLDivElement.prototype, 'clientHeight', 'get').mockReturnValue(300);
+
+		const { container } = render(BeamsBackground);
+		expect(resizeCallbacks).toHaveLength(1);
+		expect(contextStub.ctx.fillRect).toHaveBeenCalledTimes(30);
+
+		clientWidth.mockReturnValue(800);
+		resizeCallbacks[0]([], {} as ResizeObserver);
+
+		const canvas = container.querySelector('canvas') as HTMLCanvasElement;
+		expect(canvas.width).toBe(800);
+		expect(contextStub.ctx.fillRect).toHaveBeenCalledTimes(60);
 	});
 
 	it('stays idle while the document is hidden', () => {
-		vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
+		documentHidden = true;
 		render(BeamsBackground);
 		expect(frames).toHaveLength(0);
+	});
+
+	it('pauses the veil pulse when the tab is hidden and resumes with it', () => {
+		render(BeamsBackground);
+		expect(veil().pause).not.toHaveBeenCalled();
+
+		documentHidden = true;
+		document.dispatchEvent(new Event('visibilitychange'));
+		expect(veil().pause).toHaveBeenCalled();
+		expect(cancelled.length).toBeGreaterThan(0);
+
+		documentHidden = false;
+		document.dispatchEvent(new Event('visibilitychange'));
+		expect(veil().play).toHaveBeenCalled();
+	});
+
+	it('stops the veil pulse on destroy', () => {
+		const { unmount } = render(BeamsBackground);
+		expect(animations).toHaveLength(1);
+		unmount();
+		expect(veil().stop).toHaveBeenCalled();
 	});
 });

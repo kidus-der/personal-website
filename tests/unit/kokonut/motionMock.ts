@@ -11,6 +11,8 @@ import { vi, type Mock } from 'vitest';
 export interface MockAnimation {
 	stop: Mock;
 	complete: Mock;
+	pause: Mock;
+	play: Mock;
 	finished: Promise<void>;
 }
 
@@ -25,6 +27,8 @@ export const animateMock = vi.fn(
 		const animation: MockAnimation = {
 			stop: vi.fn(),
 			complete: vi.fn(),
+			pause: vi.fn(),
+			play: vi.fn(),
 			finished: Promise.resolve()
 		};
 		animations.push(animation);

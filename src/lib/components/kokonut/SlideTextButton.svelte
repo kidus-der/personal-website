@@ -10,6 +10,8 @@
 	a real `<a>` or `<button>`, never a div with handlers.
 -->
 <script lang="ts">
+	import { cn } from '$lib/utils/cn';
+
 	interface Props {
 		text: string;
 		hoverText?: string;
@@ -32,9 +34,7 @@
 		class: className = ''
 	}: Props = $props();
 
-	const classes = $derived(
-		['slide-button', `slide-button--${variant}`, className].join(' ').trim()
-	);
+	const classes = $derived(cn('slide-button', `slide-button--${variant}`, className));
 </script>
 
 {#snippet labels()}
@@ -46,7 +46,18 @@
 {/snippet}
 
 {#if href}
-	<a {href} class={classes} {onclick}>{@render labels()}</a>
+	<!--
+		An anchor cannot be `disabled`, so a disabled link is expressed the way the
+		platform allows: announced as disabled, taken out of the tab order, and made
+		inert to the pointer by the `[aria-disabled='true']` style rule below.
+	-->
+	<a
+		{href}
+		class={classes}
+		aria-disabled={disabled ? 'true' : undefined}
+		tabindex={disabled ? -1 : undefined}
+		{onclick}>{@render labels()}</a
+	>
 {:else}
 	<button {type} class={classes} {disabled} {onclick}>{@render labels()}</button>
 {/if}
@@ -75,6 +86,13 @@
 	.slide-button:disabled {
 		cursor: not-allowed;
 		opacity: 0.5;
+	}
+
+	/* The anchor's stand-in for `:disabled` — also blocks hover and clicks. */
+	.slide-button[aria-disabled='true'] {
+		cursor: not-allowed;
+		opacity: 0.5;
+		pointer-events: none;
 	}
 
 	.slide-button--default {

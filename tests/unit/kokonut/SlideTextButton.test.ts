@@ -60,6 +60,33 @@ describe('SlideTextButton', () => {
 		expect(onclick).toHaveBeenCalledTimes(1);
 	});
 
+	it('marks a disabled link as disabled the only way a link can be', () => {
+		const { container } = render(SlideTextButton, {
+			props: { href: '/work', text: 'See the work', disabled: true }
+		});
+		const link = container.querySelector('a') as HTMLAnchorElement;
+		// `<a>` has no `disabled`; announce it, take it out of the tab order, and
+		// let `pointer-events: none` (keyed off aria-disabled) block the click.
+		expect(link).toHaveAttribute('aria-disabled', 'true');
+		expect(link).toHaveAttribute('tabindex', '-1');
+	});
+
+	it('leaves an enabled link untouched', () => {
+		const { container } = render(SlideTextButton, {
+			props: { href: '/work', text: 'See the work' }
+		});
+		const link = container.querySelector('a') as HTMLAnchorElement;
+		expect(link).not.toHaveAttribute('aria-disabled');
+		expect(link).not.toHaveAttribute('tabindex');
+	});
+
+	it('disables the button form natively', () => {
+		const { container } = render(SlideTextButton, {
+			props: { text: 'Send', disabled: true }
+		});
+		expect(container.querySelector('button')).toBeDisabled();
+	});
+
 	it('applies the variant and caller classes', () => {
 		const { container } = render(SlideTextButton, {
 			props: { text: 'Send', variant: 'ghost', class: 'w-full' }

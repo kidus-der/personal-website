@@ -16,6 +16,7 @@
 	import { onMount } from 'svelte';
 	import { animate, reducedMotion } from '$lib/motion';
 	import { theme } from '$lib/state/theme.svelte';
+	import { cn } from '$lib/utils/cn';
 
 	interface Props {
 		intensity?: 'subtle' | 'medium' | 'strong';
@@ -66,6 +67,8 @@
 	let frameId: number | undefined;
 	let onScreen = true;
 	let size = { width: 0, height: 0 };
+	/** The veil's opacity pulse — paused alongside the RAF loop, stopped on destroy. */
+	let veil: ReturnType<typeof animate> | undefined;
 
 	function createBeam(width: number, height: number): Beam {
 		return {
@@ -183,11 +186,14 @@
 		return onScreen && !document.hidden;
 	}
 
+	/** Starts or halts *both* moving parts — the beam loop and the veil pulse. */
 	function sync() {
 		if (canPlay()) {
+			veil?.play();
 			if (frameId === undefined) loop();
 		} else {
 			stop();
+			veil?.pause();
 		}
 	}
 
@@ -197,14 +203,23 @@
 		if (!context) return;
 		resize();
 
+		// Registered before the reduced-motion branch: a static frame still has to
+		// be repainted when the container changes size, or it stretches.
+		const resizes = new ResizeObserver(() => {
+			resize();
+			// A paused canvas still needs the new size drawn into it.
+			if (frameId === undefined) paint();
+		});
+		if (wrapper) resizes.observe(wrapper);
+
 		if (reducedMotion()) {
 			// One static frame: the texture is part of the design, the drift is not.
 			paint();
-			return;
+			return () => resizes.disconnect();
 		}
 
 		if (overlay) {
-			animate(
+			veil = animate(
 				overlay,
 				{ opacity: [0.05, 0.15, 0.05] },
 				{ duration: OVERLAY_PULSE_DURATION, repeat: Infinity, ease: 'easeInOut' }
@@ -217,22 +232,16 @@
 		});
 		visibility.observe(canvas);
 
-		// Tracks the wrapper rather than the window: the canvas is sized to its
-		// container, which can change without the viewport changing.
-		const resizes = new ResizeObserver(() => {
-			resize();
-			// A paused canvas still needs the new size drawn into it.
-			if (frameId === undefined) paint();
-		});
-		if (wrapper) resizes.observe(wrapper);
-
 		document.addEventListener('visibilitychange', sync);
 
-		if (canPlay()) loop();
-		else paint();
+		sync();
+		// `sync` only paints by starting the loop; a paused mount still needs one.
+		if (frameId === undefined) paint();
 
 		return () => {
 			stop();
+			veil?.stop();
+			veil = undefined;
 			visibility.disconnect();
 			resizes.disconnect();
 			document.removeEventListener('visibilitychange', sync);
@@ -240,7 +249,7 @@
 	});
 </script>
 
-<div bind:this={wrapper} class="beams-background {className}" aria-hidden="true">
+<div bind:this={wrapper} class={cn('beams-background', className)} aria-hidden="true">
 	<canvas bind:this={canvas} class="beams-background__canvas"></canvas>
 	<div bind:this={overlay} class="beams-background__veil"></div>
 </div>

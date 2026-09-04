@@ -16,6 +16,7 @@
 	import type { Action } from 'svelte/action';
 	import { onDestroy } from 'svelte';
 	import { animate, reducedMotion } from '$lib/motion';
+	import { cn } from '$lib/utils/cn';
 
 	interface Props {
 		children: Snippet;
@@ -114,7 +115,7 @@
 	bind:this={button}
 	{type}
 	{disabled}
-	class="particle-button {className}"
+	class={cn('particle-button', className)}
 	onclick={handleClick}
 >
 	{@render children()}

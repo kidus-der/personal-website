@@ -12,6 +12,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { animate, durations, easings, reducedMotion } from '$lib/motion';
+	import { cn } from '$lib/utils/cn';
 
 	export interface DynamicWord {
 		text: string;
@@ -97,7 +98,12 @@
 	});
 </script>
 
-<span class="dynamic-text {className}" aria-label={final}>
+<!--
+	`role="img"` makes the `aria-label` authoritative: without a role, a label on
+	a bare span whose every child is `aria-hidden` can be announced as nothing at
+	all. The role treats the whole cycling box as one opaque object named `final`.
+-->
+<span class={cn('dynamic-text', className)} role="img" aria-label={final}>
 	{#if outgoing}
 		<span
 			bind:this={outgoingEl}
