@@ -1,13 +1,21 @@
 <!--
 	/about — composition only.
 
-	Every word on this page comes from `$content/*`; nothing is retyped here. The
-	page's job is the order of the bands, the section headings, and the structured
-	data that describes the person the page is about.
+	This route is the single place that reaches into `$content/*`; every section
+	below takes its data as props. That keeps the sections renderable from
+	fixtures in tests and leaves one file to look at when the content moves. The
+	page's own work is the order of the bands, their headings, and the structured
+	data describing the person the page is about.
 
-	`Bio` brings its own heading and background because it is the page's opening
-	statement rather than a band like the others; the four sections below it share
-	the same `.container` + `SectionHeading` shape.
+	Two sections break the shared `.container` + `SectionHeading` shape, both
+	deliberately: `Bio` carries its own heading and background because it is the
+	page's opening statement rather than a band, and `Publications` carries its
+	own heading because `id="publications"` has to sit on a section that includes
+	the title — the bio links down to it.
+
+	Prose that belongs to a single section (the bio's paragraphs, the
+	publications lede) still lives in that section's markup rather than in
+	`$content/*`, which holds structured records, not page copy.
 -->
 <script lang="ts">
 	import SEO from '$lib/components/ui/SEO.svelte';
@@ -20,8 +28,14 @@
 	import { site } from '$content/site';
 	import { experience } from '$content/experience';
 	import { publications } from '$content/publications';
-	import { education } from '$content/education';
+	import { skillGroups, radarScores } from '$content/skills';
+	import { education, certifications } from '$content/education';
 	import { jsonLd } from '$lib/utils/jsonLd';
+
+	// The roles are newest first, so the first one is the job the page describes.
+	// Deriving the structured data from it keeps the machine-readable copy from
+	// drifting away from the timeline the moment a role changes.
+	const currentRole = experience[0];
 
 	const personJsonLd = jsonLd({
 		'@context': 'https://schema.org',
@@ -29,8 +43,8 @@
 		name: site.name,
 		url: site.url,
 		sameAs: Object.values(site.socials),
-		jobTitle: 'Founding Engineer',
-		worksFor: { '@type': 'Organization', name: 'Scam AI' },
+		jobTitle: currentRole.role,
+		worksFor: { '@type': 'Organization', name: currentRole.company },
 		alumniOf: { '@type': 'CollegeOrUniversity', name: education.school }
 	});
 </script>
@@ -59,7 +73,7 @@
 
 	<section class="about__band container">
 		<SectionHeading title="Skills" />
-		<Skills />
+		<Skills groups={skillGroups} scores={radarScores} {certifications} />
 	</section>
 
 	<section class="about__band container">

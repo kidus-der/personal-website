@@ -13,6 +13,17 @@
 	instant it appears, and `hidden` is what actually removes it from the
 	accessibility tree and the tab order; doing it imperatively means the element
 	is genuinely visible before Motion is handed it, with no `tick()` in between.
+
+	Hover is tracked on the `.bio__greeting` wrapper, not on the trigger. WCAG
+	1.4.13 (Content on Hover or Focus) requires hoverable additional content: a
+	tooltip that vanished the moment the pointer left the word could never be
+	reached to read or to select from, and the wrapper contains both the word and
+	the tooltip, so travelling between them never crosses its boundary.
+
+	Pointer and focus are two independent flags rather than one, for the same
+	reason `SpotlightCard` keeps them apart: a mouse drifting across the word and
+	off again must not dismiss a tooltip the keyboard raised, and tabbing away
+	must not dismiss one the pointer is still resting on.
 -->
 <script lang="ts">
 	import BeamsBackground from '$lib/components/kokonut/BeamsBackground.svelte';
@@ -22,34 +33,56 @@
 
 	let tooltipEl = $state<HTMLSpanElement | undefined>();
 	let animation: ReturnType<typeof animate> | undefined;
-	/** Mirrors `tooltipEl.hidden`, so repeated hovers do not restart the spring. */
+
+	/** The two independent ways the tooltip can be asked for. */
+	let hovered = false;
+	let focused = false;
+	/** Mirrors `tooltipEl.hidden`, so a second request does not restart the spring. */
 	let shown = false;
 
-	function show() {
+	function sync() {
 		const el = tooltipEl;
-		if (!el || shown) return;
-		shown = true;
-		el.hidden = false;
+		if (!el) return;
 
-		if (reducedMotion()) return;
+		const wanted = hovered || focused;
+		if (wanted === shown) return;
+		shown = wanted;
+
 		animation?.stop();
+		animation = undefined;
+
+		if (!wanted) {
+			el.hidden = true;
+			return;
+		}
+
+		el.hidden = false;
+		if (reducedMotion()) return;
 		animation = animate(el, { opacity: [0, 1], scale: [0.93, 1] }, springs.bouncy);
 	}
 
-	function hide() {
-		const el = tooltipEl;
-		if (!el || !shown) return;
-		shown = false;
-		animation?.stop();
-		animation = undefined;
-		el.hidden = true;
+	function setHovered(next: boolean) {
+		hovered = next;
+		sync();
+	}
+
+	function setFocused(next: boolean) {
+		focused = next;
+		sync();
 	}
 
 	function onWindowKeydown(event: KeyboardEvent) {
-		// Hover can raise the tooltip without ever moving focus, so Escape is
-		// listened for on the window rather than on the trigger.
-		if (event.key === 'Escape') hide();
+		// Hover can raise the tooltip without focus ever moving, so Escape is
+		// listened for on the window rather than on the trigger. Escape dismisses
+		// outright: both flags drop, so the pointer must leave and return (or focus
+		// move away and back) before it can be raised again.
+		if (event.key !== 'Escape') return;
+		hovered = false;
+		focused = false;
+		sync();
 	}
+
+	$effect(() => () => animation?.stop());
 </script>
 
 <svelte:window onkeydown={onWindowKeydown} />
@@ -58,16 +91,24 @@
 	<BeamsBackground intensity="subtle" />
 
 	<div class="bio__content">
-		<div class="bio__greeting">
+		<!--
+			Hover lives on the wrapper so the tooltip stays up while the pointer
+			travels into it (WCAG 1.4.13). It is not interactive itself — the button
+			inside is what a keyboard reaches — so it needs no role of its own.
+		-->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="bio__greeting"
+			onpointerenter={() => setHovered(true)}
+			onpointerleave={() => setHovered(false)}
+		>
 			<h1 class="bio__heading">
 				<button
 					type="button"
 					class="selam"
 					aria-describedby={TOOLTIP_ID}
-					onpointerenter={show}
-					onpointerleave={hide}
-					onfocus={show}
-					onblur={hide}
+					onfocus={() => setFocused(true)}
+					onblur={() => setFocused(false)}
 				>
 					ሰላም
 				</button>
@@ -157,11 +198,13 @@
 
 	.bio__greeting {
 		position: relative;
+		/* The visual gap between the word and the tooltip, bridged below. */
+		--tooltip-gap: 0.75rem;
 	}
 
 	.bio__tooltip {
 		position: absolute;
-		top: calc(100% + 0.75rem);
+		top: calc(100% + var(--tooltip-gap));
 		left: 0;
 		z-index: 1;
 		max-width: 34ch;
@@ -174,6 +217,22 @@
 		line-height: 1.5;
 		/* Motion springs `scale`; the origin keeps the growth anchored to the word. */
 		transform-origin: top left;
+	}
+
+	/*
+		An invisible bridge across the gap. The tooltip is out of flow, so it adds
+		nothing to `.bio__greeting`'s own box: without this, a pointer moving from
+		the word down to the tooltip would cross bare page, fire `pointerleave` on
+		the wrapper, and dismiss the very thing it was reaching for. The pseudo
+		element is part of the tooltip, so the pointer never leaves the subtree.
+	*/
+	.bio__tooltip::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 100%;
+		height: var(--tooltip-gap);
 	}
 
 	.bio__body {

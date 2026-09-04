@@ -64,7 +64,7 @@
 					</p>
 				</div>
 
-				<ul class="timeline__bullets">
+				<ul class="timeline__bullets bullet-list">
 					{#each role.bullets as bullet (bullet)}
 						<li>{bullet}</li>
 					{/each}
@@ -179,32 +179,8 @@
 		letter-spacing: 0.01em;
 	}
 
+	/* Marker, spacing and colour come from the global `.bullet-list`. */
 	.timeline__bullets {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
 		max-width: 68ch;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-		font-size: var(--text-base);
-		line-height: 1.6;
-		color: var(--text-muted);
-	}
-
-	.timeline__bullets li {
-		position: relative;
-		padding-left: 1.125rem;
-	}
-
-	.timeline__bullets li::before {
-		content: '';
-		position: absolute;
-		left: 0;
-		top: 0.6em;
-		width: 4px;
-		height: 4px;
-		border-radius: var(--radius-full);
-		background-color: var(--border-strong);
 	}
 </style>

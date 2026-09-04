@@ -9,24 +9,34 @@
 	The group cards are `SpotlightCard tilt={false}`: they keep the pointer glow
 	that ties them to the rest of the site's cards but drop the rotation. Five
 	cards tilting next to a chart that is itself the focal point would be noise.
+
+	Data arrives as props, like every other section on this page, so the route
+	stays the one place that reaches into `$content/*`.
 -->
 <script lang="ts">
 	import { RadarChart } from '$lib/components/charts';
 	import SpotlightCard from '$lib/components/kokonut/SpotlightCard.svelte';
 	import Tag from '$lib/components/ui/Tag.svelte';
-	import { skillGroups, radarScores } from '$content/skills';
-	import { certifications } from '$content/education';
+	import type { RadarScore, SkillGroup } from '$lib/types/content';
+
+	interface Props {
+		groups: SkillGroup[];
+		scores: RadarScore[];
+		certifications: string[];
+	}
+
+	let { groups, scores, certifications }: Props = $props();
 
 	const RADAR_SIZE = 320;
 	const RADAR_LEVELS = 4;
 
-	const metrics = radarScores.map((score) => ({ key: score.key, label: score.label }));
-	const radarData = [
+	const metrics = $derived(scores.map((score) => ({ key: score.key, label: score.label })));
+	const radarData = $derived([
 		{
 			label: 'Kidus',
-			values: Object.fromEntries(radarScores.map((score) => [score.key, score.value]))
+			values: Object.fromEntries(scores.map((score) => [score.key, score.value]))
 		}
-	];
+	]);
 </script>
 
 <div class="skills">
@@ -36,8 +46,8 @@
 		</div>
 
 		<div class="skills__groups">
-			{#each skillGroups as group (group.name)}
-				<SpotlightCard tilt={false} class="skills__group">
+			{#each groups as group (group.name)}
+				<SpotlightCard tilt={false}>
 					<h3 class="skills__group-name">{group.name}</h3>
 					<div class="skills__items">
 						{#each group.items as item (item)}

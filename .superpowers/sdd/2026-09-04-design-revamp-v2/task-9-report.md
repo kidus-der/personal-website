@@ -167,3 +167,137 @@ JSON-LD verbatim with `sameAs`, `jobTitle`, `worksFor` and `alumniOf`.
    deletes. Out of scope here; someone should refresh it at the end of the revamp.
 7. Pre-existing lint warning `svelte/no-at-html-tags` on the page's JSON-LD `{@html}`,
    matching `+layout.svelte`. `jsonLd()` escapes `<`, and the payload is static.
+
+---
+
+# Fix report — review round 1
+
+All six findings addressed. Commands and output at the end.
+
+## 1. (Important) Tooltip dismissed before the pointer could reach it — WCAG 1.4.13
+
+`Bio.svelte`. Hover moved from the trigger to the `.bio__greeting` wrapper that
+holds both the word and the tooltip; `onfocus`/`onblur` stay on the button. Hover
+and focus are now two independent flags reconciled by one `sync()`, so a mouse
+drifting across the word cannot steal a tooltip the keyboard is holding open, and
+tabbing away cannot close one the pointer is resting on. Escape drops both.
+
+A second, real-browser-only defect surfaced while making this change: the tooltip
+is `position: absolute`, so it contributes nothing to the wrapper's own box. A
+pointer travelling the 0.75rem gap from the word down to the tooltip would cross
+bare page, fire `pointerleave` on the wrapper, and dismiss the thing it was
+reaching for. Added a `.bio__tooltip::before` bridge spanning the gap — part of
+the tooltip's own rendering, so the pointer never leaves the subtree. The gap is
+now one `--tooltip-gap` custom property feeding both the offset and the bridge.
+
+Tests (`Bio.test.ts`, 11 → 15):
+- `stays up while the pointer travels from the word into the tooltip`
+- `shows the tooltip on hover and hides it when the pointer leaves the greeting`
+- `does not hover the tooltip away when the keyboard raised it`
+- `does not blur the tooltip away when the pointer is still on it`
+- `springs the tooltip in once, not again for the second request`
+
+Verified the first of these fails against the old placement: moving the pointer
+handlers back onto the button gives `1 failed | 14 passed`.
+
+## 2. (Important) Interrupted toggles snapped
+
+`PublicationRow.svelte`. Both directions now start from
+`el.getBoundingClientRect().height` — the rendered height, in-progress animation
+included — instead of `scrollHeight` (collapse) and a hardcoded `0` (expand).
+
+I did **not** gate this on "an animation was in flight", which the finding
+suggested: the rendered height is already the correct start in the uninterrupted
+cases too (a closed row is pinned at `height: 0`, an open one is `auto`), so the
+gate would have been a branch that could only ever be wrong. It would also have
+been untestable — the shared `motionMock` resolves `finished` on a microtask, so
+by the time a test can act, the "in flight" flag has already cleared.
+
+`onSettled` now clears the `animation` slot when the animation it owns settles,
+and skips its callback when superseded, so a stale animation cannot report state
+for a newer one.
+
+Tests (`PublicationRow.test.ts`, 11 → 13), both with `getBoundingClientRect`
+stubbed via a `stubHeight` helper:
+- `picks an interrupted toggle up at the height the row is rendering` (120 → 0)
+- `resumes an interrupted collapse from where it had got to` (45 → target)
+
+Verified both fail against the old code: restoring `from = 0` / `from =
+el.scrollHeight` gives `2 failed | 11 passed`.
+
+## 3. (Minor) In-flight animations left running on destroy
+
+`$effect(() => () => animation?.stop())` added to both `Bio.svelte` and
+`PublicationRow.svelte`. Without it a row or tooltip torn down mid-animation
+leaves Motion driving a detached element until it runs out.
+
+## 4. (Minor) Duplicated bullet treatment
+
+The identical drawn-dot list appeared in `ExperienceTimeline` and
+`PublicationRow`. Moved to a `.bullet-list` utility in `src/styles/app.css`
+alongside `.container`/`.dot-grid`, with `--bullet-gap` for per-context spacing.
+`ExperienceTimeline` keeps only its `max-width: 68ch`; `PublicationRow` keeps
+only `--bullet-gap: 0.625rem`. 24 lines of CSS removed per component.
+
+## 5. (Minor) `Skills` reached into the content module
+
+Now takes `{ groups, scores, certifications }`, so the route is the single place
+that touches `$content/*` — consistent with the other four sections. `metrics`
+and `radarData` became `$derived` so they track the props.
+
+`Skills.test.ts` rewritten around local fixtures rather than the live CV (a
+content edit should not fail a layout test; `tests/unit/content/skills.test.ts`
+guards the real data). Group cards are now found by their heading via
+`closest('.spotlight-card')` instead of the `skills__group` class, which was dead
+— `SpotlightCard` does not forward a `class` prop to a queryable wrapper, so the
+old selector matched nothing and the count assertions were passing vacuously.
+That is a latent false-negative the rewrite removes. Added
+`renders whatever it is handed, not the content module` (8 tests, was 7).
+
+## 6. (Minor) JSON-LD literals and a wrong comment
+
+`+page.svelte` derives `jobTitle` and `worksFor.name` from `experience[0]` (the
+roles are newest first). Output is byte-identical today, and now cannot drift
+from the timeline. The header comment claimed "every word comes from
+`$content/*`" and "the four sections below share the same shape" — both untrue.
+Rewritten to say what is actually so: the route is the only `$content/*` consumer,
+`Bio` and `Publications` deliberately carry their own headings, and section-local
+prose stays in its section because `$content/*` holds records, not page copy.
+
+## Commands and output
+
+```
+$ pnpm test:unit -- tests/unit/sections/about tests/unit/utils/period.test.ts
+ ✓ tests/unit/utils/period.test.ts (7 tests)
+ ✓ tests/unit/sections/about/Education.test.ts (3 tests)
+ ✓ tests/unit/sections/about/ExperienceTimeline.test.ts (9 tests)
+ ✓ tests/unit/sections/about/Bio.test.ts (15 tests)
+ ✓ tests/unit/sections/about/PublicationRow.test.ts (13 tests)
+ ✓ tests/unit/sections/about/Skills.test.ts (8 tests)
+ ✓ tests/unit/sections/about/Publications.test.ts (8 tests)
+ Test Files  7 passed (7)
+      Tests  63 passed (63)
+
+$ pnpm test:unit
+ Test Files  56 passed (56)
+      Tests  591 passed (591)
+
+$ pnpm check
+COMPLETED 832 FILES 0 ERRORS 0 WARNINGS 0 FILES_WITH_PROBLEMS
+
+$ pnpm lint
+✖ 15 problems (0 errors, 15 warnings)      # all pre-existing, none in a touched file
+
+$ pnpm build
+✓ built in 2.56s   ✔ done
+
+$ curl -s localhost:5281/about
+HTTP 200 — bullet-list ×16, bio__greeting ×3, id="publications" ×1,
+pub-row__header ×13, skills__certifications ×4; Person JSON-LD unchanged
+("jobTitle":"Founding Engineer", "worksFor":{"name":"Scam AI"}), now derived.
+```
+
+Test count 584 → 591 (+7: 4 Bio, 2 PublicationRow, 1 Skills).
+
+Deferred items untouched, as agreed: `use:reveal` on the other sections, the
+"Eight papers" literal, the chart reading the module, CLAUDE.md staleness.

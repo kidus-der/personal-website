@@ -56,6 +56,10 @@
 		else collapse(el);
 	});
 
+	// A row torn down mid-toggle would otherwise leave Motion driving a detached
+	// element until the animation ran out.
+	$effect(() => () => animation?.stop());
+
 	/**
 	 * Run `done` once an animation stops running, however it stopped.
 	 *
@@ -66,10 +70,14 @@
 	 * the DOM, so a superseded animation cannot undo the newer one's work.
 	 */
 	function onSettled(current: ReturnType<typeof animate>, done: () => void) {
-		void current.finished.then(done, () => {
+		const finish = () => {
+			// Only the animation still on the field clears the slot; a superseded
+			// one settling later must not tell the row that nothing is in flight.
 			if (animation !== current) return;
+			animation = undefined;
 			done();
-		});
+		};
+		void current.finished.then(finish, finish);
 	}
 
 	/** Jump straight to a state, with no animation. Used on mount and reduced motion. */
@@ -77,6 +85,24 @@
 		shown = isOpen;
 		el.hidden = !isOpen;
 		el.style.height = isOpen ? 'auto' : '0px';
+	}
+
+	/**
+	 * Where an animation must start from: the height the row is rendering *now*.
+	 *
+	 * A toggle landing mid-flight has to pick the box up where it is, not where it
+	 * would be at rest — collapsing from the full content height while the row is
+	 * only half open makes it jump down and then slide up. `getBoundingClientRect`
+	 * reports the rendered height, in-progress animation included, which
+	 * `scrollHeight` (the content's own extent, rounded to an integer) does not.
+	 *
+	 * Correct in the uninterrupted cases too, which is why there is no special
+	 * casing: a closed row is pinned at `height: 0`, and an open one is `auto`, so
+	 * the rendered height already equals the value the old code computed. The
+	 * caller stops the running animation first, freezing the box at that height.
+	 */
+	function currentHeight(el: HTMLElement): number {
+		return el.getBoundingClientRect().height;
 	}
 
 	function expand(el: HTMLElement) {
@@ -89,9 +115,10 @@
 			return;
 		}
 
-		el.style.height = '0px';
+		const from = currentHeight(el);
+		el.style.height = `${from}px`;
 		const target = el.scrollHeight;
-		animation = animate(el, { height: [0, target] }, transition);
+		animation = animate(el, { height: [from, target] }, transition);
 		// Back to `auto` so the row keeps fitting content that reflows later.
 		onSettled(animation, () => {
 			if (open) el.style.height = 'auto';
@@ -107,7 +134,7 @@
 			return;
 		}
 
-		const from = el.scrollHeight;
+		const from = currentHeight(el);
 		el.style.height = `${from}px`;
 		animation = animate(el, { height: [from, 0] }, transition);
 		onSettled(animation, () => {
@@ -150,7 +177,7 @@
 
 	<div class="pub-row__body" id={bodyId} bind:this={bodyEl} hidden>
 		<div class="pub-row__body-inner">
-			<ul class="pub-row__bullets">
+			<ul class="pub-row__bullets bullet-list">
 				{#each pub.bullets as bullet (bullet)}
 					<li>{bullet}</li>
 				{/each}
@@ -247,32 +274,10 @@
 		padding: 0 0 1.5rem;
 	}
 
+	/* Marker and colour come from the global `.bullet-list`; a row's bullets sit
+	   inside an expanding box, so they are packed a little tighter than prose. */
 	.pub-row__bullets {
-		display: flex;
-		flex-direction: column;
-		gap: 0.625rem;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-		font-size: var(--text-base);
-		line-height: 1.6;
-		color: var(--text-muted);
-	}
-
-	.pub-row__bullets li {
-		position: relative;
-		padding-left: 1.125rem;
-	}
-
-	.pub-row__bullets li::before {
-		content: '';
-		position: absolute;
-		left: 0;
-		top: 0.6em;
-		width: 4px;
-		height: 4px;
-		border-radius: var(--radius-full);
-		background-color: var(--border-strong);
+		--bullet-gap: 0.625rem;
 	}
 
 	.pub-row__links {

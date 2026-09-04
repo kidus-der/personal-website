@@ -9,7 +9,8 @@ function setup() {
 	const result = render(Bio);
 	const trigger = () => result.getByRole('button', { name: /ሰላም/ });
 	const tooltip = () => result.container.querySelector('#selam-tip') as HTMLElement;
-	return { ...result, trigger, tooltip };
+	const greeting = () => result.container.querySelector('.bio__greeting') as HTMLElement;
+	return { ...result, trigger, tooltip, greeting };
 }
 
 describe('Bio', () => {
@@ -46,14 +47,63 @@ describe('Bio', () => {
 		expect(tooltip()).not.toBeVisible();
 	});
 
-	it('shows the tooltip on hover and hides it when the pointer leaves', async () => {
-		const { trigger, tooltip } = setup();
+	it('shows the tooltip on hover and hides it when the pointer leaves the greeting', async () => {
+		const { greeting, tooltip } = setup();
 
-		await fireEvent.pointerEnter(trigger());
+		await fireEvent.pointerEnter(greeting());
 		expect(tooltip()).toBeVisible();
 
-		await fireEvent.pointerLeave(trigger());
+		await fireEvent.pointerLeave(greeting());
 		expect(tooltip()).not.toBeVisible();
+	});
+
+	it('stays up while the pointer travels from the word into the tooltip', async () => {
+		// WCAG 1.4.13: additional content raised on hover has to be hoverable. The
+		// pointer handlers sit on the wrapper that holds both the word and the
+		// tooltip, so leaving the trigger for the tooltip is not leaving the widget.
+		const { greeting, trigger, tooltip } = setup();
+
+		await fireEvent.pointerEnter(greeting());
+		await fireEvent.pointerLeave(trigger());
+		expect(tooltip()).toBeVisible();
+
+		await fireEvent.pointerEnter(tooltip());
+		expect(tooltip()).toBeVisible();
+	});
+
+	it('does not hover the tooltip away when the keyboard raised it', async () => {
+		// A mouse drifting across the word and off again must not steal a tooltip
+		// the keyboard is holding open — hover and focus are tracked separately.
+		const { greeting, trigger, tooltip } = setup();
+
+		await fireEvent.focus(trigger());
+		await fireEvent.pointerEnter(greeting());
+		await fireEvent.pointerLeave(greeting());
+
+		expect(tooltip()).toBeVisible();
+
+		await fireEvent.blur(trigger());
+		expect(tooltip()).not.toBeVisible();
+	});
+
+	it('does not blur the tooltip away when the pointer is still on it', async () => {
+		const { greeting, trigger, tooltip } = setup();
+
+		await fireEvent.pointerEnter(greeting());
+		await fireEvent.focus(trigger());
+		await fireEvent.blur(trigger());
+
+		expect(tooltip()).toBeVisible();
+	});
+
+	it('springs the tooltip in once, not again for the second request', async () => {
+		const { greeting, trigger, tooltip } = setup();
+
+		await fireEvent.pointerEnter(greeting());
+		await fireEvent.focus(trigger());
+
+		expect(animateMock).toHaveBeenCalledTimes(1);
+		expect(tooltip()).toBeVisible();
 	});
 
 	it('dismisses the tooltip with Escape', async () => {

@@ -21,6 +21,14 @@ const base: Publication = {
 	]
 };
 
+/** Pin an element's rendered height — jsdom reports 0 for everything. */
+function stubHeight(el: HTMLElement, height: number) {
+	vi.spyOn(el, 'getBoundingClientRect').mockReturnValue({
+		...new DOMRect(0, 0, 0, height),
+		height
+	} as DOMRect);
+}
+
 function setup(pub: Partial<Publication> = {}, props: Record<string, unknown> = {}) {
 	const ontoggle = vi.fn();
 	const result = render(PublicationRow, {
@@ -131,6 +139,38 @@ describe('PublicationRow', () => {
 		expect(animateMock).toHaveBeenCalledTimes(1);
 		const [, keyframes] = animateMock.mock.calls[0];
 		expect(keyframes).toMatchObject({ height: [expect.any(Number), 0] });
+	});
+
+	it('picks an interrupted toggle up at the height the row is rendering', async () => {
+		// jsdom lays nothing out, so the mid-animation height is supplied: the row
+		// is 120px tall — part way through opening — when the close arrives. Taking
+		// the start from `scrollHeight` instead would snap it to the full content
+		// height first and only then slide it shut.
+		const { rerender, body } = setup();
+		await rerender({ pub: base, open: true, ontoggle: () => {} });
+
+		stubHeight(body(), 120);
+		animateMock.mockClear();
+
+		await rerender({ pub: base, open: false, ontoggle: () => {} });
+
+		expect(animateMock).toHaveBeenCalledTimes(1);
+		const [, keyframes] = animateMock.mock.calls[0];
+		expect(keyframes).toMatchObject({ height: [120, 0] });
+	});
+
+	it('resumes an interrupted collapse from where it had got to', async () => {
+		const { rerender, body } = setup({}, { open: true });
+		await rerender({ pub: base, open: false, ontoggle: () => {} });
+
+		stubHeight(body(), 45);
+		animateMock.mockClear();
+
+		await rerender({ pub: base, open: true, ontoggle: () => {} });
+
+		expect(animateMock).toHaveBeenCalledTimes(1);
+		const [, keyframes] = animateMock.mock.calls[0];
+		expect(keyframes).toMatchObject({ height: [45, expect.any(Number)] });
 	});
 
 	it('opens instantly under reduced motion', async () => {

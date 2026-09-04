@@ -176,6 +176,42 @@ button {
 	background-position: center;
 }
 
+/*
+	The site's prose bullet list: the marker is a drawn dot rather than a
+	`list-style` disc, so its size, colour and alignment to the first line are all
+	controllable. Lives here rather than in a component because the experience
+	timeline and the publication rows render the same treatment, and a second copy
+	is how the two drift apart. `--bullet-gap` tunes the spacing per context.
+*/
+.bullet-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--bullet-gap, 0.75rem);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-size: var(--text-base);
+	line-height: 1.6;
+	color: var(--text-muted);
+}
+
+.bullet-list > li {
+	position: relative;
+	padding-left: 1.125rem;
+}
+
+.bullet-list > li::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	/* Centres the dot on the first line's x-height at line-height 1.6. */
+	top: 0.6em;
+	width: 4px;
+	height: 4px;
+	border-radius: var(--radius-full);
+	background-color: var(--border-strong);
+}
+
 /* ============================================================
    Scrollbar
    ============================================================ */
