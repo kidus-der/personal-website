@@ -1,221 +1,113 @@
+<!--
+	/work — every project, filtered by category.
+
+	The filter is a query parameter rather than component state so a filtered view
+	is linkable and survives a reload, and `+page.ts` — not this component — is
+	the one place that decides what a valid category is. Changing a tab replaces
+	the history entry instead of pushing one: five tabs would otherwise bury the
+	page a visitor came from under five back presses.
+
+	`SmoothTabs` has no `aria-controls`, so the relationship between the tabs and
+	the grid is carried the other way: the grid has a stable id, and a polite live
+	region reports how many projects the new filter left. Without it, a screen
+	reader user hears the tab's own selected state change and nothing about the
+	content that just swapped underneath it.
+-->
 <script lang="ts">
-	import { revealOnScroll } from '$lib/actions/revealOnScroll';
-	import { cursorTarget } from '$lib/actions/cursor';
-	import { projects } from '$content/projects';
+	import { goto } from '$app/navigation';
+	import { PROJECT_CATEGORIES } from '$content/projects';
+	import SmoothTabs from '$lib/components/kokonut/SmoothTabs.svelte';
+	import ProjectGrid from '$lib/components/sections/work/ProjectGrid.svelte';
 	import SEO from '$lib/components/ui/SEO.svelte';
-	import VantaBackground from '$lib/components/animation/VantaBackground.svelte';
+	import { reveal } from '$lib/actions/reveal';
+	import type { PageData } from './$types';
+
+	interface Props {
+		data: PageData;
+	}
+
+	let { data }: Props = $props();
+
+	const tabs = PROJECT_CATEGORIES.map((category) => ({ id: category.id, label: category.label }));
+
+	const count = $derived(data.projects.length);
+	const status = $derived(`${count} ${count === 1 ? 'project' : 'projects'}`);
+
+	function selectCategory(id: string) {
+		// `keepFocus` so the tab the visitor just activated keeps focus across the
+		// navigation; `noScroll` so filtering does not throw them back to the top.
+		goto(id === 'all' ? '/work' : `/work?category=${id}`, {
+			replaceState: true,
+			noScroll: true,
+			keepFocus: true
+		});
+	}
 </script>
 
-<SEO
-	title="Work"
-	description="Selected projects by Kidus Dereje — design, engineering, and everything in between."
-/>
-
-<VantaBackground effect="NET" opacity={0.3} interactive={false} />
+<SEO title="Work" description="Selected projects across AI, full-stack, systems and mobile." />
 
 <main class="work-page">
-	<div class="work-page__inner">
-		<header class="work-page__header" use:revealOnScroll>
-			<span class="label">Work</span>
-			<h1 class="work-page__title">My Projects</h1>
-			<p class="work-page__sub">
-				Here's a selection of my projects that I am proud of ranging from full-stack AI
-				applications, interactive experiences, and ML research.
-			</p>
+	<div class="container">
+		<header class="work-page__header" use:reveal>
+			<h1 class="work-page__title">Work</h1>
+			<p class="work-page__lede">Projects I've built, from research tooling to production apps.</p>
 		</header>
 
-		<div class="work-list">
-			{#each projects as project, i}
-				<a
-					href="/work/{project.slug}"
-					class="work-item"
-					use:revealOnScroll={{ delay: i * 0.05 }}
-					use:cursorTarget={'hover'}
-				>
-					<div class="work-item__thumb">
-						{#if project.images[0]}
-							<img src={project.images[0]} alt={project.title} class="work-item__img" />
-						{:else}
-							<div class="work-item__placeholder"></div>
-						{/if}
-					</div>
-					<div class="work-item__meta">
-						<span class="work-item__year">{project.year}</span>
-						<h2 class="work-item__title">{project.title}</h2>
-						<p class="work-item__desc">{project.description}</p>
-						<div class="work-item__tags">
-							{#each project.tags as tag}
-								<span class="tag" data-text={tag}>{tag}</span>
-							{/each}
-						</div>
-					</div>
-				</a>
-			{/each}
-
-			{#if projects.length === 0}
-				<p class="work-empty">Projects coming soon.</p>
-			{/if}
+		<div class="work-page__filter">
+			<SmoothTabs {tabs} active={data.category} onchange={selectCategory} label="Filter projects" />
+			<p class="work-page__status" aria-live="polite">{status}</p>
 		</div>
+
+		<ProjectGrid id="project-grid" projects={data.projects} />
 	</div>
 </main>
 
 <style>
 	.work-page {
-		padding: 8rem var(--spacing-container) var(--spacing-section);
-	}
-
-	.work-page__inner {
-		max-width: 1400px;
-		margin: 0 auto;
+		padding-block: 8rem var(--spacing-section);
 	}
 
 	.work-page__header {
-		margin-bottom: 5rem;
-	}
-
-	.label {
-		font-size: var(--text-xs);
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		color: var(--accent);
-		display: block;
-		margin-bottom: 1rem;
-	}
-
-	.work-page__title {
-		font-size: var(--text-3xl);
-		font-weight: 600;
-		letter-spacing: -0.03em;
-		line-height: 1.1;
-		margin-bottom: 1.5rem;
-	}
-
-	.work-page__sub {
-		font-size: var(--text-lg);
-		color: var(--text-muted);
-		max-width: 520px;
-		line-height: 1.7;
-	}
-
-	.work-list {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.work-item {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 3rem;
-		align-items: center;
-		padding: 3rem 0;
-		border-top: 1px solid var(--border);
-		transition: border-color 0.3s;
-
-		&:hover {
-			border-color: var(--text-muted);
-
-			.work-item__thumb {
-				transform: scale(1.02);
-			}
-		}
-
-		@media (max-width: 768px) {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	.work-item__thumb {
-		aspect-ratio: 4/3;
-		border-radius: var(--radius-md);
-		overflow: hidden;
-		transition: transform 0.5s var(--ease-out-expo);
-	}
-
-	.work-item__placeholder {
-		width: 100%;
-		height: 100%;
-		background: var(--surface-raised);
-	}
-
-	.work-item__img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
-
-	.work-item__meta {
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
+		margin-bottom: 2.5rem;
 	}
 
-	.work-item__year {
-		font-size: var(--text-xs);
-		color: var(--text-muted);
-		letter-spacing: 0.08em;
-	}
-
-	.work-item__title {
-		font-size: var(--text-2xl);
+	.work-page__title {
+		font-family: var(--font-display);
+		font-size: var(--text-3xl);
 		font-weight: 600;
 		letter-spacing: -0.02em;
-		line-height: 1.2;
-		width: fit-content;
-		background-image: linear-gradient(var(--accent), var(--accent));
-		background-repeat: no-repeat;
-		background-position: 0 100%;
-		background-size: 0% 1px;
-		transition: background-size 0.3s var(--ease-out-expo);
+		line-height: 1.05;
+		color: var(--text);
 	}
 
-	.work-item:hover .work-item__title {
-		background-size: 100% 1px;
-	}
-
-	.work-item__desc {
-		font-size: var(--text-base);
+	.work-page__lede {
+		max-width: 52ch;
+		font-size: var(--text-lg);
+		line-height: 1.6;
 		color: var(--text-muted);
-		line-height: 1.7;
 	}
 
-	.work-item__tags {
-		display: flex;
-		gap: 0.5rem;
-		flex-wrap: wrap;
+	.work-page__filter {
+		margin-bottom: 2.5rem;
 	}
 
-	.tag {
-		font-size: var(--text-xs);
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		padding: 0.2rem 0.65rem;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-full);
-		color: var(--text-muted);
-		position: relative;
-	}
-
-	.tag::after {
-		content: attr(data-text);
+	/*
+		Announced, never seen: the tab row already shows which filter is on, so a
+		visible count would only repeat it. Clipped rather than `display: none`,
+		which would take it out of the accessibility tree entirely.
+	*/
+	.work-page__status {
 		position: absolute;
-		inset: 0;
-		padding: 0.2rem 0.65rem;
-		color: var(--accent);
-		clip-path: inset(100% 0 0 0);
-		transition: clip-path 0.35s var(--ease-out-expo);
-		pointer-events: none;
-		font-size: var(--text-xs);
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-	}
-
-	.work-item:hover .tag::after {
-		clip-path: inset(0% 0 0 0);
-	}
-
-	.work-empty {
-		color: var(--text-muted);
-		padding: 4rem 0;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
 	}
 </style>
