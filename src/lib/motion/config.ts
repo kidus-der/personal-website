@@ -37,6 +37,13 @@ export const durations = {
 
 export type DurationName = keyof typeof durations;
 
+/**
+ * The `use:reveal` options every content grid on the site shares — 60ms between
+ * children, per the motion brief. One frozen object rather than a literal per
+ * section, so the rhythm cannot drift band to band.
+ */
+export const GRID_REVEAL = Object.freeze({ stagger: 0.06 });
+
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 /**
