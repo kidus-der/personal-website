@@ -1,733 +1,98 @@
+<!--
+	/about — composition only.
+
+	This route is the single place that reaches into `$content/*`; every section
+	below takes its data as props. That keeps the sections renderable from
+	fixtures in tests and leaves one file to look at when the content moves. The
+	page's own work is the order of the bands, their headings, and the structured
+	data describing the person the page is about.
+
+	Two sections break the shared `.container` + `SectionHeading` shape, both
+	deliberately: `Bio` carries its own heading and background because it is the
+	page's opening statement rather than a band, and `Publications` carries its
+	own heading because `id="publications"` has to sit on a section that includes
+	the title — the bio links down to it.
+
+	Prose that belongs to a single section (the bio's paragraphs, the
+	publications lede) still lives in that section's markup rather than in
+	`$content/*`, which holds structured records, not page copy.
+-->
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { revealOnScroll } from '$lib/actions/revealOnScroll';
-	import type { Publication } from '$lib/types/content';
-	import PublicationModal from '$lib/components/ui/PublicationModal.svelte';
-	import { gsap } from 'gsap';
-	import { cursorTarget } from '$lib/actions/cursor';
 	import SEO from '$lib/components/ui/SEO.svelte';
+	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
+	import Bio from '$lib/components/sections/about/Bio.svelte';
+	import ExperienceTimeline from '$lib/components/sections/about/ExperienceTimeline.svelte';
+	import Publications from '$lib/components/sections/about/Publications.svelte';
+	import Skills from '$lib/components/sections/about/Skills.svelte';
+	import EducationCard from '$lib/components/sections/about/Education.svelte';
+	import { site } from '$content/site';
+	import { experience } from '$content/experience';
+	import { publications } from '$content/publications';
+	import { skillGroups, radarScores } from '$content/skills';
+	import { education, certifications } from '$content/education';
 	import { jsonLd } from '$lib/utils/jsonLd';
-	import VantaBackground from '$lib/components/animation/VantaBackground.svelte';
-	import { scrollStore } from '$lib/stores/scroll';
 
-	const experience = [
-		{
-			role: 'Founding Engineer',
-			company: 'Scam AI',
-			period: 'June 2026 – Present',
-			bullets: [
-				'Contributed to the development of Scam AI\'s <span class="bullet-accent">Eva-v1</span> deepfake and AI-generated media detection models, building ML pipelines to detect face swaps, expression and facial-attribute manipulations, and synthetic imagery from Stable Diffusion, DALL·E, Midjourney, and Flux across image and video, reaching <span class="bullet-accent">98.2% accuracy</span> with confidence scores and manipulated-region heatmaps served via a RESTful API at <span class="bullet-accent">sub-4-second inference</span> for KYC and content-moderation use cases',
-				'Worked across <a href="https://checkreality.ai/" class="bullet-link" target="_blank" rel="noopener noreferrer">CheckReality.ai\'s</a> enterprise forensic detection stack including AI-generated image detection (GAN fingerprints, diffusion signatures, pixel-level noise, frequency domain anomalies, metadata forensics, C2PA credential validation), document forgery analysis (bank statements, pay stubs, IDs), active liveness and age estimation for identity verification, and remote interview integrity — and implemented CAM-based explainability outputs using PyTorch and EfficientNet to support <span class="bullet-accent">SOC 2 Type II compliant</span>, audit-ready forensic reporting',
-				'Built Scam AI\'s <span class="bullet-accent">voice clone and synthetic audio detection</span> models, identifying cloned voices across languages and accents, text-to-speech from ElevenLabs, PlayHT, and Azure TTS, and audio manipulations such as splicing, pitch, and speed alterations — reaching <span class="bullet-accent">98.5% accuracy in under 3 seconds</span> per clip, with real-time and batch REST API endpoints powering live call verification for vishing prevention'
-			]
-		},
-		{
-			role: 'Machine Learning Intern',
-			company: 'Scam AI',
-			period: 'Jan 2025 – June 2026',
-			bullets: [
-				'Engineered a synthetic data generation pipeline using LangChain, ElevenLabs, and Qwen-MT to produce high-quality scam samples in <span class="bullet-accent">14 languages</span> for ML model training.',
-				'Designed a multi-agent AI system using Deepgram, LiveKit, FastAPI, and a fine-tuned OpenAI 4.1 model to transcribe and score potential scam calls, achieving <span class="bullet-accent">80% success rate</span>.',
-				'Developed an agentic SMS scam detection API using FastAPI and a fine-tuned Qwen3.2-32B model via LangChain for adaptive real-time detection.',
-				'Implemented CAM visualization for a deepfake detection model using PyTorch and EfficientNet to produce <span class="bullet-accent">interpretable AI tampering heatmaps</span>.'
-			]
-		},
-		{
-			role: 'Machine Learning Intern',
-			company: 'Avolta Inc.',
-			period: 'Oct 2023 – Jan 2024',
-			bullets: [
-				'Fine-tuned a pre-trained YOLOv5 object detection model on a specialized car theft dataset, increasing accuracy by <span class="bullet-accent">20%</span>.',
-				'Engineered ETL pipelines for ML data ingestion, streamlining feature processing for continuous model training and evaluation.',
-				'Implemented automated data validation and augmentation scripts to ensure <span class="bullet-accent">high-quality, consistent data streams</span>.'
-			]
-		}
-	];
-
-	const publications: Publication[] = [
-		{
-			id: '2502.10920',
-			title: 'Do Deepfake Detectors Work in Reality?',
-			venue: 'ACM',
-			year: 2025,
-			topics: ['deepfake'],
-			url: 'https://arxiv.org/abs/2502.10920',
-			officialUrl: 'https://dl.acm.org/doi/10.1145/3709022.3736545',
-			bullets: [
-				'Investigated the vulnerability of deepfake detection methods to real-world data manipulations, particularly super-resolution post-processing.',
-				'Contributed to the creation of a novel real-world faceswap dataset to benchmark deepfake detectors in practical settings.'
-			]
-		},
-		{
-			id: '2503.20084',
-			title: 'Can Multi-modal (reasoning) LLMs work as deepfake detectors?',
-			venue: 'arXiv',
-			year: 2025,
-			topics: ['deepfake', 'llm-eval'],
-			url: 'https://arxiv.org/abs/2503.20084',
-			bullets: [
-				'Benchmarked 12 state-of-the-art multi-modal LLMs (including GPT-4o, Gemini 2, Claude 3.7) for zero-shot deepfake detection across multiple datasets.',
-				'Conducted ablation studies investigating the impact of model size, version updates, and reasoning capabilities on detection performance.',
-				'Analyzed failure modes and interpretability through score distribution analysis and reasoning pathway examination.'
-			]
-		},
-		{
-			id: '2508.11021',
-			title: 'Can Multi-modal (reasoning) LLMs detect document manipulation?',
-			venue: 'arXiv',
-			year: 2025,
-			topics: ['documents', 'llm-eval'],
-			url: 'https://arxiv.org/abs/2508.11021',
-			bullets: [
-				'Benchmarked GPT-4o, Gemini, and Llama 3.2 for detecting document fraud across diverse forgery types.',
-				'Demonstrated that top-performing LLMs show superior zero-shot generalization over traditional SVM and CNN baselines for out-of-distribution forgeries.',
-				'Revealed that model size and advanced reasoning show limited correlation with detection accuracy, while providing interpretable and scalable fraud mitigation.'
-			]
-		},
-		{
-			id: '2602.07814',
-			title: 'How well are open-source AI-generated image detection models out-of-the-box?',
-			venue: 'arXiv',
-			year: 2026,
-			topics: ['benchmark'],
-			url: 'https://arxiv.org/abs/2602.07814',
-			bullets: [
-				'Led the first large-scale zero-shot benchmark of AI-generated image detectors: 23 pretrained models, 12 datasets, 2.6 million image samples.',
-				'Identified critical generalization gaps — detector performance is highly context-dependent (Spearman ρ as low as 0.01) and training data alignment outweighs architecture.',
-				'Developed deployment guidelines showing that modern generators (Midjourney, Flux) frequently defeat existing detectors, with a framework for threat-specific model selection.'
-			]
-		},
-		{
-			title:
-				'A Synthetic Eye Movement Dataset for Script Reading Detection: Real Trajectory Replay on a 3D Simulator',
-			id: '2604.05475',
-			venue: 'arXiv',
-			year: 2026,
-			topics: ['dataset', 'behavioral'],
-			url: 'https://arxiv.org/abs/2604.05475',
-			bullets: [
-				'Released "final_dataset_v1", 144 sessions (72 reading, 72 conversation) totaling 12 hours of synthetic eye movement video at 25fps for script-reading detection in video interviews.',
-				'Demonstrated that generated trajectories preserve temporal dynamics of source data (KS D < 0.14 across all metrics).'
-			]
-		},
-		{
-			id: '2604.25213',
-			title: 'When the Forger Is the Judge: GPT-Image-2 Cannot Recognize Its Own Faked Documents',
-			venue: 'arXiv',
-			year: 2026,
-			topics: ['documents', 'benchmark'],
-			url: 'https://arxiv.org/abs/2604.25213',
-			bullets: [
-				'Introduced AIForge-Doc v2: 3,066 GPT-Image-2 forgeries with pixel-precise masks.',
-				'Found that GPT-Image-2 achieves only 0.532 AUC at recognizing its own forgeries — near chance level.'
-			]
-		},
-		{
-			title:
-				'GPT-Image-2 in the Wild: A Twitter Dataset of Self-Reported AI-Generated Images from the First Week of Deployment',
-			id: '2604.25370',
-			venue: 'arXiv',
-			year: 2026,
-			topics: ['dataset'],
-			url: 'https://arxiv.org/abs/2604.25370',
-			bullets: [
-				'Curated 10,217 confirmed GPT-image-2 images from Twitter over six days using multilingual heuristics and badge verification.',
-				"Found that 82.0% of generated images contain detectable text and 59.2% contain faces; C2PA credentials are systematically stripped by Twitter's CDN."
-			]
-		}
-	];
-
-	let tooltipEl: HTMLSpanElement | undefined = $state();
-	let tooltipTl: gsap.core.Timeline | null = null;
-
-	onMount(() => {
-		const hint = document.querySelector('.scroll-hint');
-		const unsubscribe = scrollStore.scrollY.subscribe((y) => {
-			if (y > 40 && hint) {
-				hint.classList.add('scroll-hint--hidden');
-			}
-		});
-		return unsubscribe;
-	});
-
-	function showTooltip() {
-		if (!tooltipEl) return;
-		tooltipTl?.kill();
-		tooltipTl = gsap.timeline();
-		tooltipTl.fromTo(
-			tooltipEl,
-			{ opacity: 0, y: 8, scale: 0.93 },
-			{
-				opacity: 1,
-				y: 0,
-				scale: 1,
-				duration: 0.3,
-				ease: 'back.out(1.4)',
-				transformOrigin: 'bottom left'
-			}
-		);
-	}
-
-	function hideTooltip() {
-		if (!tooltipEl) return;
-		tooltipTl?.kill();
-		tooltipTl = gsap.timeline();
-		tooltipTl.to(tooltipEl, {
-			opacity: 0,
-			y: 6,
-			scale: 0.93,
-			duration: 0.18,
-			ease: 'power2.in',
-			transformOrigin: 'bottom left'
-		});
-	}
-
-	const skills = [
-		{
-			category: 'Languages',
-			items: ['Python', 'TypeScript / JavaScript', 'Java', 'C / C++', 'SQL', 'Swift', 'R']
-		},
-		{
-			category: 'Frameworks',
-			items: [
-				'React / Next.js',
-				'SvelteKit',
-				'Django / FastAPI',
-				'PyTorch',
-				'TensorFlow',
-				'scikit-learn'
-			]
-		},
-		{
-			category: 'ML / Data',
-			items: [
-				'NumPy / Pandas',
-				'HuggingFace',
-				'OpenCV',
-				'Gemini API',
-				'RAG Pipelines',
-				'Matplotlib'
-			]
-		},
-		{
-			category: 'Databases',
-			items: ['PostgreSQL', 'Firebase', 'MongoDB', 'MySQL', 'Prisma', 'Supabase']
-		},
-		{
-			category: 'DevOps',
-			items: ['Docker', 'AWS (Lambda, S3, Bedrock)', 'GitHub Actions', 'Vercel', 'Git']
-		}
-	];
+	// The roles are newest first, so the first one is the job the page describes.
+	// Deriving the structured data from it keeps the machine-readable copy from
+	// drifting away from the timeline the moment a role changes.
+	const currentRole = experience[0];
 
 	const personJsonLd = jsonLd({
 		'@context': 'https://schema.org',
 		'@type': 'Person',
-		name: 'Kidus Dereje Zewde',
-		url: 'https://kidusder.com',
-		sameAs: [
-			'https://github.com/kidus-der',
-			'https://www.linkedin.com/in/kidus-dereje-zewde-804424241/',
-			'https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ'
-		],
-		jobTitle: 'Founding Engineer',
-		alumniOf: { '@type': 'CollegeOrUniversity', name: 'University of Alberta' }
+		name: site.name,
+		url: site.url,
+		sameAs: Object.values(site.socials),
+		jobTitle: currentRole.role,
+		worksFor: { '@type': 'Organization', name: currentRole.company },
+		alumniOf: { '@type': 'CollegeOrUniversity', name: education.school }
 	});
 </script>
 
 <SEO
 	title="About"
-	description="About Kidus Dereje Zewde — ML Engineer, researcher, and Computing Science student at the University of Alberta."
+	description="About Kidus Dereje Zewde: ML engineer, researcher, and Computing Science student at the University of Alberta."
 />
 <svelte:head>
 	{@html personJsonLd}
 </svelte:head>
 
-<VantaBackground effect="NET" opacity={0.3} interactive={false} />
-
-<main class="about-page">
-	<div class="about-page__inner">
-		<!-- Bio -->
-		<section class="about-bio" use:revealOnScroll>
-			<span class="label">About</span>
-			<h1 class="about-bio__heading">
-				Building at the intersection of
-				<em>machine learning and software engineering.</em>
-			</h1>
-			<div class="about-bio__body">
-				<p>
-					<!-- svelte-ignore a11y_interactive_supports_focus -->
-					<span
-						class="selam-wrap"
-						role="button"
-						tabindex="0"
-						use:cursorTarget={'hover'}
-						onmouseenter={showTooltip}
-						onmouseleave={hideTooltip}
-						onfocus={showTooltip}
-						onblur={hideTooltip}
-						onkeydown={(e) => {
-							if (e.key === 'Enter' || e.key === ' ') showTooltip();
-							else if (e.key === 'Escape') hideTooltip();
-						}}
-						><span class="bio-highlight">ሰላም</span><span
-							bind:this={tooltipEl}
-							class="selam-tooltip"
-							role="tooltip"
-							aria-hidden="true"
-							>In the Amharic language, <strong class="selam-hl">ሰላም</strong> (pronounced sälam)
-							means <strong class="selam-hl">Peace</strong>. It is the standard way of greeting
-							someone in Ethiopia and Eritrea.</span
-						></span
-					>
-					and Hello! I'm Kidus Dereje Zewde — a Computing Science + Economics student at
-					<span class="bio-highlight">University of Alberta</span>
-					(graduating June 2026), currently working as a Founding Engineer at
-					<a
-						href="https://www.scam.ai/en"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="accent-link">Scam AI</a
-					>. My work sits at the boundary between research and production: I've published 4 papers
-					on deepfake and AI-generated content detection, and I build systems that put those ideas
-					into practice.
-				</p>
-				<p>
-					I care about the full stack — from model architecture to user-facing product — and I'm
-					drawn to problems where <span class="bio-highlight">rigorous engineering</span> and
-					<span class="bio-highlight">creative thinking</span> both matter.
-				</p>
-			</div>
-		</section>
-
-		<div class="scroll-hint" aria-hidden="true">
-			<span class="scroll-hint__text">Scroll to explore</span>
-			<span class="scroll-hint__icon">↓</span>
-		</div>
-
-		<!-- Education -->
-		<section class="about-section" use:revealOnScroll>
-			<h2 class="about-section__title">Education</h2>
-			<div class="edu-card">
-				<div class="edu-card__left">
-					<span class="edu-card__degree">BSc Computing Science + Economics Minor</span>
-					<span class="edu-card__cert"
-						>with additional Certificate in Innovation and Entrepreneurship</span
-					>
-					<span class="edu-card__school">University of Alberta</span>
-				</div>
-				<span class="edu-card__period">Expected June 2026</span>
-			</div>
-		</section>
-
-		<!-- Experience -->
-		<section class="about-section" use:revealOnScroll>
-			<h2 class="about-section__title">Experience</h2>
-			<div class="timeline">
-				{#each experience as job, i}
-					<div class="timeline__item" use:revealOnScroll={{ delay: i * 0.08 }}>
-						<div class="timeline__header">
-							<div>
-								<span class="timeline__role">{job.role}</span>
-								<span class="timeline__company">{job.company}</span>
-							</div>
-							<span class="timeline__period">{job.period}</span>
-						</div>
-						<ul class="timeline__bullets">
-							{#each job.bullets as bullet}
-								<li>{@html bullet}</li>
-							{/each}
-						</ul>
-					</div>
-				{/each}
-			</div>
-		</section>
-
-		<!-- Publications -->
-		<section class="about-section" use:revealOnScroll>
-			<h2 class="about-section__title">Publications</h2>
-			<div class="pub-list">
-				{#each publications as pub, i}
-					<div use:revealOnScroll={{ delay: i * 0.06 }}>
-						<PublicationModal {pub} index={i} />
-					</div>
-				{/each}
-			</div>
-		</section>
-
-		<!-- Skills -->
-		<section class="about-section about-skills" use:revealOnScroll>
-			<h2 class="about-section__title">Skills</h2>
-			<div class="about-skills__grid">
-				{#each skills as group, i}
-					<div class="skill-group" use:revealOnScroll={{ delay: i * 0.07 }}>
-						<h3 class="skill-group__category">{group.category}</h3>
-						<ul class="skill-group__list">
-							{#each group.items as item}
-								<li>{item}</li>
-							{/each}
-						</ul>
-					</div>
-				{/each}
-			</div>
-		</section>
+<main class="about">
+	<div class="container">
+		<Bio />
 	</div>
+
+	<section class="about__band container">
+		<SectionHeading title="Experience" />
+		<ExperienceTimeline roles={experience} />
+	</section>
+
+	<div class="about__band container">
+		<Publications items={publications} />
+	</div>
+
+	<section class="about__band container">
+		<SectionHeading title="Skills" />
+		<Skills groups={skillGroups} scores={radarScores} {certifications} />
+	</section>
+
+	<section class="about__band container">
+		<SectionHeading title="Education" />
+		<EducationCard {education} />
+	</section>
 </main>
 
 <style>
-	.about-page {
-		padding: 6rem var(--spacing-container) var(--spacing-section);
-	}
-
-	.about-page__inner {
-		max-width: 1000px;
-		margin: 0 auto;
+	.about {
 		display: flex;
 		flex-direction: column;
-		gap: clamp(2.5rem, 5vw, 4rem);
+		gap: var(--spacing-section);
+		padding-block: var(--spacing-section);
 	}
 
-	.label {
-		font-size: var(--text-xs);
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		color: var(--accent);
-		display: block;
-		margin-bottom: 1.5rem;
-	}
-
-	/* ── Section shared ────────────────────────── */
-	.about-section {
-		padding-top: 1rem;
-		border-top: 1px solid var(--border);
-	}
-
-	.about-section__title {
-		font-size: var(--text-xs);
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		color: var(--text-muted);
-		margin-bottom: 2rem;
-	}
-
-	/* ── Bio ────────────────────────────────────── */
-	.about-bio__heading {
-		font-size: var(--text-3xl);
-		font-weight: 600;
-		letter-spacing: -0.03em;
-		line-height: 1.15;
-		margin-bottom: 2.5rem;
-
-		em {
-			font-style: normal;
-			color: var(--accent);
-		}
-	}
-
-	.about-bio__body {
+	.about__band {
 		display: flex;
 		flex-direction: column;
-		gap: 1.25rem;
-		max-width: 640px;
-
-		p {
-			font-size: var(--text-lg);
-			color: var(--text-muted);
-			line-height: 1.75;
-		}
-	}
-
-	.bio-highlight {
-		color: var(--accent);
-	}
-
-	/* ── Education ─────────────────────────────── */
-	.edu-card {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: 2rem;
-		padding: 1.5rem;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-
-		@media (max-width: 640px) {
-			flex-direction: column;
-		}
-	}
-
-	.edu-card__left {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-	}
-
-	.edu-card__degree {
-		font-size: var(--text-base);
-		font-weight: 500;
-		color: var(--text);
-		width: fit-content;
-		background-image: linear-gradient(var(--accent), var(--accent));
-		background-repeat: no-repeat;
-		background-position: 0 100%;
-		background-size: 0% 1px;
-		transition: background-size 0.3s var(--ease-out-expo);
-	}
-
-	.edu-card__cert {
-		font-size: var(--text-xs);
-		color: var(--text-muted);
-		width: fit-content;
-		background-image: linear-gradient(var(--accent), var(--accent));
-		background-repeat: no-repeat;
-		background-position: 0 100%;
-		background-size: 0% 1px;
-		transition: background-size 0.3s var(--ease-out-expo);
-	}
-
-	.edu-card:hover .edu-card__degree,
-	.edu-card:hover .edu-card__cert {
-		background-size: 100% 1px;
-	}
-
-	.edu-card__school {
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-	}
-
-	.edu-card__period {
-		font-size: var(--text-sm);
-		color: var(--accent);
-		white-space: nowrap;
-	}
-
-	/* ── Timeline ──────────────────────────────── */
-	.timeline {
-		display: flex;
-		flex-direction: column;
-		gap: 2rem;
-	}
-
-	.timeline__item {
-		padding-left: 1.5rem;
-		border-left: 2px solid var(--border);
-	}
-
-	.timeline__header {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: 1.5rem;
-		margin-bottom: 0.75rem;
-
-		@media (max-width: 640px) {
-			flex-direction: column;
-			gap: 0.25rem;
-		}
-	}
-
-	.timeline__role {
-		display: block;
-		font-size: var(--text-base);
-		font-weight: 500;
-		color: var(--text);
-		margin-bottom: 0.2rem;
-		width: fit-content;
-		background-image: linear-gradient(var(--accent), var(--accent));
-		background-repeat: no-repeat;
-		background-position: 0 100%;
-		background-size: 0% 1px;
-		transition: background-size 0.3s var(--ease-out-expo);
-	}
-
-	.timeline__item:hover .timeline__role {
-		background-size: 100% 1px;
-	}
-
-	.timeline__company {
-		display: block;
-		font-size: var(--text-sm);
-		color: var(--accent);
-	}
-
-	.timeline__period {
-		font-size: var(--text-xs);
-		color: var(--text-muted);
-		white-space: nowrap;
-		letter-spacing: 0.04em;
-		margin-top: 0.2rem;
-	}
-
-	.timeline__bullets {
-		list-style: none;
-		display: flex;
-		flex-direction: column;
-		gap: 0.95rem;
-
-		li {
-			font-size: var(--text-sm);
-			color: var(--text-muted);
-			line-height: 1.65;
-			padding-left: 1rem;
-			position: relative;
-
-			&::before {
-				content: '–';
-				position: absolute;
-				left: 0;
-				color: var(--text-muted);
-			}
-		}
-	}
-
-	:global(.bullet-accent) {
-		color: var(--accent);
-		font-weight: 500;
-	}
-
-	:global(.bullet-link) {
-		display: inline-block;
-		width: fit-content;
-		color: var(--accent);
-		font-weight: 500;
-		background-image: linear-gradient(var(--accent), var(--accent));
-		background-repeat: no-repeat;
-		background-position: 0 100%;
-		background-size: 0% 1px;
-		transition: background-size 0.3s var(--ease-out-expo);
-	}
-
-	:global(.bullet-link:hover) {
-		background-size: 100% 1px;
-	}
-
-	/* ── Publications ──────────────────────────── */
-	.pub-list {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-
-	/* ── Skills ─────────────────────────────────── */
-	.about-skills__grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 		gap: 2.5rem;
-	}
-
-	.skill-group__category {
-		font-size: var(--text-xs);
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--text-muted);
-		margin-bottom: 1.25rem;
-	}
-
-	.skill-group__list {
-		list-style: none;
-		display: flex;
-		flex-direction: column;
-		gap: 0.6rem;
-
-		li {
-			font-size: var(--text-sm);
-			color: var(--text);
-		}
-	}
-
-	/* ── Selam tooltip ──────────────────────────────── */
-	.selam-wrap {
-		position: relative;
-		display: inline-block;
-		cursor: none;
-	}
-
-	.selam-tooltip {
-		position: absolute;
-		bottom: calc(100% + 10px);
-		left: 0;
-		width: 280px;
-		padding: 0.875rem 1rem;
-		border-radius: var(--radius-md);
-		font-size: var(--text-sm);
-		line-height: 1.65;
-		font-weight: 400;
-		font-style: normal;
-		pointer-events: none;
-		opacity: 0;
-		z-index: 10;
-		white-space: normal;
-
-		/* Dark mode (default) */
-		background: rgb(255, 255, 255, 1);
-		border: 3px solid var(--accent);
-		color: rgba(35, 35, 37, 0.9);
-	}
-
-	:global([data-theme='light']) .selam-tooltip {
-		background: rgba(43, 92, 230, 1);
-		border-color: 3px solid var(--accent);
-		color: rgba(255, 255, 255, 0.92);
-	}
-
-	.selam-hl {
-		color: var(--accent);
-		font-weight: 700;
-		font-style: normal;
-	}
-
-	:global([data-theme='light']) .selam-hl {
-		color: #f05924;
-		font-weight: 700;
-	}
-
-	@media (max-width: 640px) {
-		.selam-tooltip {
-			display: none;
-		}
-	}
-
-	/* ── Scroll hint ───────────────────────────── */
-	.scroll-hint {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 2rem 0;
-		color: var(--text-muted);
-		font-size: var(--text-xs);
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		animation: scroll-hint-fade 2s ease-in-out infinite;
-	}
-
-	.scroll-hint--hidden {
-		display: none;
-	}
-
-	.scroll-hint__icon {
-		color: var(--accent);
-		font-size: 1rem;
-		animation: scroll-hint-bounce 1.5s ease-in-out infinite;
-	}
-
-	@keyframes scroll-hint-bounce {
-		0%,
-		100% {
-			transform: translateY(0);
-		}
-		50% {
-			transform: translateY(4px);
-		}
-	}
-
-	@keyframes scroll-hint-fade {
-		0%,
-		100% {
-			opacity: 1;
-		}
-		50% {
-			opacity: 0.4;
-		}
 	}
 </style>
