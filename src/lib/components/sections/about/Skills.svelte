@@ -1,0 +1,133 @@
+<!--
+	Skills — a self-assessment radar beside the concrete stack, with the
+	certifications under both.
+
+	The radar is one shape, so it takes a single-series `data` array; the values
+	are keyed by metric key, which is what lets the chart line a score up with its
+	axis regardless of array order.
+
+	The group cards are `SpotlightCard tilt={false}`: they keep the pointer glow
+	that ties them to the rest of the site's cards but drop the rotation. Five
+	cards tilting next to a chart that is itself the focal point would be noise.
+-->
+<script lang="ts">
+	import { RadarChart } from '$lib/components/charts';
+	import SpotlightCard from '$lib/components/kokonut/SpotlightCard.svelte';
+	import Tag from '$lib/components/ui/Tag.svelte';
+	import { skillGroups, radarScores } from '$content/skills';
+	import { certifications } from '$content/education';
+
+	const RADAR_SIZE = 320;
+	const RADAR_LEVELS = 4;
+
+	const metrics = radarScores.map((score) => ({ key: score.key, label: score.label }));
+	const radarData = [
+		{
+			label: 'Kidus',
+			values: Object.fromEntries(radarScores.map((score) => [score.key, score.value]))
+		}
+	];
+</script>
+
+<div class="skills">
+	<div class="skills__columns">
+		<div class="skills__radar">
+			<RadarChart {metrics} data={radarData} size={RADAR_SIZE} levels={RADAR_LEVELS} />
+		</div>
+
+		<div class="skills__groups">
+			{#each skillGroups as group (group.name)}
+				<SpotlightCard tilt={false} class="skills__group">
+					<h3 class="skills__group-name">{group.name}</h3>
+					<div class="skills__items">
+						{#each group.items as item (item)}
+							<Tag>{item}</Tag>
+						{/each}
+					</div>
+				</SpotlightCard>
+			{/each}
+		</div>
+	</div>
+
+	<div class="skills__certifications">
+		<h3 class="skills__certifications-title">Certifications</h3>
+		<ul>
+			{#each certifications as certification (certification)}
+				<li>{certification}</li>
+			{/each}
+		</ul>
+	</div>
+</div>
+
+<style>
+	.skills {
+		display: flex;
+		flex-direction: column;
+		gap: 2.5rem;
+	}
+
+	.skills__columns {
+		display: grid;
+		gap: 2.5rem;
+	}
+
+	/* Two columns only once the radar can sit at its natural size beside them. */
+	@media (min-width: 900px) {
+		.skills__columns {
+			grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+			align-items: start;
+		}
+	}
+
+	.skills__radar {
+		display: flex;
+		justify-content: center;
+	}
+
+	.skills__groups {
+		display: grid;
+		gap: 1rem;
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	@media (min-width: 640px) {
+		.skills__groups {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	.skills__group-name {
+		font-family: var(--font-display);
+		font-size: var(--text-lg);
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--text);
+	}
+
+	.skills__items {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-top: 0.875rem;
+	}
+
+	.skills__certifications-title {
+		font-family: var(--font-display);
+		font-size: var(--text-lg);
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--text);
+	}
+
+	.skills__certifications ul {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin: 0.875rem 0 0;
+		padding: 0;
+		list-style: none;
+		font-size: var(--text-base);
+		line-height: 1.6;
+		color: var(--text-muted);
+	}
+</style>
