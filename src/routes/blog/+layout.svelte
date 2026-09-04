@@ -1,53 +1,37 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { afterNavigate } from '$app/navigation';
-	import { createPageEnterTimeline } from '$lib/animation/timelines/pageEnter';
+	import type { Snippet } from 'svelte';
 	import Nav from '$lib/components/layout/Nav.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
-	import CustomCursor from '$lib/components/animation/CustomCursor.svelte';
-	import { cursorStore } from '$lib/stores/cursor';
+	import PageTransition from '$lib/components/layout/PageTransition.svelte';
 
 	interface Props {
-		children: import('svelte').Snippet;
+		children: Snippet;
 	}
 
 	let { children }: Props = $props();
-
-	let pageEl: HTMLDivElement | undefined = $state();
-
-	onMount(() => {
-		if (!pageEl) return;
-		const tl = createPageEnterTimeline(pageEl);
-		tl.play();
-	});
-
-	afterNavigate(() => {
-		cursorStore.setVariant('default');
-		if (!pageEl) return;
-		const tl = createPageEnterTimeline(pageEl);
-		tl.play();
-	});
 </script>
-
-<CustomCursor />
 
 <div class="blog-shell">
 	<Nav />
-	<div bind:this={pageEl} class="page-content">
+	<PageTransition>
 		{@render children()}
-	</div>
+	</PageTransition>
 	<Footer />
 </div>
 
 <style>
+	/* Mirrors the portfolio shell — see the note there on `--nav-height`. */
 	.blog-shell {
+		--nav-height: 4.5rem;
 		min-height: 100dvh;
 		display: flex;
 		flex-direction: column;
-		cursor: none;
+		padding-top: var(--nav-height);
 	}
 
-	.page-content {
-		flex: 1;
+	@media (max-width: 768px) {
+		.blog-shell {
+			--nav-height: 4rem;
+		}
 	}
 </style>
