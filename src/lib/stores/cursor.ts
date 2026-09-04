@@ -32,7 +32,7 @@ function createCursorStore() {
 export const cursorStore = createCursorStore();
 
 // Derived: combined position for convenience
-export const cursorPosition = derived(
-	[cursorStore.mouseX, cursorStore.mouseY],
-	([$x, $y]) => ({ x: $x, y: $y })
-);
+export const cursorPosition = derived([cursorStore.mouseX, cursorStore.mouseY], ([$x, $y]) => ({
+	x: $x,
+	y: $y
+}));

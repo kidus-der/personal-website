@@ -14,16 +14,11 @@
 	}
 </script>
 
-<SEO
-	title={project?.title ?? 'Project'}
-	description={project?.description ?? ''}
-/>
+<SEO title={project?.title ?? 'Project'} description={project?.description ?? ''} />
 
 <main class="project-page">
 	<div class="project-page__inner">
-		<a href="/work" class="back-link" use:cursorTarget={'hover'}>
-			← All work
-		</a>
+		<a href="/work" class="back-link" use:cursorTarget={'hover'}> ← All work </a>
 
 		<header class="project-header" use:revealOnScroll>
 			<div class="project-header__tags">
@@ -36,12 +31,24 @@
 
 			<div class="project-header__links">
 				{#if project?.url}
-					<a href={project.url} target="_blank" rel="noopener noreferrer" class="btn btn--primary" use:cursorTarget={'hover'}>
+					<a
+						href={project.url}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="btn btn--primary"
+						use:cursorTarget={'hover'}
+					>
 						Visit project
 					</a>
 				{/if}
 				{#if project?.githubUrl}
-					<a href={project.githubUrl} target="_blank" rel="noopener noreferrer" class="btn btn--ghost" use:cursorTarget={'hover'}>
+					<a
+						href={project.githubUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="btn btn--ghost"
+						use:cursorTarget={'hover'}
+					>
 						View source
 					</a>
 				{/if}
@@ -132,7 +139,10 @@
 		font-size: var(--text-sm);
 		font-weight: 500;
 		letter-spacing: 0.04em;
-		transition: background 0.25s, color 0.25s, transform 0.2s var(--ease-out-expo);
+		transition:
+			background 0.25s,
+			color 0.25s,
+			transform 0.2s var(--ease-out-expo);
 	}
 
 	.btn:hover {

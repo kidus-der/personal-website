@@ -73,7 +73,9 @@ export function buildNewPostEmail(post: PostMeta, siteUrl: string): string {
           </tr>`
 		: '';
 
-	const readingTimePart = post.readingTime ? `&nbsp;&middot;&nbsp;${post.readingTime} min read` : '';
+	const readingTimePart = post.readingTime
+		? `&nbsp;&middot;&nbsp;${post.readingTime} min read`
+		: '';
 
 	return `<!DOCTYPE html>
 <html lang="en">

@@ -125,17 +125,17 @@ pnpm format       # Auto-format
 
 ## Stack
 
-| Concern | Choice |
-|---|---|
-| Framework | SvelteKit 2 + Svelte 5 |
-| Language | TypeScript throughout |
-| Package manager | pnpm |
-| Animations | GSAP (ScrollTrigger, Flip) |
-| Smooth scroll | Lenis v2 |
-| CSS | Tailwind v4 + SCSS for animation styles |
-| Content (blog) | mdsvex (`.md` files in `src/content/posts/`) |
+| Concern            | Choice                                                  |
+| ------------------ | ------------------------------------------------------- |
+| Framework          | SvelteKit 2 + Svelte 5                                  |
+| Language           | TypeScript throughout                                   |
+| Package manager    | pnpm                                                    |
+| Animations         | GSAP (ScrollTrigger, Flip)                              |
+| Smooth scroll      | Lenis v2                                                |
+| CSS                | Tailwind v4 + SCSS for animation styles                 |
+| Content (blog)     | mdsvex (`.md` files in `src/content/posts/`)            |
 | Content (projects) | TypeScript data files (`src/content/projects/index.ts`) |
-| Deployment | Vercel + `@sveltejs/adapter-vercel` |
+| Deployment         | Vercel + `@sveltejs/adapter-vercel`                     |
 
 ## Project Structure
 
@@ -177,31 +177,37 @@ src/
 ## Key Architecture Decisions
 
 ### Animation System
+
 - **Never call GSAP directly in component markup** — use Svelte Actions or Timeline factories
 - Svelte Actions (`src/lib/actions/`) — element-level animations tied to mount/unmount
 - Timeline factories (`src/lib/animation/timelines/`) — multi-element orchestrated sequences
 - GSAP plugins registered once in `gsap.config.ts`, imported in root layout
 
 ### Design Tokens
+
 - Single source of truth: `@theme` block in `src/styles/app.css`
 - Themes scoped to `[data-theme="dark"]` / `[data-theme="light"]` on `<html>`
 - Blocking inline script in root layout prevents theme flash on load
 
 ### Blog "Second Half"
+
 - Same SvelteKit app, same domain, completely separate layout
 - `src/routes/(portfolio)/` — portfolio section (animated, cinematic)
 - `src/routes/blog/` — blog section (editorial, reading-focused)
 - mdsvex processes `.md` files with frontmatter and Svelte component interpolation
 
 ### Lenis + GSAP sync
+
 ```ts
-gsap.ticker.add((time) => lenis.raf(time * 1000))
-gsap.ticker.lagSmoothing(0)
-lenis.on('scroll', ScrollTrigger.update)
+gsap.ticker.add((time) => lenis.raf(time * 1000));
+gsap.ticker.lagSmoothing(0);
+lenis.on('scroll', ScrollTrigger.update);
 ```
+
 Destroyed/re-initialized around SvelteKit `beforeNavigate` / `afterNavigate`.
 
 ### Publication Modal
+
 - `PublicationModal` component lives in `src/lib/components/ui/PublicationModal.svelte`
 - Accepts `pub: Publication` (type from `$lib/types/content`) and `index: number` props
 - Self-contained: owns `$state(open)`, GSAP open/close timelines, and Escape key handler
@@ -212,12 +218,13 @@ Destroyed/re-initialized around SvelteKit `beforeNavigate` / `afterNavigate`.
 ## Adding Content
 
 **New blog post:** Add a `.md` file to `src/content/posts/` with frontmatter:
+
 ```md
 ---
 title: Post title
 description: Short description
-publishedAt: "2026-03-01"
-tags: ["tag"]
+publishedAt: '2026-03-01'
+tags: ['tag']
 draft: false
 ---
 ```

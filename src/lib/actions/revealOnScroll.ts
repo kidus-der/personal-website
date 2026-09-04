@@ -13,6 +13,10 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import type { RevealConfig } from '$lib/types/animation';
 import { EASE_OUT_EXPO } from '$lib/animation/easings';
 
+// Registered here (idempotent) so the action works without a global
+// registration step. Legacy — removed with the GSAP stack in Task 11.
+gsap.registerPlugin(ScrollTrigger);
+
 export function revealOnScroll(node: HTMLElement, config: RevealConfig = {}) {
 	const {
 		y = 40,

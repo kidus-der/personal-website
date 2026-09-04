@@ -42,19 +42,21 @@
 <div class="blog-listing">
 	<header class="blog-listing__header">
 		<h1 class="blog-listing__title">The Buna Print | የቡና እትም</h1>
-		<p class="blog-listing__sub">
-			A home for ideas, perspectives, thoughts, and everything else.
-		</p>
+		<p class="blog-listing__sub">A home for ideas, perspectives, thoughts, and everything else.</p>
 	</header>
 
 	{#if data.posts.length === 0}
 		<p class="blog-listing__empty">No posts yet. Check back soon.</p>
 	{:else}
-
 		<!-- Featured post -->
 		{#if featured}
 			<a href="/blog/{featured.slug}" class="featured-card" use:cursorTarget={'hover'}>
-				<div class="featured-card__visual" style={featured.coverImage ? `background-image: url('${featured.coverImage}'); background-size: cover; background-position: center;` : `background: ${getGradient(0)}`}>
+				<div
+					class="featured-card__visual"
+					style={featured.coverImage
+						? `background-image: url('${featured.coverImage}'); background-size: cover; background-position: center;`
+						: `background: ${getGradient(0)}`}
+				>
 					<div class="featured-card__overlay"></div>
 					<span class="featured-card__badge">
 						{featured.tags[0] ?? 'Writing'}
@@ -62,7 +64,9 @@
 				</div>
 				<div class="featured-card__body">
 					<span class="featured-card__label">Featured post</span>
-					<h2 class="featured-card__title"><span class="featured-card__title-inner">{featured.title}</span></h2>
+					<h2 class="featured-card__title">
+						<span class="featured-card__title-inner">{featured.title}</span>
+					</h2>
 					<p class="featured-card__excerpt">{featured.description}</p>
 					<div class="featured-card__meta">
 						<span>{formatDate(featured.publishedAt)}</span>
@@ -82,7 +86,12 @@
 				<div class="posts-grid">
 					{#each rest as post, i}
 						<a href="/blog/{post.slug}" class="post-card" use:cursorTarget={'hover'}>
-							<div class="post-card__thumb" style={post.coverImage ? `background-image: url('${post.coverImage}'); background-size: cover; background-position: center;` : `background: ${getGradient(i + 1)}`}>
+							<div
+								class="post-card__thumb"
+								style={post.coverImage
+									? `background-image: url('${post.coverImage}'); background-size: cover; background-position: center;`
+									: `background: ${getGradient(i + 1)}`}
+							>
 								<span class="post-card__category">{post.tags[0] ?? 'Writing'}</span>
 							</div>
 							<div class="post-card__body">
@@ -103,7 +112,6 @@
 				</div>
 			</section>
 		{/if}
-
 	{/if}
 
 	<SubscribeSection />
@@ -151,7 +159,9 @@
 		overflow: hidden;
 		background: var(--surface);
 		margin-bottom: 4rem;
-		transition: border-color 0.3s, transform 0.4s var(--ease-out-expo, cubic-bezier(0.16,1,0.3,1));
+		transition:
+			border-color 0.3s,
+			transform 0.4s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
 
 		&:hover {
 			border-color: var(--text-muted);
@@ -179,10 +189,10 @@
 	.featured-card__overlay {
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(to right, transparent, rgba(0,0,0,0.3));
+		background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.3));
 
 		@media (max-width: 720px) {
-			background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.4));
+			background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.4));
 		}
 	}
 
@@ -194,7 +204,7 @@
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
 		color: var(--accent);
-		background: rgba(0,0,0,0.5);
+		background: rgba(0, 0, 0, 0.5);
 		padding: 0.25rem 0.75rem;
 		border-radius: var(--radius-full);
 		border: 1px solid var(--accent);
@@ -273,7 +283,9 @@
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 		background: var(--surface);
-		transition: border-color 0.3s, transform 0.4s var(--ease-out-expo, cubic-bezier(0.16,1,0.3,1));
+		transition:
+			border-color 0.3s,
+			transform 0.4s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
 
 		&:hover {
 			border-color: var(--text-muted);
@@ -292,7 +304,7 @@
 	.post-card__thumb {
 		aspect-ratio: 4/3;
 		position: relative;
-		transition: scale 0.5s var(--ease-out-expo, cubic-bezier(0.16,1,0.3,1));
+		transition: scale 0.5s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
 	}
 
 	.post-card__category {
@@ -303,7 +315,7 @@
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--accent);
-		background: rgba(0,0,0,0.5);
+		background: rgba(0, 0, 0, 0.5);
 		padding: 0.2rem 0.6rem;
 		border-radius: var(--radius-full);
 		border: 1px solid var(--accent);

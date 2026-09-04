@@ -25,9 +25,7 @@
 		coverImage
 	}: Props = $props();
 
-	const fullTitle = $derived(
-		title === SITE_NAME ? title : `${title} — ${SITE_NAME}`
-	);
+	const fullTitle = $derived(title === SITE_NAME ? title : `${title} — ${SITE_NAME}`);
 
 	const canonical = $derived($page.url.href);
 

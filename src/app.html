@@ -4,6 +4,24 @@
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.ico" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!--
+			Blocking theme script — runs before first paint so there is no flash of
+			the wrong theme. Must stay synchronous and inline.
+		-->
+		<script>
+			(function () {
+				try {
+					var stored = localStorage.getItem('theme');
+					var preferred = window.matchMedia('(prefers-color-scheme: light)').matches
+						? 'light'
+						: 'dark';
+					document.documentElement.setAttribute(
+						'data-theme',
+						stored === 'light' || stored === 'dark' ? stored : preferred
+					);
+				} catch (e) {}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

@@ -1,45 +1,20 @@
-import { writable } from 'svelte/store';
+/**
+ * Compatibility shim. The source of truth is `$lib/state/theme.svelte`.
+ *
+ * Kept so components still importing `$lib/stores/theme` (and using
+ * `$themeStore`) keep working until Task 11 removes them. New code must import
+ * `theme` from `$lib/state/theme.svelte` instead.
+ */
+import { readable } from 'svelte/store';
+import { theme, subscribeTheme, type Theme } from '$lib/state/theme.svelte';
 
-export type Theme = 'light' | 'dark';
+export type { Theme };
 
-function createThemeStore() {
-	const { subscribe, set, update } = writable<Theme>('dark');
+const store = readable<Theme>(theme.current, (set) => subscribeTheme(set));
 
-	return {
-		subscribe,
-		set,
-		toggle() {
-			update((current) => {
-				const next: Theme = current === 'dark' ? 'light' : 'dark';
-				if (typeof document !== 'undefined') {
-					document.documentElement.setAttribute('data-theme', next);
-					try {
-						localStorage.setItem('theme', next);
-					} catch {
-						// ignore storage errors
-					}
-				}
-				return next;
-			});
-		},
-		init() {
-			if (typeof document !== 'undefined') {
-				const stored = (() => {
-					try {
-						return localStorage.getItem('theme');
-					} catch {
-						return null;
-					}
-				})();
-				const preferred = window.matchMedia('(prefers-color-scheme: light)').matches
-					? 'light'
-					: 'dark';
-				const resolved = (stored as Theme) || preferred;
-				document.documentElement.setAttribute('data-theme', resolved);
-				set(resolved);
-			}
-		}
-	};
-}
-
-export const themeStore = createThemeStore();
+export const themeStore = {
+	subscribe: store.subscribe,
+	set: theme.set,
+	toggle: theme.toggle,
+	init: theme.init
+};

@@ -25,7 +25,10 @@ export function wrapWords(el: HTMLElement): HTMLSpanElement[] {
 	const text = el.textContent || '';
 	const words = text.trim().split(/\s+/);
 	el.innerHTML = words
-		.map((w) => `<span class="word" style="display:inline-block;overflow:hidden"><span class="word-inner" style="display:inline-block">${w}</span></span>`)
+		.map(
+			(w) =>
+				`<span class="word" style="display:inline-block;overflow:hidden"><span class="word-inner" style="display:inline-block">${w}</span></span>`
+		)
 		.join(' ');
 	return Array.from(el.querySelectorAll('.word-inner')) as HTMLSpanElement[];
 }

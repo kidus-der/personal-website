@@ -1,0 +1,7 @@
+pnpm-lock.yaml
+
+# Authored markdown content — Prettier reflows prose and mangles mdsvex blocks.
+src/content/posts/
+
+# Planning artefacts, not source.
+.superpowers/

@@ -191,7 +191,9 @@
 		right: 0;
 		z-index: 100;
 		padding: 1.25rem var(--spacing-container);
-		transition: padding 0.4s var(--ease-out-expo), background 0.4s var(--ease-out-expo),
+		transition:
+			padding 0.4s var(--ease-out-expo),
+			background 0.4s var(--ease-out-expo),
 			backdrop-filter 0.4s;
 	}
 
@@ -372,7 +374,9 @@
 		font-weight: 500;
 		color: var(--text-muted);
 		padding: 0.75rem 0;
-		transition: color 0.2s, padding-left 0.3s var(--ease-out-expo);
+		transition:
+			color 0.2s,
+			padding-left 0.3s var(--ease-out-expo);
 		border-bottom: 1px solid var(--border);
 	}
 

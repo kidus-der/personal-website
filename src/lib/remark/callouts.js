@@ -28,9 +28,7 @@ export default function rehypeCallouts() {
 			if (node.tagName !== 'blockquote' || !parent || index === undefined) return;
 
 			// Find the first <p> child
-			const firstP = node.children?.find(
-				(c) => c.type === 'element' && c.tagName === 'p'
-			);
+			const firstP = node.children?.find((c) => c.type === 'element' && c.tagName === 'p');
 			if (!firstP?.children) return;
 
 			// Find the first text node inside the <p>
@@ -51,9 +49,7 @@ export default function rehypeCallouts() {
 				firstP.children.every((c) => c.type === 'text' && !c.value?.trim()) ||
 				firstP.children.length === 0;
 
-			const bodyChildren = firstPIsEmpty
-				? (node.children?.slice(1) ?? [])
-				: (node.children ?? []);
+			const bodyChildren = firstPIsEmpty ? (node.children?.slice(1) ?? []) : (node.children ?? []);
 
 			// Build the callout replacement node
 			const calloutNode = {

@@ -120,7 +120,9 @@
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 		>
-			<button class="modal-close" onclick={closeModal} aria-label="Close" use:cursorTarget={'hover'}>×</button>
+			<button class="modal-close" onclick={closeModal} aria-label="Close" use:cursorTarget={'hover'}
+				>×</button
+			>
 
 			<span class="modal-label">Contact</span>
 			<h2 class="modal-title">Let's build something.</h2>
@@ -131,7 +133,9 @@
 					<span class="modal-success__icon">✓</span>
 					<p class="modal-success__heading">Message sent!</p>
 					<p class="modal-success__sub">Thanks for reaching out. I'll get back to you soon.</p>
-					<button class="btn btn--ghost" onclick={closeModal} use:cursorTarget={'hover'}>Close</button>
+					<button class="btn btn--ghost" onclick={closeModal} use:cursorTarget={'hover'}
+						>Close</button
+					>
 				</div>
 			{:else}
 				<form onsubmit={handleSubmit}>
@@ -213,7 +217,10 @@
 		font-size: var(--text-sm);
 		font-weight: 500;
 		letter-spacing: 0.04em;
-		transition: background 0.25s, color 0.25s, transform 0.2s var(--ease-out-expo);
+		transition:
+			background 0.25s,
+			color 0.25s,
+			transform 0.2s var(--ease-out-expo);
 		font-family: inherit;
 		cursor: none;
 	}

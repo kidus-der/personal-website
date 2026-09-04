@@ -19,8 +19,8 @@
 			<span class="label">Work</span>
 			<h1 class="work-page__title">My Projects</h1>
 			<p class="work-page__sub">
-				Here's a selection of my projects that I am proud of ranging from full-stack AI applications,
-				interactive experiences, and ML research.
+				Here's a selection of my projects that I am proud of ranging from full-stack AI
+				applications, interactive experiences, and ML research.
 			</p>
 		</header>
 

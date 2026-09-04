@@ -44,7 +44,9 @@
 		<VantaBackground effect="GLOBE" interactive={true} opacity={isMobile ? 0.2 : 1} />
 		<div class="hero__inner">
 			<div class="hero__content">
-				<span bind:this={eyebrow} class="hero__eyebrow"><span class="hero__eyebrow-name">Kidus: </span>ML Engineer · Researcher · Builder</span>
+				<span bind:this={eyebrow} class="hero__eyebrow"
+					><span class="hero__eyebrow-name">Kidus: </span>ML Engineer · Researcher · Builder</span
+				>
 
 				<h1 bind:this={headline} class="hero__headline">
 					<span class="line">Building intelligent</span>
@@ -53,9 +55,18 @@
 				</h1>
 
 				<p bind:this={subheadline} class="hero__sub">
-					Founding Engineer at <a href="https://www.scam.ai/en" target="_blank" rel="noopener noreferrer" class="accent-link">Scam AI</a>,
-					Computing Science + Economics student at the University of Alberta,
-					and a published <a href="https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ" target="_blank" rel="noopener noreferrer" class="accent-link">researcher</a> and lover of all things AI and ML.
+					Founding Engineer at <a
+						href="https://www.scam.ai/en"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="accent-link">Scam AI</a
+					>, Computing Science + Economics student at the University of Alberta, and a published
+					<a
+						href="https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="accent-link">researcher</a
+					> and lover of all things AI and ML.
 				</p>
 
 				<div bind:this={cta} class="hero__cta">
@@ -63,34 +74,56 @@
 						<a href="/work" class="btn btn--primary" use:cursorTarget={'hover'} use:magnetic>
 							View my work
 						</a>
-						<a href="/blog" class="btn btn--ghost" use:cursorTarget={'hover'}>
-							Read my Blog
-						</a>
+						<a href="/blog" class="btn btn--ghost" use:cursorTarget={'hover'}> Read my Blog </a>
 					</div>
 					<div class="hero__socials">
-						<a href="https://github.com/kidus-der" target="_blank" rel="noopener noreferrer"
-						   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="GitHub">
+						<a
+							href="https://github.com/kidus-der"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="hero__social-link"
+							use:cursorTarget={'hover'}
+							use:magnetic
+							aria-label="GitHub"
+						>
 							<img
-							src={$themeStore === 'dark'
-								? '/icons/github/GitHub_Invertocat_White.svg'
-								: '/icons/github/GitHub_Invertocat_Black.svg'}
-							alt="GitHub"
-							class="hero__social-icon"
-						/>
+								src={$themeStore === 'dark'
+									? '/icons/github/GitHub_Invertocat_White.svg'
+									: '/icons/github/GitHub_Invertocat_Black.svg'}
+								alt="GitHub"
+								class="hero__social-icon"
+							/>
 						</a>
-						<a href="https://www.linkedin.com/in/kidus-dereje-zewde-804424241/" target="_blank" rel="noopener noreferrer"
-						   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="LinkedIn">
+						<a
+							href="https://www.linkedin.com/in/kidus-dereje-zewde-804424241/"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="hero__social-link"
+							use:cursorTarget={'hover'}
+							use:magnetic
+							aria-label="LinkedIn"
+						>
 							<img src="/icons/linkedin.svg" alt="LinkedIn" class="hero__social-icon" />
 						</a>
-						<a href="https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ" target="_blank" rel="noopener noreferrer"
-						   class="hero__social-link" use:cursorTarget={'hover'} use:magnetic aria-label="Google Scholar">
-							<img src="/icons/google-scholar-icon.svg" alt="Google Scholar" class="hero__social-icon" />
+						<a
+							href="https://scholar.google.com/citations?hl=en&user=t-5ck6wAAAAJ"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="hero__social-link"
+							use:cursorTarget={'hover'}
+							use:magnetic
+							aria-label="Google Scholar"
+						>
+							<img
+								src="/icons/google-scholar-icon.svg"
+								alt="Google Scholar"
+								class="hero__social-icon"
+							/>
 						</a>
 					</div>
 				</div>
 			</div>
 		</div>
-
 	</section>
 
 	<!-- ================================================
@@ -209,8 +242,13 @@
 	}
 
 	@keyframes pulse-accent {
-		0%, 100% { opacity: 1; }
-		50% { opacity: 0.3; }
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.3;
+		}
 	}
 
 	.hero__headline {
@@ -263,7 +301,9 @@
 	.hero__social-link {
 		display: block;
 		border-radius: var(--radius-sm);
-		transition: opacity 0.2s, transform 0.2s var(--ease-out-expo);
+		transition:
+			opacity 0.2s,
+			transform 0.2s var(--ease-out-expo);
 	}
 
 	.hero__social-link:hover {
@@ -288,7 +328,10 @@
 		font-size: var(--text-sm);
 		font-weight: 500;
 		letter-spacing: 0.04em;
-		transition: background 0.25s, color 0.25s, transform 0.2s var(--ease-out-expo);
+		transition:
+			background 0.25s,
+			color 0.25s,
+			transform 0.2s var(--ease-out-expo);
 	}
 
 	.btn:hover {
@@ -357,7 +400,9 @@
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 		background: var(--surface);
-		transition: border-color 0.3s, transform 0.4s var(--ease-out-expo);
+		transition:
+			border-color 0.3s,
+			transform 0.4s var(--ease-out-expo);
 
 		&:hover {
 			border-color: var(--text-muted);

@@ -34,19 +34,16 @@ const config = {
 		mdsvex({
 			extensions: ['.md', '.svx'],
 			layout: {
-				_: fileURLToPath(new URL('./src/lib/components/layout/BlogPostLayout.svelte', import.meta.url))
+				_: fileURLToPath(
+					new URL('./src/lib/components/layout/BlogPostLayout.svelte', import.meta.url)
+				)
 			},
-			rehypePlugins: [
-				rehypeSlug,
-				[rehypeAutolinkHeadings, { behavior: 'wrap' }],
-				rehypeCallouts
-			],
+			rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'wrap' }], rehypeCallouts],
 			highlight: {
 				highlighter: (code, lang) => {
 					const safeCode = code ?? '';
 					const loadedLangs = shikiHighlighter.getLoadedLanguages();
-					const safeLang =
-						lang && loadedLangs.includes(lang) ? lang : 'text';
+					const safeLang = lang && loadedLangs.includes(lang) ? lang : 'text';
 					const html = shikiHighlighter.codeToHtml(safeCode, {
 						lang: safeLang,
 						theme: 'github-dark-dimmed'
@@ -60,7 +57,9 @@ const config = {
 	],
 
 	kit: {
-		adapter: adapter(),
+		// Runtime pinned explicitly: the adapter otherwise derives it from the
+		// local Node version, which fails on anything newer than Node 24.
+		adapter: adapter({ runtime: 'nodejs22.x' }),
 		alias: {
 			$content: 'src/content',
 			'$content/*': 'src/content/*'

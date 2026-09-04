@@ -16,7 +16,8 @@ export const projects: Project[] = [
 	{
 		slug: 'elevent',
 		title: 'ELEVENT',
-		description: 'Android event management app with real-time Firebase backend and QR code check-in.',
+		description:
+			'Android event management app with real-time Firebase backend and QR code check-in.',
 		longDescription:
 			'Native Android application for event organizers and attendees. Supports event creation, QR-based check-in, real-time attendee tracking via Firebase, and geo-located event discovery through the Google Maps API.',
 		tags: ['Java', 'Android', 'Firebase', 'Google Maps API'],
@@ -28,7 +29,8 @@ export const projects: Project[] = [
 	{
 		slug: 'poseidon-wildfire',
 		title: 'Poseidon Wildfire Solution',
-		description: 'AWS-powered wildfire detection system — 2nd place at the AWS Generative AI Hackathon.',
+		description:
+			'AWS-powered wildfire detection system — 2nd place at the AWS Generative AI Hackathon.',
 		longDescription:
 			'Serverless wildfire detection pipeline built on AWS Lambda, S3, and Bedrock. Ingests satellite imagery, runs generative AI analysis to identify fire risk zones, and delivers real-time alerts. Placed 2nd at the AWS Generative AI Hackathon.',
 		tags: ['AWS Lambda', 'AWS S3', 'AWS Bedrock', 'Python'],

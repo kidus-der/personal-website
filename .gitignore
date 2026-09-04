@@ -15,3 +15,7 @@ vite.config.ts.timestamp-*
 my-cv.pdf
 my-cv.tex
 .env*
+
+# CV / résumé PDFs at repo root — never commit
+/*.pdf
+Kidus-Dereje-Zewde-CV.pdf

@@ -6,6 +6,7 @@
 	import { gsap } from 'gsap';
 	import { cursorTarget } from '$lib/actions/cursor';
 	import SEO from '$lib/components/ui/SEO.svelte';
+	import { jsonLd } from '$lib/utils/jsonLd';
 	import VantaBackground from '$lib/components/animation/VantaBackground.svelte';
 	import { scrollStore } from '$lib/stores/scroll';
 
@@ -89,7 +90,8 @@
 			]
 		},
 		{
-			title: 'A Synthetic Eye Movement Dataset for Script Reading Detection: Real Trajectory Replay on a 3D Simulator',
+			title:
+				'A Synthetic Eye Movement Dataset for Script Reading Detection: Real Trajectory Replay on a 3D Simulator',
 			venue: 'arXiv preprint',
 			year: '2026',
 			url: 'https://arxiv.org/abs/2604.05475',
@@ -109,13 +111,14 @@
 			]
 		},
 		{
-			title: 'GPT-Image-2 in the Wild: A Twitter Dataset of Self-Reported AI-Generated Images from the First Week of Deployment',
+			title:
+				'GPT-Image-2 in the Wild: A Twitter Dataset of Self-Reported AI-Generated Images from the First Week of Deployment',
 			venue: 'arXiv preprint',
 			year: '2026',
 			url: 'https://arxiv.org/abs/2604.25370',
 			bullets: [
 				'Curated 10,217 confirmed GPT-image-2 images from Twitter over six days using multilingual heuristics and badge verification.',
-				'Found that 82.0% of generated images contain detectable text and 59.2% contain faces; C2PA credentials are systematically stripped by Twitter\'s CDN.'
+				"Found that 82.0% of generated images contain detectable text and 59.2% contain faces; C2PA credentials are systematically stripped by Twitter's CDN."
 			]
 		}
 	];
@@ -140,7 +143,14 @@
 		tooltipTl.fromTo(
 			tooltipEl,
 			{ opacity: 0, y: 8, scale: 0.93 },
-			{ opacity: 1, y: 0, scale: 1, duration: 0.3, ease: 'back.out(1.4)', transformOrigin: 'bottom left' }
+			{
+				opacity: 1,
+				y: 0,
+				scale: 1,
+				duration: 0.3,
+				ease: 'back.out(1.4)',
+				transformOrigin: 'bottom left'
+			}
 		);
 	}
 
@@ -165,11 +175,25 @@
 		},
 		{
 			category: 'Frameworks',
-			items: ['React / Next.js', 'SvelteKit', 'Django / FastAPI', 'PyTorch', 'TensorFlow', 'scikit-learn']
+			items: [
+				'React / Next.js',
+				'SvelteKit',
+				'Django / FastAPI',
+				'PyTorch',
+				'TensorFlow',
+				'scikit-learn'
+			]
 		},
 		{
 			category: 'ML / Data',
-			items: ['NumPy / Pandas', 'HuggingFace', 'OpenCV', 'Gemini API', 'RAG Pipelines', 'Matplotlib']
+			items: [
+				'NumPy / Pandas',
+				'HuggingFace',
+				'OpenCV',
+				'Gemini API',
+				'RAG Pipelines',
+				'Matplotlib'
+			]
 		},
 		{
 			category: 'Databases',
@@ -180,14 +204,8 @@
 			items: ['Docker', 'AWS (Lambda, S3, Bedrock)', 'GitHub Actions', 'Vercel', 'Git']
 		}
 	];
-</script>
 
-<SEO
-	title="About"
-	description="About Kidus Dereje Zewde — ML Engineer, researcher, and Computing Science student at the University of Alberta."
-/>
-<svelte:head>
-	{@html `<script type="application/ld+json">${JSON.stringify({
+	const personJsonLd = jsonLd({
 		'@context': 'https://schema.org',
 		'@type': 'Person',
 		name: 'Kidus Dereje Zewde',
@@ -199,14 +217,21 @@
 		],
 		jobTitle: 'Founding Engineer',
 		alumniOf: { '@type': 'CollegeOrUniversity', name: 'University of Alberta' }
-	})}</script>`}
+	});
+</script>
+
+<SEO
+	title="About"
+	description="About Kidus Dereje Zewde — ML Engineer, researcher, and Computing Science student at the University of Alberta."
+/>
+<svelte:head>
+	{@html personJsonLd}
 </svelte:head>
 
 <VantaBackground effect="NET" opacity={0.3} interactive={false} />
 
 <main class="about-page">
 	<div class="about-page__inner">
-
 		<!-- Bio -->
 		<section class="about-bio" use:revealOnScroll>
 			<span class="label">About</span>
@@ -230,22 +255,32 @@
 							if (e.key === 'Enter' || e.key === ' ') showTooltip();
 							else if (e.key === 'Escape') hideTooltip();
 						}}
-					><span class="bio-highlight">ሰላም</span><span
+						><span class="bio-highlight">ሰላም</span><span
 							bind:this={tooltipEl}
 							class="selam-tooltip"
 							role="tooltip"
 							aria-hidden="true"
-						>In the Amharic language, <strong class="selam-hl">ሰላም</strong> (pronounced sälam) means <strong class="selam-hl">Peace</strong>. It is the standard way of greeting someone in Ethiopia and Eritrea.</span></span> and Hello! I'm Kidus Dereje Zewde — a Computing Science + Economics
-					student at <span class="bio-highlight">University of Alberta</span> (graduating June 2026), currently
-					working as a Founding Engineer at
-					<a href="https://www.scam.ai/en" target="_blank" rel="noopener noreferrer" class="accent-link">Scam AI</a>.
-					My work sits at the boundary between research and production: I've published
-					4 papers on deepfake and AI-generated content detection, and I build systems
-					that put those ideas into practice.
+							>In the Amharic language, <strong class="selam-hl">ሰላም</strong> (pronounced sälam)
+							means <strong class="selam-hl">Peace</strong>. It is the standard way of greeting
+							someone in Ethiopia and Eritrea.</span
+						></span
+					>
+					and Hello! I'm Kidus Dereje Zewde — a Computing Science + Economics student at
+					<span class="bio-highlight">University of Alberta</span>
+					(graduating June 2026), currently working as a Founding Engineer at
+					<a
+						href="https://www.scam.ai/en"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="accent-link">Scam AI</a
+					>. My work sits at the boundary between research and production: I've published 4 papers
+					on deepfake and AI-generated content detection, and I build systems that put those ideas
+					into practice.
 				</p>
 				<p>
-					I care about the full stack — from model architecture to user-facing product — and
-					I'm drawn to problems where <span class="bio-highlight">rigorous engineering</span> and <span class="bio-highlight">creative thinking</span> both matter.
+					I care about the full stack — from model architecture to user-facing product — and I'm
+					drawn to problems where <span class="bio-highlight">rigorous engineering</span> and
+					<span class="bio-highlight">creative thinking</span> both matter.
 				</p>
 			</div>
 		</section>
@@ -261,7 +296,9 @@
 			<div class="edu-card">
 				<div class="edu-card__left">
 					<span class="edu-card__degree">BSc Computing Science + Economics Minor</span>
-					<span class="edu-card__cert">with additional Certificate in Innovation and Entrepreneurship</span>
+					<span class="edu-card__cert"
+						>with additional Certificate in Innovation and Entrepreneurship</span
+					>
 					<span class="edu-card__school">University of Alberta</span>
 				</div>
 				<span class="edu-card__period">Expected June 2026</span>
@@ -319,7 +356,6 @@
 				{/each}
 			</div>
 		</section>
-
 	</div>
 </main>
 
@@ -627,7 +663,7 @@
 	}
 
 	:global([data-theme='light']) .selam-hl {
-		color: #F05924;
+		color: #f05924;
 		font-weight: 700;
 	}
 
@@ -662,13 +698,22 @@
 	}
 
 	@keyframes scroll-hint-bounce {
-		0%, 100% { transform: translateY(0); }
-		50% { transform: translateY(4px); }
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(4px);
+		}
 	}
 
 	@keyframes scroll-hint-fade {
-		0%, 100% { opacity: 1; }
-		50% { opacity: 0.4; }
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.4;
+		}
 	}
-
 </style>

@@ -4,6 +4,7 @@
 	import { cursorTarget } from '$lib/actions/cursor';
 	import { cursorStore } from '$lib/stores/cursor';
 	import SEO from '$lib/components/ui/SEO.svelte';
+	import { jsonLd } from '$lib/utils/jsonLd';
 	import { page } from '$app/stores';
 
 	const pageUrl = $derived($page.url.href);
@@ -100,6 +101,19 @@
 		};
 	});
 
+	const articleJsonLd = $derived(
+		jsonLd({
+			'@context': 'https://schema.org',
+			'@type': 'Article',
+			headline: title,
+			description: description ?? '',
+			author: { '@type': 'Person', name: 'Kidus Dereje Zewde', url: 'https://kidusder.com' },
+			datePublished: publishedAt,
+			dateModified: updatedAt ?? publishedAt,
+			url: pageUrl,
+			image: coverImage ? `https://kidusder.com${coverImage}` : undefined
+		})
+	);
 </script>
 
 <SEO
@@ -113,17 +127,7 @@
 />
 <svelte:head>
 	{#if title}
-		{@html `<script type="application/ld+json">${JSON.stringify({
-			'@context': 'https://schema.org',
-			'@type': 'Article',
-			headline: title,
-			description: description ?? '',
-			author: { '@type': 'Person', name: 'Kidus Dereje Zewde', url: 'https://kidusder.com' },
-			datePublished: publishedAt,
-			dateModified: updatedAt ?? publishedAt,
-			url: pageUrl,
-			image: coverImage ? `https://kidusder.com${coverImage}` : undefined
-		})}</script>`}
+		{@html articleJsonLd}
 	{/if}
 </svelte:head>
 
@@ -221,7 +225,9 @@
 									class:toc__item--h3={heading.level === 3}
 									class:toc__item--active={activeId === heading.id}
 								>
-									<a href="#{heading.id}" class="toc__link" use:cursorTarget={'hover'}>{heading.text}</a>
+									<a href="#{heading.id}" class="toc__link" use:cursorTarget={'hover'}
+										>{heading.text}</a
+									>
 								</li>
 							{/each}
 						</ul>
@@ -603,7 +609,7 @@
 		border: 1px solid var(--border);
 	}
 	/* The Frame | እይታ — portrait and landscape both constrained */
-	:global(.prose h2[id^="the-frame"] ~ p img) {
+	:global(.prose h2[id^='the-frame'] ~ p img) {
 		max-width: 70%;
 		max-height: 70vh;
 	}

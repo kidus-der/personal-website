@@ -32,11 +32,7 @@
 </script>
 
 {#if $isVisible}
-	<div
-		bind:this={cursorEl}
-		class="cursor cursor--{$variant}"
-		aria-hidden="true"
-	></div>
+	<div bind:this={cursorEl} class="cursor cursor--{$variant}" aria-hidden="true"></div>
 {/if}
 
 <style>

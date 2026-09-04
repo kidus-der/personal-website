@@ -104,7 +104,9 @@
 		class="modal-overlay"
 		role="presentation"
 		onclick={closeModal}
-		onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') closeModal(); }}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') closeModal();
+		}}
 	>
 		<div
 			bind:this={cardEl}
@@ -116,18 +118,32 @@
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 		>
-			<button class="modal-close" onclick={closeModal} aria-label="Close" use:cursorTarget={'hover'}>×</button>
+			<button class="modal-close" onclick={closeModal} aria-label="Close" use:cursorTarget={'hover'}
+				>×</button
+			>
 
 			<span class="modal-label">Publication</span>
 
 			<h2 class="modal-title">{pub.title}</h2>
 
 			<div class="modal-links">
-				<a href={pub.url} target="_blank" rel="noopener noreferrer" class="modal-link modal-link--ghost" use:cursorTarget={'hover'}>
+				<a
+					href={pub.url}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="modal-link modal-link--ghost"
+					use:cursorTarget={'hover'}
+				>
 					arXiv →
 				</a>
 				{#if pub.officialUrl}
-					<a href={pub.officialUrl} target="_blank" rel="noopener noreferrer" class="modal-link modal-link--primary" use:cursorTarget={'hover'}>
+					<a
+						href={pub.officialUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="modal-link modal-link--primary"
+						use:cursorTarget={'hover'}
+					>
 						Read Publication →
 					</a>
 				{/if}
@@ -202,7 +218,9 @@
 		white-space: nowrap;
 		opacity: 0;
 		transform: translateX(-6px);
-		transition: opacity 0.2s, transform 0.2s var(--ease-out-expo);
+		transition:
+			opacity 0.2s,
+			transform 0.2s var(--ease-out-expo);
 		flex-shrink: 0;
 	}
 
@@ -233,7 +251,7 @@
 		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 	}
 
-	:global([data-theme="light"]) .modal-card {
+	:global([data-theme='light']) .modal-card {
 		background: var(--surface);
 		border: 1px solid rgba(43, 92, 230, 0.15);
 		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15);
@@ -292,7 +310,9 @@
 		font-size: var(--text-sm);
 		font-weight: 500;
 		letter-spacing: 0.04em;
-		transition: transform 0.2s var(--ease-out-expo), opacity 0.2s;
+		transition:
+			transform 0.2s var(--ease-out-expo),
+			opacity 0.2s;
 	}
 
 	.modal-link:hover {

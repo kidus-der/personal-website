@@ -17,7 +17,13 @@ export const POST: RequestHandler = async ({ request }) => {
 	let authorized = false;
 	if (secretBytes.length === tokenBytes.length) {
 		// Timing-safe comparison using crypto.subtle
-		const secretKey = await crypto.subtle.importKey('raw', secretBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+		const secretKey = await crypto.subtle.importKey(
+			'raw',
+			secretBytes,
+			{ name: 'HMAC', hash: 'SHA-256' },
+			false,
+			['sign']
+		);
 		const [sigA, sigB] = await Promise.all([
 			crypto.subtle.sign('HMAC', secretKey, secretBytes),
 			crypto.subtle.sign('HMAC', secretKey, tokenBytes)

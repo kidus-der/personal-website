@@ -8,11 +8,7 @@ import { EASE_OUT_EXPO, DUR_MD } from '../easings';
 export function createPageEnterTimeline(el: HTMLElement): gsap.core.Timeline {
 	const tl = gsap.timeline({ paused: true });
 
-	tl.fromTo(
-		el,
-		{ opacity: 0, y: 24 },
-		{ opacity: 1, y: 0, duration: DUR_MD, ease: EASE_OUT_EXPO }
-	);
+	tl.fromTo(el, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: DUR_MD, ease: EASE_OUT_EXPO });
 
 	return tl;
 }

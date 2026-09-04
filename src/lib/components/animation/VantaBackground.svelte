@@ -13,7 +13,13 @@
 		maxDistance?: number;
 	}
 
-	let { effect, opacity = effect === 'GLOBE' ? 1 : 0.35, interactive = effect === 'GLOBE', size, maxDistance }: Props = $props();
+	let {
+		effect,
+		opacity = effect === 'GLOBE' ? 1 : 0.35,
+		interactive = effect === 'GLOBE',
+		size,
+		maxDistance
+	}: Props = $props();
 
 	let containerEl: HTMLDivElement;
 
