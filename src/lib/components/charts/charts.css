@@ -1,0 +1,30 @@
+/*
+ * Emphasis rules shared by every chart series — ring arcs, bars, radar polygons
+ * and their vertex dots.
+ *
+ * These live outside the components' `<style>` blocks because Svelte scopes
+ * those per component, which would mean maintaining the same fade and the same
+ * reduced-motion opt-out in three places. Imported from each chart component's
+ * script, so the rules ship only when a chart does.
+ *
+ * The hover state itself stays in the components: `data-faded` is set by the
+ * chart that owns the hover, and the glow is an inline `filter` because it
+ * needs the series' own colour.
+ */
+
+.chart-series {
+	opacity: 1;
+	transition:
+		opacity 0.2s ease,
+		filter 0.2s ease;
+}
+
+.chart-series[data-faded='true'] {
+	opacity: 0.3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.chart-series {
+		transition: none;
+	}
+}
