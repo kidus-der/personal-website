@@ -16,9 +16,9 @@ type CategoryId = ProjectCategory | 'all';
  */
 export const load = (({ url }) => {
 	const requested = url.searchParams.get('category');
-	const category: CategoryId = PROJECT_CATEGORIES.some((tab) => tab.id === requested)
-		? (requested as CategoryId)
-		: 'all';
+	// Taking the id off the matched tab rather than casting the raw string keeps
+	// the narrowing the type system's job instead of an assertion's.
+	const category: CategoryId = PROJECT_CATEGORIES.find((tab) => tab.id === requested)?.id ?? 'all';
 
 	return { category, projects: orderProjectsForGrid(projectsByCategory(category)) };
 }) satisfies PageLoad;

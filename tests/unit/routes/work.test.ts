@@ -1,8 +1,22 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import { render, cleanup } from '@testing-library/svelte';
+import { readable } from 'svelte/store';
 import { load as loadIndex } from '../../../src/routes/(portfolio)/work/+page';
 import { load as loadDetail } from '../../../src/routes/(portfolio)/work/[slug]/+page';
+import WorkPage from '../../../src/routes/(portfolio)/work/+page.svelte';
 import { orderProjectsForGrid } from '$lib/components/sections/work/order';
-import { projects } from '$content/projects';
+import { projects, projectsByCategory } from '$content/projects';
+
+vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../kokonut/actionsMock')).tiltModule());
+vi.mock('$lib/actions/reveal', async () =>
+	(await import('../sections/work/revealMock')).revealModule()
+);
+vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
+// `SEO` reads the page store for its canonical URL.
+vi.mock('$app/stores', () => ({
+	page: readable({ url: new URL('http://localhost/work'), params: {} })
+}));
 
 /**
  * The `load` functions are exercised directly, so each is handed the one field
@@ -127,5 +141,33 @@ describe('/work/[slug] load', () => {
 
 	it('throws a 404 for an empty slug', () => {
 		expect(() => runDetail('')).toThrow();
+	});
+});
+
+describe('/work page status line', () => {
+	afterEach(cleanup);
+
+	const status = (container: HTMLElement) =>
+		container.querySelector('[aria-live="polite"]')?.textContent?.trim();
+
+	function renderPage(category: 'all' | 'ai-ml' | 'systems' = 'all') {
+		return render(WorkPage, {
+			props: { data: { category, projects: orderProjectsForGrid(projectsByCategory(category)) } }
+		});
+	}
+
+	it('counts every project when nothing is filtered out', () => {
+		expect(status(renderPage().container)).toBe('8 projects');
+	});
+
+	it('says "1 project", not "1 projects"', () => {
+		expect(status(renderPage('systems').container)).toBe('1 project');
+	});
+
+	it('is announced politely rather than shown', () => {
+		const { container } = renderPage();
+		const line = container.querySelector('[aria-live="polite"]') as HTMLElement;
+		expect(line).toHaveClass('work-page__status');
+		expect(line).toBeInTheDocument();
 	});
 });

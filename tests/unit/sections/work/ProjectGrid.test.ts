@@ -88,6 +88,29 @@ describe('ProjectGrid', () => {
 		expect(container.querySelector('#project-grid')).toBe(container.querySelector('.project-grid'));
 	});
 
+	it('names the region with a heading, so the page does not skip from h1 to h3', () => {
+		const { container, getByRole } = setup();
+		const region = getByRole('region', { name: 'Projects' });
+		expect(region).toBe(container.querySelector('.project-grid'));
+
+		const heading = getByRole('heading', { level: 2, name: 'Projects' });
+		expect(region).toHaveAttribute('aria-labelledby', heading.id);
+		expect(heading.id).not.toBe('');
+	});
+
+	it('still names the region when there is nothing to show', () => {
+		const { getByRole } = setup({ projects: [] });
+		expect(getByRole('region', { name: 'Projects' })).toBeInTheDocument();
+	});
+
+	it('gives two grids on one page different heading ids', () => {
+		const first = render(ProjectGrid, { props: { projects: three } });
+		const second = render(ProjectGrid, { props: { projects: three } });
+		const idOf = (result: typeof first) =>
+			result.container.querySelector('.project-grid')?.getAttribute('aria-labelledby');
+		expect(idOf(first)).not.toBe(idOf(second));
+	});
+
 	it('keeps the id on the region when the grid is empty', () => {
 		const { container } = setup({ projects: [], id: 'project-grid' });
 		expect(container.querySelector('#project-grid')).not.toBeNull();
@@ -134,5 +157,34 @@ describe('ProjectGrid', () => {
 	it('starts with nothing dimmed', () => {
 		const { cards } = setup();
 		expect(cards().some((card) => card.classList.contains('spotlight-card--dimmed'))).toBe(false);
+	});
+
+	it('stops dimming when the hovered card is filtered out from under the pointer', async () => {
+		const { container, cards, rerender } = setup();
+		const wrappers = [...container.querySelectorAll('.project-card')];
+
+		// Hover the middle card, then filter it away with the keyboard — no
+		// `pointerleave` ever fires, because the pointer never moved.
+		wrappers[1].dispatchEvent(new Event('pointerenter'));
+		await Promise.resolve();
+		expect(cards()[0]).toHaveClass('spotlight-card--dimmed');
+
+		await rerender({ projects: [three[0], three[2]] });
+
+		expect(cards()).toHaveLength(2);
+		expect(cards().some((card) => card.classList.contains('spotlight-card--dimmed'))).toBe(false);
+	});
+
+	it('keeps dimming when a filter leaves the hovered card in place', async () => {
+		const { container, cards, rerender } = setup();
+		const wrappers = [...container.querySelectorAll('.project-card')];
+
+		wrappers[1].dispatchEvent(new Event('pointerenter'));
+		await Promise.resolve();
+
+		await rerender({ projects: [three[0], three[1]] });
+
+		expect(cards()[0]).toHaveClass('spotlight-card--dimmed');
+		expect(cards()[1]).not.toHaveClass('spotlight-card--dimmed');
 	});
 });
