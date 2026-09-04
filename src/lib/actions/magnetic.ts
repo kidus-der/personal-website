@@ -1,54 +1,54 @@
 /**
- * use:magnetic
+ * use:magnetic — the node springs toward the cursor while it hovers, and back
+ * to its origin when the cursor leaves.
  *
- * Adds GSAP-powered magnetic cursor attraction to a button/element.
- * The element subtly moves toward the cursor when hovered.
- *
- * Usage:
- *   <button use:magnetic>...</button>
- *   <button use:magnetic={{ strength: 0.4 }}>...</button>
+ *   <button use:magnetic>…</button>
+ *   <a use:magnetic={{ strength: 0.4 }}>…</a>
  */
-import { gsap } from 'gsap';
-import type { MagneticConfig } from '$lib/types/animation';
+import type { Action } from 'svelte/action';
+import { animate, reducedMotion, springs } from '$lib/motion';
+import type { MagneticOptions } from '$lib/types/motion';
+import { coarsePointer } from './pointer';
 
-export function magnetic(node: HTMLElement, config: MagneticConfig = {}) {
-	const { strength = 0.3, ease = 0.15 } = config;
+type Animation = ReturnType<typeof animate>;
 
-	function handleMouseMove(e: MouseEvent) {
+const DEFAULTS = { strength: 0.3 } as const satisfies Required<MagneticOptions>;
+
+export const magnetic: Action<HTMLElement, MagneticOptions | undefined> = (node, options) => {
+	// Without a hovering pointer there is nothing to be magnetic about, and on
+	// touch the node would stay displaced after the tap.
+	if (reducedMotion() || coarsePointer()) return { destroy() {} };
+
+	let opts = { ...DEFAULTS, ...options };
+	let animation: Animation | undefined;
+
+	function springTo(x: number, y: number) {
+		animation?.stop();
+		animation = animate(node, { x, y }, springs.soft);
+	}
+
+	function handlePointerMove(event: PointerEvent) {
 		const rect = node.getBoundingClientRect();
-		const cx = rect.left + rect.width / 2;
-		const cy = rect.top + rect.height / 2;
-		const dx = (e.clientX - cx) * strength;
-		const dy = (e.clientY - cy) * strength;
-
-		gsap.to(node, {
-			x: dx,
-			y: dy,
-			duration: ease * 3,
-			ease: 'power2.out'
-		});
+		const centreX = rect.left + rect.width / 2;
+		const centreY = rect.top + rect.height / 2;
+		springTo((event.clientX - centreX) * opts.strength, (event.clientY - centreY) * opts.strength);
 	}
 
-	function handleMouseLeave() {
-		gsap.to(node, {
-			x: 0,
-			y: 0,
-			duration: 0.5,
-			ease: 'elastic.out(1, 0.5)'
-		});
+	function handlePointerLeave() {
+		springTo(0, 0);
 	}
 
-	node.addEventListener('mousemove', handleMouseMove);
-	node.addEventListener('mouseleave', handleMouseLeave);
+	node.addEventListener('pointermove', handlePointerMove);
+	node.addEventListener('pointerleave', handlePointerLeave);
 
 	return {
-		update(newConfig: MagneticConfig) {
-			Object.assign(config, newConfig);
+		update(next) {
+			opts = { ...DEFAULTS, ...next };
 		},
 		destroy() {
-			node.removeEventListener('mousemove', handleMouseMove);
-			node.removeEventListener('mouseleave', handleMouseLeave);
-			gsap.killTweensOf(node);
+			node.removeEventListener('pointermove', handlePointerMove);
+			node.removeEventListener('pointerleave', handlePointerLeave);
+			animation?.stop();
 		}
 	};
-}
+};
