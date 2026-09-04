@@ -15,12 +15,15 @@ const items = [
 ];
 
 /** Fake layout, keyed by link label — jsdom reports every offset as 0. */
-const layout: Record<string, { left: number; width: number }> = {
+const BASE_LAYOUT: Readonly<Record<string, { left: number; width: number }>> = {
 	Home: { left: 4, width: 60 },
 	Work: { left: 64, width: 64 },
 	About: { left: 128, width: 70 },
 	Blog: { left: 198, width: 58 }
 };
+
+/** Rebuilt per test, so a test that moves a link cannot leak into the next. */
+let layout: Record<string, { left: number; width: number }>;
 
 function stubOffsets() {
 	const lookup = (element: HTMLElement) => layout[element.textContent?.trim() ?? ''];
@@ -55,6 +58,7 @@ function lastIndicatorCall() {
 describe('MorphicNav', () => {
 	beforeEach(() => {
 		resetMotionMocks();
+		layout = structuredClone(BASE_LAYOUT) as Record<string, { left: number; width: number }>;
 		stubOffsets();
 	});
 
@@ -124,7 +128,6 @@ describe('MorphicNav', () => {
 		await tick();
 
 		expect(lastIndicatorCall()?.[1]).toMatchObject({ x: 90, width: '80px' });
-		layout.Work = { left: 64, width: 64 };
 	});
 
 	it('hides the indicator when nothing matches', async () => {

@@ -36,4 +36,9 @@ export {
 	type DotResponse
 } from './mouseEffectDots';
 
-export { measureIndicator, moveIndicator, type IndicatorTarget } from './indicator';
+export {
+	createIndicator,
+	measureIndicator,
+	moveIndicator,
+	type IndicatorTarget
+} from './indicator.svelte';

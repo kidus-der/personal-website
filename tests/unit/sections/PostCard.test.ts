@@ -57,7 +57,11 @@ describe('PostCard', () => {
 		const { container } = setup({ coverImage: '/images/halo.png' });
 		const image = container.querySelector('.post-card__image') as HTMLImageElement;
 		expect(image).toHaveAttribute('src', '/images/halo.png');
-		expect(image).toHaveAttribute('alt', 'Shipping Halo');
+	});
+
+	it('marks the cover decorative so the card link is not named twice', () => {
+		const { container } = setup({ coverImage: '/images/halo.png' });
+		expect(container.querySelector('.post-card__image')).toHaveAttribute('alt', '');
 	});
 
 	it('picks a gradient from the palette by index', () => {

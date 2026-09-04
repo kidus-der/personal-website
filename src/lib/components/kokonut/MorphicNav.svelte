@@ -10,8 +10,7 @@
 	inside the mobile menu.
 -->
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { measureIndicator, moveIndicator } from './indicator';
+	import { createIndicator } from './indicator.svelte';
 	import { cn } from '$lib/utils/cn';
 
 	export interface NavItem {
@@ -32,8 +31,6 @@
 
 	let indicatorEl = $state<HTMLSpanElement | undefined>();
 	let linkEls = $state<(HTMLAnchorElement | undefined)[]>([]);
-	let animation: ReturnType<typeof moveIndicator> | undefined;
-	let placed = false;
 
 	/**
 	 * Home matches only itself; every other item owns its whole subtree, so
@@ -45,36 +42,12 @@
 
 	const activeIndex = $derived(items.findIndex((item) => isActive(item.href)));
 
-	function place() {
-		if (!indicatorEl) return;
-		animation?.stop();
-		animation = moveIndicator(
-			indicatorEl,
-			measureIndicator(activeIndex === -1 ? undefined : linkEls[activeIndex]),
-			!placed
-		);
-		placed = true;
-	}
-
-	// Re-measure whenever the route or the item list changes. `$effect` runs
-	// after Svelte has flushed the DOM, so the anchors are laid out and their
-	// `bind:this` slots are filled by the time we read a box.
-	$effect(() => {
-		void activeIndex;
-		void linkEls;
-		place();
-	});
-
-	onMount(() => {
-		// The pill's own width changes with the viewport, and so does the offset
-		// of every item inside it.
-		const onResize = () => place();
-		window.addEventListener('resize', onResize);
-		return () => {
-			window.removeEventListener('resize', onResize);
-			animation?.stop();
-		};
-	});
+	// Owns the measuring, the instant first placement and the resize listener.
+	// A route with no matching item hands it `undefined`, which hides the pill.
+	createIndicator(
+		() => indicatorEl,
+		() => (activeIndex === -1 ? undefined : linkEls[activeIndex])
+	);
 </script>
 
 <nav class={cn('morphic-nav', className)} aria-label={label}>

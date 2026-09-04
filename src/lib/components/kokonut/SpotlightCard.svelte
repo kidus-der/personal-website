@@ -15,6 +15,11 @@
 	    with no orchestration, free under `prefers-reduced-motion`.
 	  - Only the glow's opacity is sprung through Motion, because it has to fade
 	    rather than snap when the pointer crosses in and out quickly.
+
+	Pointer and focus are tracked as two independent flags, not one. Collapsing
+	them loses hovers in both directions: moving the mouse off a card that is also
+	keyboard-focused would kill the glow, and focus stepping between two focusable
+	descendants would emit a spurious end/start pair.
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
@@ -50,10 +55,15 @@
 	/** The original's TILT_MAX. */
 	const TILT_MAX = 9;
 
+	let cardEl = $state<HTMLElement | undefined>();
 	let glowEl = $state<HTMLSpanElement | undefined>();
 	let glowAnimation: ReturnType<typeof animate> | undefined;
-	/** Guards against pointer and focus both reporting the same hover. */
-	let active = false;
+
+	/** The two ways a card can be "hovered", tracked separately. */
+	let pointerOver = false;
+	let focused = false;
+	/** Last state reported to the parent: `pointerOver || focused`. */
+	let engaged = false;
 
 	const tiltOptions = $derived({ max: tiltEnabled ? TILT_MAX : 0 });
 	const classes = $derived(cn('spotlight-card', dimmed && 'spotlight-card--dimmed', className));
@@ -68,18 +78,38 @@
 		glowAnimation = animate(glowEl, { opacity }, springs.soft);
 	}
 
-	function enter() {
-		if (active) return;
-		active = true;
-		fadeGlow(1);
-		onhoverstart?.();
+	/** Reports only when the combined state actually flips. */
+	function sync() {
+		const next = pointerOver || focused;
+		if (next === engaged) return;
+		engaged = next;
+		fadeGlow(next ? 1 : 0);
+		if (next) onhoverstart?.();
+		else onhoverend?.();
 	}
 
-	function leave() {
-		if (!active) return;
-		active = false;
-		fadeGlow(0);
-		onhoverend?.();
+	function handlePointerEnter() {
+		pointerOver = true;
+		sync();
+	}
+
+	function handlePointerLeave() {
+		pointerOver = false;
+		sync();
+	}
+
+	function handleFocusIn() {
+		focused = true;
+		sync();
+	}
+
+	function handleFocusOut(event: FocusEvent) {
+		// `focusout` fires when focus moves between descendants too. Focus that
+		// lands somewhere still inside the card has not left it.
+		const next = event.relatedTarget;
+		if (next instanceof Node && cardEl?.contains(next)) return;
+		focused = false;
+		sync();
 	}
 </script>
 
@@ -105,16 +135,17 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <svelte:element
 	this={href ? 'a' : 'article'}
+	bind:this={cardEl}
 	{href}
 	class={classes}
 	style="--card-color: {color ?? 'var(--accent)'}"
 	use:tilt={tiltOptions}
-	onpointerenter={enter}
-	onpointerleave={leave}
-	onfocusin={enter}
-	onfocusout={leave}
+	onpointerenter={handlePointerEnter}
+	onpointerleave={handlePointerLeave}
+	onfocusin={handleFocusIn}
+	onfocusout={handleFocusOut}
 >
-	<span class="spotlight-card__inner">{@render surface()}</span>
+	<div class="spotlight-card__inner">{@render surface()}</div>
 </svelte:element>
 
 <style>
@@ -140,7 +171,6 @@
 	}
 
 	.spotlight-card__inner {
-		display: block;
 		position: relative;
 		height: 100%;
 		overflow: hidden;

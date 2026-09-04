@@ -157,7 +157,7 @@ describe('MouseEffectCard', () => {
 	});
 
 	it('moves a virtual pointer with the arrow keys', async () => {
-		const { field, dots } = await setup();
+		const { field, dots } = await setup({ keyboardInteractive: true });
 		const settle = () => {
 			for (let i = 0; i < 400 && frames.length > 0; i += 1) runFrame();
 			return dots().map((dot) => (dot as HTMLElement).style.transform);
@@ -176,7 +176,7 @@ describe('MouseEffectCard', () => {
 	});
 
 	it('drops the virtual pointer on blur', async () => {
-		const { field, dots } = await setup();
+		const { field, dots } = await setup({ keyboardInteractive: true });
 		field().dispatchEvent(new FocusEvent('focus'));
 		for (let i = 0; i < 400 && frames.length > 0; i += 1) runFrame();
 
@@ -188,11 +188,60 @@ describe('MouseEffectCard', () => {
 		}
 	});
 
-	it('is reachable by keyboard and named for assistive tech', async () => {
+	it('stays out of the tab order by default', async () => {
 		const { field } = await setup();
+		expect(field()).toHaveAttribute('tabindex', '-1');
+	});
+
+	it('joins the tab order only when asked, and is named for assistive tech', async () => {
+		const { field } = await setup({ keyboardInteractive: true });
 		expect(field()).toHaveAttribute('tabindex', '0');
 		expect(field()).toHaveAttribute('role', 'img');
 		expect(field()).toHaveAccessibleName();
+	});
+
+	it('leaves arrow keys alone when they did not start on the field', async () => {
+		const { field, container } = await setup({ keyboardInteractive: true });
+		const dot = container.querySelector('.mouse-effect-card__dot') as HTMLElement;
+		const event = new KeyboardEvent('keydown', {
+			key: 'ArrowRight',
+			bubbles: true,
+			cancelable: true
+		});
+
+		dot.dispatchEvent(event);
+		expect(event.defaultPrevented).toBe(false);
+		expect(frames).toHaveLength(0);
+		expect(field()).toBeInTheDocument();
+	});
+
+	it('claims the arrow keys it does handle', async () => {
+		const { field } = await setup({ keyboardInteractive: true });
+		const event = new KeyboardEvent('keydown', {
+			key: 'ArrowRight',
+			bubbles: true,
+			cancelable: true
+		});
+
+		field().dispatchEvent(event);
+		expect(event.defaultPrevented).toBe(true);
+	});
+
+	it('rewrites a dot opacity only when the rounded value actually changes', async () => {
+		const { card, dots } = await setup();
+		const dot = dots()[0] as HTMLElement;
+		const setProperty = vi.spyOn(dot.style, 'setProperty');
+
+		card().dispatchEvent(
+			new PointerEvent('pointermove', { bubbles: true, clientX: 0, clientY: 0 })
+		);
+		// Settle fully, then count how often this one dot's opacity was rewritten.
+		for (let i = 0; i < 400 && frames.length > 0; i += 1) runFrame();
+		const writes = setProperty.mock.calls.filter(([name]) => name === '--dot-opacity').length;
+
+		// Many frames ran; the boost only moves through a handful of rounded steps.
+		expect(writes).toBeGreaterThan(0);
+		expect(writes).toBeLessThan(40);
 	});
 
 	it('renders a still field and schedules no frames under reduced motion', async () => {

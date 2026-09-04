@@ -60,8 +60,12 @@ describe('ProjectCard', () => {
 		const image = container.querySelector('.project-card__image') as HTMLImageElement;
 		expect(image).toBeInTheDocument();
 		expect(image).toHaveAttribute('src', '/images/prime-radiant.png');
-		expect(image).toHaveAttribute('alt', 'Prime Radiant');
 		expect(container.querySelector('.project-card__monogram')).toBeNull();
+	});
+
+	it('marks the cover decorative so the card link is not named twice', () => {
+		const { container } = setup({ images: ['/images/prime-radiant.png'] });
+		expect(container.querySelector('.project-card__image')).toHaveAttribute('alt', '');
 	});
 
 	it('falls back to a gradient monogram when there is no image', () => {
@@ -90,14 +94,6 @@ describe('ProjectCard', () => {
 	it('omits the source link when there is no repo', () => {
 		const { source } = setup({ githubUrl: undefined });
 		expect(source()).toBeNull();
-	});
-
-	it('keeps the source click off the card link', () => {
-		const { source } = setup();
-		const click = new MouseEvent('click', { bubbles: true, cancelable: true });
-		const stop = vi.spyOn(click, 'stopPropagation');
-		source().dispatchEvent(click);
-		expect(stop).toHaveBeenCalled();
 	});
 
 	it('never nests the source link inside the card link', () => {

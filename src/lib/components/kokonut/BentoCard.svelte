@@ -5,10 +5,17 @@
 	snippet of feature content beneath (a counter, a sparkline, a timeline). It
 	tilts a couple of degrees under the pointer and lifts on hover.
 
-	The lift and the tilt share one `transform` rule. Composing them as separate
-	declarations would mean the last one wins; instead the hover state only moves
-	`--lift`, and the single rule below folds it together with the `--rx`/`--ry`
-	that `use:tilt` springs onto the element.
+	Two details make the tilt actually visible and actually smooth:
+
+	  - The transform starts with `perspective(800px)`. Without a perspective
+	    somewhere in the chain, `rotateX`/`rotateY` are an orthographic squash and
+	    the 2° tilt is invisible. It is a transform function rather than the
+	    `perspective` property because there is no wrapper element to put the
+	    property on.
+	  - The lift uses the independent `translate` property, not the transform. A
+	    `transition: transform` would fight `use:tilt`, which drives `--rx`/`--ry`
+	    through Motion frame by frame; transitioning `translate` on its own lets
+	    the hover lift ease while the tilt stays under the spring's control.
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
@@ -74,10 +81,12 @@
 		background-color: var(--surface);
 		color: inherit;
 		text-decoration: none;
-		/* Both the hover lift and the pointer tilt, composed once. */
-		transform: translateY(var(--lift, 0px)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+		/* Spring-driven, never transitioned — see the note at the top of the file. */
+		transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+		/* Transitioned independently of the transform above. */
+		translate: 0 var(--lift, 0px);
 		transition:
-			transform 300ms var(--ease-out-expo),
+			translate 300ms var(--ease-out-expo),
 			border-color 300ms var(--ease-out-expo),
 			background-color 300ms var(--ease-out-expo);
 	}

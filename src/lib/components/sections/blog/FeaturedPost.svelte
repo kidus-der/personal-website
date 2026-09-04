@@ -4,6 +4,7 @@
 
 	Two columns on a wide screen, stacked below 720px. The whole card is one link,
 	which keeps the a11y tree simple: one target, named by the title inside it.
+	The cover is therefore `alt=""` — describing it would only repeat that name.
 -->
 <script lang="ts">
 	import Tag from '$lib/components/ui/Tag.svelte';
@@ -23,7 +24,7 @@
 <a class="featured-post" href="/blog/{post.slug}">
 	<div class="featured-post__visual">
 		{#if post.coverImage}
-			<img class="featured-post__image" src={post.coverImage} alt={post.title} loading="lazy" />
+			<img class="featured-post__image" src={post.coverImage} alt="" loading="lazy" />
 		{:else}
 			<span class="featured-post__placeholder" aria-hidden="true"></span>
 		{/if}

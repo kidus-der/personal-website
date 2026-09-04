@@ -15,10 +15,15 @@
 	    directly. The ambient opacity pulse is a CSS animation with a staggered
 	    delay, so it costs nothing and keeps running while the loop is asleep.
 
-	The field is focusable: arrow keys drive a virtual pointer, which is the only
-	way a keyboard user gets the effect at all. Pointer tracking lives on the card
-	rather than the field, so the field can stay inert to the pointer and the card's
-	own content keeps its links and text selection.
+	Keyboard access is opt-in through `keyboardInteractive`. Arrow keys drive a
+	virtual pointer, which is the only way a keyboard user gets the effect at all
+	— but the field is a decorative graphic, so by default it stays out of the tab
+	order (`tabindex="-1"`) rather than adding a tab stop that leads nowhere. Set
+	the prop on a card where the field is the point, not the backdrop.
+
+	Pointer tracking lives on the card rather than the field, so the field can stay
+	inert to the pointer and the card's own content keeps its links and text
+	selection.
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
@@ -36,6 +41,11 @@
 		repulsionRadius?: number;
 		/** Maximum displacement in px, at the pointer itself. */
 		repulsionStrength?: number;
+		/**
+		 * Put the field in the tab order so arrow keys can drive the virtual
+		 * pointer. Off by default: the field is decorative on every current use.
+		 */
+		keyboardInteractive?: boolean;
 		class?: string;
 		children: Snippet;
 	}
@@ -45,6 +55,7 @@
 		dotSpacing = 16,
 		repulsionRadius = 80,
 		repulsionStrength = 20,
+		keyboardInteractive = false,
 		class: className = '',
 		children
 	}: Props = $props();
@@ -69,6 +80,8 @@
 		y: number;
 		vx: number;
 		vy: number;
+		/** Last `--dot-opacity` written, so an unchanged value is not rewritten. */
+		opacity: number;
 	}
 
 	let fieldEl = $state<HTMLDivElement | undefined>();
@@ -96,7 +109,8 @@
 		dotEls = fieldEl
 			? Array.from(fieldEl.querySelectorAll<HTMLElement>('.mouse-effect-card__dot'))
 			: [];
-		offsets = dots.map(() => ({ x: 0, y: 0, vx: 0, vy: 0 }));
+		// `opacity: NaN` never equals a real value, so the first frame always writes.
+		offsets = dots.map(() => ({ x: 0, y: 0, vx: 0, vy: 0, opacity: Number.NaN }));
 	});
 
 	/** Semi-implicit Euler on one axis. Overdamped, so it never overshoots. */
@@ -144,9 +158,15 @@
 			}
 
 			element.style.transform = `translate(${round(offset.x)}px, ${round(offset.y)}px)`;
+
 			// The pulse keyframes multiply this, so raising it brightens the dot
-			// without fighting the running CSS animation.
-			element.style.setProperty('--dot-opacity', String(round(dot.opacity + target.boost)));
+			// without fighting the running CSS animation. Most frames leave it
+			// where it was; skipping the write avoids a style invalidation per dot.
+			const opacity = round(dot.opacity + target.boost);
+			if (opacity !== offset.opacity) {
+				offset.opacity = opacity;
+				element.style.setProperty('--dot-opacity', String(opacity));
+			}
 		}
 
 		if (moving) frame = requestAnimationFrame(step);
@@ -173,6 +193,9 @@
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
+		// Only the field's own arrow keys are ours. Anything routed here from a
+		// descendant keeps its default scrolling behaviour.
+		if (event.target !== fieldEl) return;
 		const distance = Math.min(size.width, size.height) * KEY_STEP;
 		const from = pointer ?? { x: size.width / 2, y: size.height / 2 };
 		let { x, y } = from;
@@ -224,9 +247,9 @@
 >
 	<!--
 		A decorative graphic that happens to respond to input. `role="img"` gives
-		it a name and makes its hundreds of child spans presentational; the
-		tabindex is what lets a keyboard user drive the virtual pointer, which is
-		the whole point of the component.
+		it a name and makes its hundreds of child spans presentational. It only
+		joins the tab order when `keyboardInteractive` is set — see the note at the
+		top of the file.
 	-->
 	<!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
 	<div
@@ -234,7 +257,7 @@
 		class="mouse-effect-card__field"
 		role="img"
 		aria-label="Dot field that scatters away from the pointer"
-		tabindex="0"
+		tabindex={keyboardInteractive ? 0 : -1}
 		style="--dot-size: {dotSize}px"
 		onfocus={handleFocus}
 		onblur={() => setPointer(null)}

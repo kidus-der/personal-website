@@ -6,10 +6,15 @@
 	The GitHub link is a sibling of the card link, absolutely positioned over its
 	corner, rather than a child of it. An `<a>` inside an `<a>` is not just
 	invalid: the HTML parser closes the outer anchor when it meets the inner one,
-	so a server-rendered card would hydrate into a broken tree. Hover reporting
-	moves up to this wrapper for the same reason — it has to cover the source link
-	too, or the grid would un-dim its siblings whenever the pointer crossed the
-	icon.
+	so a server-rendered card would hydrate into a broken tree. Being a sibling,
+	its click never reaches the card link, so it needs no propagation guard.
+	Hover reporting moves up to this wrapper for the same reason — it has to cover
+	the source link too, or the grid would un-dim its siblings whenever the
+	pointer crossed the icon.
+
+	The cover image is `alt=""`: it sits inside a link whose accessible name
+	already comes from the title beside it, so a description here would only make
+	a screen reader read the project name twice.
 -->
 <script lang="ts">
 	import SpotlightCard from '$lib/components/kokonut/SpotlightCard.svelte';
@@ -48,7 +53,7 @@
 	<SpotlightCard href="/work/{project.slug}" color={project.accent} {dimmed}>
 		<div class="project-card__visual" style="--project-accent: {accent}">
 			{#if cover}
-				<img class="project-card__image" src={cover} alt={project.title} loading="lazy" />
+				<img class="project-card__image" src={cover} alt="" loading="lazy" />
 			{:else}
 				<span class="project-card__monogram" aria-hidden="true">{monogram}</span>
 			{/if}
@@ -77,7 +82,6 @@
 			target="_blank"
 			rel="noopener noreferrer"
 			aria-label="Source on GitHub"
-			onclick={(event) => event.stopPropagation()}
 		>
 			<!-- GitHub octicon (MIT, GitHub Inc.) -->
 			<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">

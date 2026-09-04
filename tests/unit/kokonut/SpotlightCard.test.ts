@@ -29,6 +29,15 @@ function unhover(card: HTMLElement) {
 	card.dispatchEvent(new Event('pointerleave'));
 }
 
+function focusIn(card: HTMLElement) {
+	card.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+}
+
+/** `relatedTarget` is where focus is going — null means it left the document. */
+function focusOut(card: HTMLElement, relatedTarget: EventTarget | null = null) {
+	card.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget }));
+}
+
 describe('SpotlightCard', () => {
 	beforeEach(() => {
 		resetMotionMocks();
@@ -105,10 +114,66 @@ describe('SpotlightCard', () => {
 
 	it('treats keyboard focus as a hover', () => {
 		const { card, onhoverstart, onhoverend } = setup({ href: '/work/prime-radiant' });
-		card().dispatchEvent(new Event('focusin', { bubbles: true }));
+		focusIn(card());
 		expect(onhoverstart).toHaveBeenCalledTimes(1);
-		card().dispatchEvent(new Event('focusout', { bubbles: true }));
+		focusOut(card());
 		expect(onhoverend).toHaveBeenCalledTimes(1);
+	});
+
+	it('keeps the card engaged when the pointer leaves but focus stays', () => {
+		const { card, glow, onhoverstart, onhoverend } = setup({ href: '/work/prime-radiant' });
+		hover(card());
+		focusIn(card());
+		expect(onhoverstart).toHaveBeenCalledTimes(1);
+
+		animateMock.mockClear();
+		unhover(card());
+		expect(onhoverend).not.toHaveBeenCalled();
+		expect(animateMock).not.toHaveBeenCalledWith(glow(), { opacity: 0 }, expect.anything());
+
+		focusOut(card());
+		expect(onhoverend).toHaveBeenCalledTimes(1);
+	});
+
+	it('keeps the card engaged when focus leaves but the pointer stays', () => {
+		const { card, onhoverstart, onhoverend } = setup({ href: '/work/prime-radiant' });
+		focusIn(card());
+		hover(card());
+		expect(onhoverstart).toHaveBeenCalledTimes(1);
+
+		focusOut(card());
+		expect(onhoverend).not.toHaveBeenCalled();
+
+		unhover(card());
+		expect(onhoverend).toHaveBeenCalledTimes(1);
+	});
+
+	it('ignores focus moving between its own descendants', () => {
+		const { card, onhoverstart, onhoverend } = setup({ href: '/work/prime-radiant' });
+		focusIn(card());
+		expect(onhoverstart).toHaveBeenCalledTimes(1);
+
+		// Focus stepping from one focusable child to the next fires focusout on
+		// the card, but it never actually left.
+		const inside = card().querySelector('.spotlight-card__content') as HTMLElement;
+		focusOut(card(), inside);
+		focusIn(card());
+
+		expect(onhoverend).not.toHaveBeenCalled();
+		expect(onhoverstart).toHaveBeenCalledTimes(1);
+	});
+
+	it('ends the hover when focus leaves the card entirely', () => {
+		const outside = document.createElement('button');
+		document.body.appendChild(outside);
+		try {
+			const { card, onhoverend } = setup({ href: '/work/prime-radiant' });
+			focusIn(card());
+			focusOut(card(), outside);
+			expect(onhoverend).toHaveBeenCalledTimes(1);
+		} finally {
+			outside.remove();
+		}
 	});
 
 	it('springs the glow in on hover and out on leave', () => {

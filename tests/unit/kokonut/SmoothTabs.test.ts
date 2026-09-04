@@ -168,6 +168,44 @@ describe('SmoothTabs', () => {
 		expect(call?.[2]).toMatchObject(springs.snappy);
 	});
 
+	describe('when active names no tab', () => {
+		it('selects nothing rather than quietly falling back to the first tab', async () => {
+			const { tabButtons } = await setup({ active: 'not-a-category' });
+			expect(tabButtons().map((t) => t.getAttribute('aria-selected'))).toEqual([
+				'false',
+				'false',
+				'false',
+				'false'
+			]);
+		});
+
+		it('hides the indicator', async () => {
+			const { indicator } = await setup({ active: 'not-a-category' });
+			const call = lastIndicatorCall();
+			expect(call?.[0]).toBe(indicator());
+			expect(call?.[1]).toMatchObject({ x: 0, width: '0px', opacity: 0 });
+		});
+
+		it('still keeps the row reachable by keyboard', async () => {
+			const { tabButtons } = await setup({ active: 'not-a-category' });
+			expect(tabButtons().map((t) => t.getAttribute('tabindex'))).toEqual(['0', '-1', '-1', '-1']);
+		});
+
+		it('starts the arrow keys from the tabbable tab', async () => {
+			const { tabButtons, onchange } = await setup({ active: 'not-a-category' });
+			press(tabButtons()[0], 'ArrowRight');
+			await tick();
+			expect(onchange).toHaveBeenLastCalledWith('ai-ml');
+		});
+
+		it('wraps backwards to the last tab', async () => {
+			const { tabButtons, onchange } = await setup({ active: 'not-a-category' });
+			press(tabButtons()[0], 'ArrowLeft');
+			await tick();
+			expect(onchange).toHaveBeenLastCalledWith('systems');
+		});
+	});
+
 	it('follows the active prop when the parent changes it', async () => {
 		const { rerender, tabButtons, onchange } = await setup();
 		await rerender({ tabs, active: 'systems', onchange });

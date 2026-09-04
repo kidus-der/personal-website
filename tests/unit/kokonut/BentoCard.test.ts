@@ -2,6 +2,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import { createRawSnippet } from 'svelte';
 import BentoCard from '$lib/components/kokonut/BentoCard.svelte';
+// Component CSS is never injected into jsdom under Vitest — `getComputedStyle`
+// reports `none` for everything — so these two invariants are pinned against
+// the component source instead. They are load-bearing: without the perspective
+// the tilt is an invisible orthographic squash, and a `transition: transform`
+// would fight the spring `use:tilt` drives frame by frame.
+import bentoSource from '$lib/components/kokonut/BentoCard.svelte?raw';
 import { resetMotionMocks } from './motionMock';
 import { resetActionMocks, tiltCalls } from './actionsMock';
 
@@ -84,5 +90,28 @@ describe('BentoCard', () => {
 		const { card } = setup({ class: 'row-start-2' });
 		expect(card()).toHaveClass('bento-card');
 		expect(card()).toHaveClass('row-start-2');
+	});
+
+	describe('the tilt surface', () => {
+		/** The body of the first `.bento-card { … }` rule in the component. */
+		const rule = bentoSource.match(/\.bento-card\s*\{([^}]*)\}/)?.[1] ?? '';
+
+		it('is a real rule, so the assertions below mean something', () => {
+			expect(rule).toContain('transform:');
+		});
+
+		it('establishes a perspective, or the 2 degree tilt is invisible', () => {
+			expect(rule).toMatch(/transform:\s*perspective\(/);
+		});
+
+		it('never transitions transform, which use:tilt drives frame by frame', () => {
+			const transition = rule.match(/transition:([^;]*);/)?.[1] ?? '';
+			expect(transition).not.toMatch(/\btransform\b/);
+		});
+
+		it('eases the hover lift through the independent translate property', () => {
+			expect(rule).toMatch(/translate:\s*0 var\(--lift/);
+			expect(rule.match(/transition:([^;]*);/)?.[1] ?? '').toMatch(/\btranslate\b/);
+		});
 	});
 });

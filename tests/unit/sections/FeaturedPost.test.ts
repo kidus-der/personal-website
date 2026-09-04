@@ -75,8 +75,12 @@ describe('FeaturedPost', () => {
 		const { container } = setup({ coverImage: '/images/cover.png' });
 		const image = container.querySelector('.featured-post__image') as HTMLImageElement;
 		expect(image).toHaveAttribute('src', '/images/cover.png');
-		expect(image).toHaveAttribute('alt', 'Why deepfakes are hard');
 		expect(container.querySelector('.featured-post__placeholder')).toBeNull();
+	});
+
+	it('marks the cover decorative so the card link is not named twice', () => {
+		const { container } = setup({ coverImage: '/images/cover.png' });
+		expect(container.querySelector('.featured-post__image')).toHaveAttribute('alt', '');
 	});
 
 	it('falls back to a warm placeholder when there is no cover', () => {

@@ -10,10 +10,15 @@
 	changes it. The parent owns the truth (on `/work` that is the `?category=`
 	query parameter), but a click must not wait for a navigation round trip
 	before the indicator moves.
+
+	An `active` id matching no tab selects nothing and hides the indicator, the
+	way `MorphicNav` handles an unknown route: quietly selecting the first tab
+	would misreport a bad `?category=` value as a real filter. The first tab stays
+	tabbable so the row is still reachable.
 -->
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
-	import { measureIndicator, moveIndicator } from './indicator';
+	import { tick } from 'svelte';
+	import { createIndicator } from './indicator.svelte';
 	import { cn } from '$lib/utils/cn';
 
 	export interface Tab {
@@ -39,30 +44,16 @@
 	let selected = $derived(active);
 	let indicatorEl = $state<HTMLSpanElement | undefined>();
 	let tabEls = $state<(HTMLButtonElement | undefined)[]>([]);
-	let animation: ReturnType<typeof moveIndicator> | undefined;
-	let placed = false;
 
-	const selectedIndex = $derived(
-		Math.max(
-			tabs.findIndex((tab) => tab.id === selected),
-			0
-		)
+	/** -1 when `active` names no tab. */
+	const selectedIndex = $derived(tabs.findIndex((tab) => tab.id === selected));
+	/** Keeps one tab in the page's tab order even when nothing is selected. */
+	const tabbableIndex = $derived(selectedIndex === -1 ? 0 : selectedIndex);
+
+	createIndicator(
+		() => indicatorEl,
+		() => (selectedIndex === -1 ? undefined : tabEls[selectedIndex])
 	);
-
-	function place() {
-		if (!indicatorEl) return;
-		animation?.stop();
-		animation = moveIndicator(indicatorEl, measureIndicator(tabEls[selectedIndex]), !placed);
-		placed = true;
-	}
-
-	// `$effect` runs after Svelte has flushed the DOM, so the buttons are laid
-	// out and their `bind:this` slots are filled by the time we read a box.
-	$effect(() => {
-		void selectedIndex;
-		void tabEls;
-		place();
-	});
 
 	function select(index: number, moveFocus: boolean) {
 		const tab = tabs[index];
@@ -74,13 +65,15 @@
 
 	function handleKeydown(event: KeyboardEvent) {
 		const last = tabs.length - 1;
+		// With nothing selected, the arrows start from the tabbable tab.
+		const from = tabbableIndex;
 		let next: number;
 		switch (event.key) {
 			case 'ArrowRight':
-				next = selectedIndex === last ? 0 : selectedIndex + 1;
+				next = from === last ? 0 : from + 1;
 				break;
 			case 'ArrowLeft':
-				next = selectedIndex === 0 ? last : selectedIndex - 1;
+				next = from === 0 ? last : from - 1;
 				break;
 			case 'Home':
 				next = 0;
@@ -94,15 +87,6 @@
 		event.preventDefault();
 		select(next, true);
 	}
-
-	onMount(() => {
-		const onResize = () => place();
-		window.addEventListener('resize', onResize);
-		return () => {
-			window.removeEventListener('resize', onResize);
-			animation?.stop();
-		};
-	});
 </script>
 
 <div class={cn('smooth-tabs', className)} role="tablist" aria-label={label}>
@@ -115,7 +99,7 @@
 			class="smooth-tabs__tab"
 			class:smooth-tabs__tab--selected={index === selectedIndex}
 			aria-selected={index === selectedIndex}
-			tabindex={index === selectedIndex ? 0 : -1}
+			tabindex={index === tabbableIndex ? 0 : -1}
 			onclick={() => select(index, false)}
 			onkeydown={handleKeydown}
 		>

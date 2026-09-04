@@ -5,6 +5,8 @@
 	Posts rarely ship with cover art, so the thumbnail falls back to a gradient
 	drawn from the chart palette. Cycling it by `index` keeps a grid of untitled
 	posts from reading as five copies of the same tile.
+
+	The cover is `alt=""`: the whole card is one link already named by its title.
 -->
 <script lang="ts">
 	import Tag from '$lib/components/ui/Tag.svelte';
@@ -38,7 +40,7 @@
 <a class="post-card" href="/blog/{post.slug}">
 	<div class="post-card__thumb" style="--thumb-color: {thumbColor}">
 		{#if post.coverImage}
-			<img class="post-card__image" src={post.coverImage} alt={post.title} loading="lazy" />
+			<img class="post-card__image" src={post.coverImage} alt="" loading="lazy" />
 		{:else}
 			<span class="post-card__placeholder" aria-hidden="true"></span>
 		{/if}
