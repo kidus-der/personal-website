@@ -3,36 +3,11 @@ import * as motionModule from '$lib/motion';
 import { springs } from '$lib/motion/config';
 import { tilt } from '$lib/actions/tilt';
 import type { MotionMock } from './motionMock';
+import { pointerLeave, pointerMove, stubBox, stubPointer } from './domStubs';
 
 vi.mock('$lib/motion', async () => (await import('./motionMock')).createMotionMock());
 
 const motion = motionModule as unknown as MotionMock;
-
-/** jsdom has no layout: give the node a 200x100 box at the viewport origin. */
-function stubBox(el: HTMLElement, box: Partial<DOMRect> = {}) {
-	const rect = { left: 0, top: 0, width: 200, height: 100, ...box } as DOMRect;
-	el.getBoundingClientRect = () => rect;
-}
-
-function stubPointer(kind: 'fine' | 'coarse') {
-	vi.stubGlobal(
-		'matchMedia',
-		vi.fn((query: string) => ({
-			matches: query.includes('coarse') && kind === 'coarse',
-			media: query,
-			onchange: null,
-			addListener: () => {},
-			removeListener: () => {},
-			addEventListener: () => {},
-			removeEventListener: () => {},
-			dispatchEvent: () => false
-		}))
-	);
-}
-
-function pointerMove(el: HTMLElement, clientX: number, clientY: number) {
-	el.dispatchEvent(new MouseEvent('pointermove', { clientX, clientY, bubbles: true }));
-}
 
 let node: HTMLElement;
 
@@ -76,7 +51,7 @@ describe('tilt', () => {
 		tilt(node, undefined);
 		pointerMove(node, 150, 25);
 
-		node.dispatchEvent(new MouseEvent('pointerleave', { bubbles: true }));
+		pointerLeave(node);
 
 		expect(node.style.getPropertyValue('--rx')).toBe('0deg');
 		expect(node.style.getPropertyValue('--ry')).toBe('0deg');

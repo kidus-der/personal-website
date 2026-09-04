@@ -3,35 +3,11 @@ import * as motionModule from '$lib/motion';
 import { springs } from '$lib/motion/config';
 import { magnetic } from '$lib/actions/magnetic';
 import type { MotionMock } from './motionMock';
+import { pointerLeave, pointerMove, stubBox, stubPointer } from './domStubs';
 
 vi.mock('$lib/motion', async () => (await import('./motionMock')).createMotionMock());
 
 const motion = motionModule as unknown as MotionMock;
-
-function stubBox(el: HTMLElement, box: Partial<DOMRect> = {}) {
-	const rect = { left: 0, top: 0, width: 200, height: 100, ...box } as DOMRect;
-	el.getBoundingClientRect = () => rect;
-}
-
-function stubPointer(kind: 'fine' | 'coarse') {
-	vi.stubGlobal(
-		'matchMedia',
-		vi.fn((query: string) => ({
-			matches: query.includes('coarse') && kind === 'coarse',
-			media: query,
-			onchange: null,
-			addListener: () => {},
-			removeListener: () => {},
-			addEventListener: () => {},
-			removeEventListener: () => {},
-			dispatchEvent: () => false
-		}))
-	);
-}
-
-function pointerMove(el: HTMLElement, clientX: number, clientY: number) {
-	el.dispatchEvent(new MouseEvent('pointermove', { clientX, clientY, bubbles: true }));
-}
 
 let node: HTMLElement;
 
@@ -75,7 +51,7 @@ describe('magnetic', () => {
 		magnetic(node, undefined);
 		pointerMove(node, 150, 100);
 
-		node.dispatchEvent(new MouseEvent('pointerleave', { bubbles: true }));
+		pointerLeave(node);
 
 		expect(motion.animate.mock.calls[1][1]).toEqual({ x: 0, y: 0 });
 	});

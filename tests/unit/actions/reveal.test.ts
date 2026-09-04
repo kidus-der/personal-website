@@ -3,6 +3,7 @@ import * as motionModule from '$lib/motion';
 import { easings } from '$lib/motion/config';
 import { reveal } from '$lib/actions/reveal';
 import type { MotionMock } from './motionMock';
+import { stubHeight } from './domStubs';
 
 vi.mock('$lib/motion', async () => (await import('./motionMock')).createMotionMock());
 
@@ -58,6 +59,31 @@ describe('reveal', () => {
 		expect(options).toMatchObject({ duration: 0.5, delay: 0.1, ease: easings.outExpo });
 	});
 
+	it('drops the inline hidden styles once the reveal completes', () => {
+		reveal(node, undefined);
+		expect(node.style.opacity).toBe('0');
+
+		enterView();
+
+		// Leaving `transform: none; opacity: 1` behind would beat any stylesheet
+		// transform on the element — a tilt, a hover lift, anything.
+		expect(node.style.transform).toBe('');
+		expect(node.style.opacity).toBe('');
+		expect(node.getAttribute('style')).toBe('');
+	});
+
+	it('drops the inline hidden styles from every staggered child', () => {
+		const first = document.createElement('span');
+		const second = document.createElement('span');
+		node.append(first, second);
+
+		reveal(node, { stagger: 0.06 });
+		enterView();
+
+		expect(first.getAttribute('style')).toBe('');
+		expect(second.getAttribute('style')).toBe('');
+	});
+
 	it('does not re-animate on a second entry when once is left at its default', () => {
 		reveal(node, undefined);
 
@@ -76,6 +102,10 @@ describe('reveal', () => {
 
 		expect(motion.animate).toHaveBeenCalledTimes(2);
 		expect(motion.animate.mock.calls[1][1]).toEqual({ opacity: 0, y: 20 });
+		// The hidden state has to be re-applied, or the cleared inline styles
+		// would leave the node visible until it scrolls back into view.
+		expect(node.style.opacity).toBe('0');
+		expect(node.style.transform).toBe('translateY(20px)');
 	});
 
 	it('staggers the direct children when a stagger interval is given', () => {
@@ -102,6 +132,48 @@ describe('reveal', () => {
 		enterView();
 
 		expect(motion.animate.mock.calls[0][0]).toEqual([node]);
+	});
+
+	it('clamps amount for a node taller than the viewport, which can never reach 0.2', () => {
+		// intersectionRatio tops out at viewportHeight / elementHeight, so a node
+		// six viewports tall never exceeds ~0.17 and would stay hidden forever.
+		stubHeight(node, window.innerHeight * 6);
+
+		reveal(node, undefined);
+
+		const { amount } = motion.inView.mock.calls[0][2] as { amount: number };
+		expect(amount).toBeCloseTo(0.15, 5);
+	});
+
+	it('never raises a small amount when clamping', () => {
+		stubHeight(node, window.innerHeight * 6);
+
+		reveal(node, { amount: 0.05 });
+
+		expect(motion.inView.mock.calls[0][2]).toEqual({ amount: 0.05 });
+	});
+
+	it('leaves amount alone for a node shorter than the viewport', () => {
+		stubHeight(node, Math.round(window.innerHeight / 2));
+
+		reveal(node, undefined);
+
+		expect(motion.inView.mock.calls[0][2]).toEqual({ amount: 0.2 });
+	});
+
+	it('leaves amount alone when the height is unmeasurable', () => {
+		// jsdom reports 0; so does a node that has not been laid out yet.
+		reveal(node, undefined);
+
+		expect(motion.inView.mock.calls[0][2]).toEqual({ amount: 0.2 });
+	});
+
+	it('leaves the keyword amounts alone', () => {
+		stubHeight(node, window.innerHeight * 6);
+
+		reveal(node, { amount: 'some' });
+
+		expect(motion.inView.mock.calls[0][2]).toEqual({ amount: 'some' });
 	});
 
 	it('leaves the node at its final state and registers nothing under reduced motion', () => {

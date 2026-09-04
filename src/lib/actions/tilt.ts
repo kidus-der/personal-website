@@ -12,18 +12,17 @@
 import type { Action } from 'svelte/action';
 import { animate, reducedMotion, springs } from '$lib/motion';
 import type { TiltOptions } from '$lib/types/motion';
-import { coarsePointer } from './pointer';
+import { finePointer } from './pointer';
 
 type Animation = ReturnType<typeof animate>;
 
 const DEFAULTS = { max: 9, spring: 'snappy' } as const satisfies Required<TiltOptions>;
 
 /**
- * The animated values. The index signature is what Motion's object-target
- * overload requires; the named members are the whole set.
+ * The animated values. A type alias rather than an interface: only aliases get
+ * the implicit index signature Motion's `ObjectTarget` keyframes ask for.
  */
-interface TiltState {
-	[key: string]: number;
+type TiltState = {
 	/** rotateX in degrees. */
 	rx: number;
 	/** rotateY in degrees. */
@@ -31,14 +30,14 @@ interface TiltState {
 	/** Glow origin as a percentage of the box. */
 	gx: number;
 	gy: number;
-}
+};
 
 /** Resting state: flat, glow centred. */
 const REST: TiltState = { rx: 0, ry: 0, gx: 50, gy: 50 };
 
 export const tilt: Action<HTMLElement, TiltOptions | undefined> = (node, options) => {
 	// A tilt needs a hovering pointer; on touch it would stick after the tap.
-	if (reducedMotion() || coarsePointer()) return { destroy() {} };
+	if (reducedMotion() || !finePointer()) return { destroy() {} };
 
 	let opts = { ...DEFAULTS, ...options };
 	// Animating a plain object rather than the element keeps the card's own

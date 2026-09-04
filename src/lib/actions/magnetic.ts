@@ -8,7 +8,7 @@
 import type { Action } from 'svelte/action';
 import { animate, reducedMotion, springs } from '$lib/motion';
 import type { MagneticOptions } from '$lib/types/motion';
-import { coarsePointer } from './pointer';
+import { finePointer } from './pointer';
 
 type Animation = ReturnType<typeof animate>;
 
@@ -17,7 +17,7 @@ const DEFAULTS = { strength: 0.3 } as const satisfies Required<MagneticOptions>;
 export const magnetic: Action<HTMLElement, MagneticOptions | undefined> = (node, options) => {
 	// Without a hovering pointer there is nothing to be magnetic about, and on
 	// touch the node would stay displaced after the tap.
-	if (reducedMotion() || coarsePointer()) return { destroy() {} };
+	if (reducedMotion() || !finePointer()) return { destroy() {} };
 
 	let opts = { ...DEFAULTS, ...options };
 	let animation: Animation | undefined;
