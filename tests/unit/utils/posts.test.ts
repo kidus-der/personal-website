@@ -46,6 +46,22 @@ describe('loadPosts', () => {
 		expect(posts.map((p) => p.slug)).toEqual(['good']);
 	});
 
+	it('sorts a post with a missing or unparseable publishedAt last', () => {
+		const posts = loadPosts({
+			'/src/content/posts/dated.md': post({ publishedAt: '2024-05-01' }),
+			'/src/content/posts/undated.md': post({ publishedAt: undefined }),
+			'/src/content/posts/junk.md': post({ publishedAt: 'someday' }),
+			'/src/content/posts/newest.md': post({ publishedAt: '2026-03-06' })
+		});
+		expect(posts.slice(0, 2).map((p) => p.slug)).toEqual(['newest', 'dated']);
+		expect(
+			posts
+				.slice(2)
+				.map((p) => p.slug)
+				.sort()
+		).toEqual(['junk', 'undated']);
+	});
+
 	it('returns an empty array for no modules', () => {
 		expect(loadPosts({})).toEqual([]);
 	});

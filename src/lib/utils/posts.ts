@@ -2,6 +2,12 @@ import type { BlogPost } from '$lib/types/content';
 
 type PostModule = { metadata?: Partial<BlogPost> };
 
+/** Epoch millis for sorting; a missing or unparseable date sorts oldest. */
+function publishedAtMs(post: BlogPost): number {
+	const ms = new Date(post.publishedAt).getTime();
+	return Number.isNaN(ms) ? -Infinity : ms;
+}
+
 /**
  * Map the modules returned by
  * `import.meta.glob('/src/content/posts/*.md', { eager: true })` into sorted,
@@ -19,5 +25,5 @@ export function loadPosts(modules: Record<string, unknown>): BlogPost[] {
 			return { ...metadata, slug } as BlogPost;
 		})
 		.filter((post): post is BlogPost => post !== null && !post.draft)
-		.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+		.sort((a, b) => publishedAtMs(b) - publishedAtMs(a));
 }

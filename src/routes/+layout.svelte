@@ -4,7 +4,8 @@
 	import { jsonLd } from '$lib/utils/jsonLd';
 	import '@fontsource-variable/geist';
 	import '@fontsource-variable/geist-mono';
-	import '@fontsource-variable/fraunces';
+	import '@fontsource-variable/fraunces/full.css';
+	import '@fontsource-variable/fraunces/full-italic.css';
 	import '@fontsource/noto-sans-ethiopic';
 	import '../styles/app.css';
 	import { injectAnalytics } from '@vercel/analytics/sveltekit';

@@ -19,3 +19,7 @@ my-cv.tex
 # CV / résumé PDFs at repo root — never commit
 /*.pdf
 Kidus-Dereje-Zewde-CV.pdf
+
+# Playwright
+test-results/
+playwright-report/
