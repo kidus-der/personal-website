@@ -18,7 +18,9 @@ export default defineConfig({
 		: undefined,
 	test: {
 		environment: 'jsdom',
-		include: ['tests/unit/**/*.test.ts'],
+		// `*.test.svelte.ts` files are compiled by vite-plugin-svelte, so a test can
+		// use runes directly (`$effect.root`) to exercise a `.svelte.ts` module.
+		include: ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.svelte.ts'],
 		setupFiles: ['tests/unit/setup.ts'],
 		globals: true
 	}
