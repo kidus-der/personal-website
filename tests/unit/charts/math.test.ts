@@ -172,10 +172,19 @@ describe('bandScale', () => {
 		expect(scale.x(0)).toBe(0);
 	});
 
-	it('clamps the gap fraction into the unit interval', () => {
+	it('clamps an out-of-range gap fraction into the unit interval', () => {
 		expect(bandScale(2, 200, -1).band).toBe(100);
 		expect(bandScale(2, 200, 2).band).toBe(0);
-		expect(bandScale(2, 200, Number.NaN).band).toBe(100);
+	});
+
+	it('falls back to the documented default for an unusable gap fraction', () => {
+		// NaN is a caller bug, not a request for zero gap — a full-width band
+		// would silently look like a deliberate design choice.
+		const fallback = bandScale(2, 200).band;
+		expect(fallback).toBe(80);
+		expect(bandScale(2, 200, Number.NaN).band).toBe(fallback);
+		expect(bandScale(2, 200, undefined as unknown as number).band).toBe(fallback);
+		expect(bandScale(2, 200, Number.POSITIVE_INFINITY).band).toBe(fallback);
 	});
 
 	it('treats a non-positive or non-finite width as zero', () => {

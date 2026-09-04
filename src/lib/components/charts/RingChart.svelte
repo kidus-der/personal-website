@@ -4,9 +4,10 @@
 	 * `--chart-N` coloured arc per datum, a draw-in on mount, and a centre
 	 * readout that swaps to whichever ring the pointer is over.
 	 */
-	import { animate, easings, reducedMotion } from '$lib/motion';
+	import { createDrawProgress } from './drawProgress.svelte';
 	import { chartColor, clamp01, ringRadius } from './math';
 	import type { RingDatum, ValueFormatter } from './types';
+	import './charts.css';
 
 	interface Props {
 		data: RingDatum[];
@@ -37,14 +38,8 @@
 		class: className = ''
 	}: Props = $props();
 
-	const DRAW_DURATION = 1.1;
+	const draw = createDrawProgress({ enabled: () => animateOnMount });
 
-	/**
-	 * Starts at 0 and is driven to 1 by the mount animation. Server-rendered
-	 * markup therefore shows empty rings; the data itself is carried by the
-	 * `aria-label`, so nothing is lost for crawlers or assistive tech.
-	 */
-	let progress = $state(0);
 	let hoveredIndex = $state<number | null>(null);
 
 	const centre = $derived(size / 2);
@@ -80,7 +75,17 @@
 	);
 
 	const total = $derived(data.reduce((sum, datum) => sum + (datum.value || 0), 0));
-	const hovered = $derived(hoveredIndex === null ? null : (data[hoveredIndex] ?? null));
+
+	/**
+	 * The hovered ring, or null when nothing is hovered — and also when `data`
+	 * shrank past the hovered index. Without that bounds check the surviving
+	 * rings stay faded forever, because the element that would have fired
+	 * `mouseleave` no longer exists.
+	 */
+	const activeIndex = $derived(
+		hoveredIndex !== null && hoveredIndex < data.length ? hoveredIndex : null
+	);
+	const hovered = $derived(activeIndex === null ? null : data[activeIndex]);
 	const centerValueText = $derived(formatValue(hovered ? hovered.value : total));
 	const centerLabelText = $derived(hovered ? hovered.label : centerLabel);
 
@@ -93,22 +98,6 @@
 						.join(', ')
 	);
 	const label = $derived(ariaLabel ?? summary);
-
-	$effect(() => {
-		if (!animateOnMount || reducedMotion()) {
-			progress = 1;
-			return;
-		}
-		progress = 0;
-		const controls = animate(0, 1, {
-			duration: DRAW_DURATION,
-			ease: [...easings.outExpo],
-			onUpdate: (value: number) => {
-				progress = value;
-			}
-		});
-		return () => controls.stop();
-	});
 </script>
 
 <div class="ring-chart {className}" style:--ring-size="{size}px">
@@ -132,7 +121,7 @@
 			     pointer handlers only drive the visual centre readout. -->
 			<circle
 				role="presentation"
-				class="ring-progress"
+				class="ring-progress chart-series"
 				cx={centre}
 				cy={centre}
 				r={ring.radius}
@@ -141,10 +130,10 @@
 				stroke-width={strokeWidth}
 				stroke-linecap="round"
 				stroke-dasharray={ring.circumference}
-				stroke-dashoffset={ring.circumference * (1 - ring.fraction * progress)}
+				stroke-dashoffset={ring.circumference * (1 - ring.fraction * draw.value)}
 				transform="rotate(-90 {centre} {centre})"
-				data-faded={hoveredIndex !== null && hoveredIndex !== index}
-				style:filter={hoveredIndex === index ? `drop-shadow(0 0 6px ${ring.color})` : ''}
+				data-faded={activeIndex !== null && activeIndex !== index}
+				style:filter={activeIndex === index ? `drop-shadow(0 0 6px ${ring.color})` : ''}
 				onmouseenter={() => (hoveredIndex = index)}
 				onmouseleave={() => (hoveredIndex = null)}
 			/>
@@ -186,17 +175,6 @@
 		overflow: visible;
 	}
 
-	.ring-progress {
-		opacity: 1;
-		transition:
-			opacity 0.2s ease,
-			filter 0.2s ease;
-	}
-
-	.ring-progress[data-faded='true'] {
-		opacity: 0.3;
-	}
-
 	.ring-center-value {
 		fill: var(--text);
 		font-family: var(--font-mono);
@@ -211,11 +189,5 @@
 		font-family: var(--font-mono);
 		letter-spacing: 0.01em;
 		dominant-baseline: middle;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.ring-progress {
-			transition: none;
-		}
 	}
 </style>

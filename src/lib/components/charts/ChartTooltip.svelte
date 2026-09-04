@@ -22,14 +22,71 @@
 	}
 
 	let { label, rows, x, y, visible }: Props = $props();
+
+	/** Gap between the pointer and the near edge of the card. */
+	const POINTER_GAP = 12;
+
+	interface Placement {
+		/** Horizontal centre, clamped so the card stays inside the wrapper. */
+		x: number;
+		/** True when the card hangs below the pointer instead of above it. */
+		below: boolean;
+	}
+
+	let node = $state<HTMLDivElement | null>(null);
+
+	/**
+	 * Null until the card has been measured — which never happens on the server,
+	 * so the fallback keeps the un-clamped pointer position for the SSR pass.
+	 */
+	let measured = $state<Placement | null>(null);
+	const placement = $derived(measured ?? { x, below: false });
+
+	/**
+	 * The card is centred on `x` and sits above `y`. Near an edge that would put
+	 * it outside the chart, so clamp the centre and flip it below the pointer.
+	 *
+	 * Measured from the live box rather than from props, because the card's width
+	 * depends on its longest row — which only the browser knows.
+	 */
+	function computePlacement(el: HTMLElement, at: { x: number; y: number }): Placement {
+		const width = el.offsetWidth;
+		const height = el.offsetHeight;
+		const bounds = (el.offsetParent as HTMLElement | null)?.clientWidth ?? 0;
+
+		// Nothing measurable (SSR, jsdom, `display: none`) — leave it where the
+		// chart put it rather than guessing at a correction.
+		if (width === 0 || height === 0 || bounds === 0) return { x: at.x, below: false };
+
+		const half = width / 2;
+		// A card wider than its wrapper cannot satisfy both edges; centre it
+		// rather than letting the clamps cross over.
+		const minX = Math.min(half, bounds / 2);
+		const maxX = Math.max(minX, bounds - half);
+
+		return {
+			x: Math.min(Math.max(at.x, minX), maxX),
+			below: at.y < height + POINTER_GAP
+		};
+	}
+
+	$effect(() => {
+		// Position and content both change the answer: the content decides the
+		// card's width, which decides the clamp.
+		const at = { x, y, visible, label, rows };
+		if (!node) return;
+		measured = computePlacement(node, at);
+	});
 </script>
 
 <div
+	bind:this={node}
 	class="chart-tooltip"
 	data-testid="chart-tooltip"
 	data-visible={visible}
+	data-below={placement.below}
 	aria-hidden={!visible}
-	style:left="{x}px"
+	style:left="{placement.x}px"
 	style:top="{y}px"
 	style:pointer-events="none"
 >
@@ -59,9 +116,15 @@
 		/* Sit above the pointer, horizontally centred on it. */
 		transform: translate(-50%, calc(-100% - 12px));
 		opacity: 0;
+		/* Keep the gap in sync with POINTER_GAP in the script. */
 		transition:
 			opacity 0.15s ease,
 			transform 0.15s ease;
+	}
+
+	/* No room above the pointer — hang the card underneath it instead. */
+	.chart-tooltip[data-below='true'] {
+		transform: translate(-50%, 12px);
 	}
 
 	.chart-tooltip[data-visible='true'] {

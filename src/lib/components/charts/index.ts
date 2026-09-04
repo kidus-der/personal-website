@@ -19,6 +19,7 @@ export {
 	radarPoints,
 	radarPath,
 	bandScale,
+	DEFAULT_BAND_GAP,
 	linearScale,
 	niceMax,
 	chartColor,

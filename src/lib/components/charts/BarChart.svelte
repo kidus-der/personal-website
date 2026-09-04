@@ -4,10 +4,11 @@
 	 * rounded bar caps, a grow-from-baseline draw-in, and a tooltip that follows
 	 * the pointer across the hovered band while the other bands fade back.
 	 */
-	import { animate, easings, reducedMotion } from '$lib/motion';
+	import { createDrawProgress } from './drawProgress.svelte';
 	import { bandScale, chartColor, linearScale, niceMax } from './math';
 	import ChartTooltip from './ChartTooltip.svelte';
 	import type { BarSeries, TooltipRow, ValueFormatter } from './types';
+	import './charts.css';
 
 	interface Props {
 		data: Record<string, unknown>[];
@@ -47,13 +48,10 @@
 	const VIEW_WIDTH = 600;
 	const DEFAULT_RATIO = 2;
 	const MARGIN = { top: 8, right: 8, bottom: 24, left: 8 } as const;
-	/** Fraction of each slot left empty between bands. */
-	const BAND_GAP = 0.2;
 	/** Fraction of each grouped sub-slot left empty between series. */
 	const SERIES_GAP = 0.12;
 	const MAX_CORNER_RADIUS = 4;
 	const GRID_INTERVALS = 4;
-	const DRAW_DURATION = 1.1;
 
 	/** `'16 / 9'` and `'1.78'` are both valid; anything else falls back to 2 / 1. */
 	function parseAspectRatio(value: string): number {
@@ -75,10 +73,24 @@
 		return typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : 0;
 	}
 
-	let progress = $state(0);
+	const draw = createDrawProgress({ enabled: () => animateOnMount });
+
 	let hoveredBand = $state<number | null>(null);
 	let pointer = $state({ x: 0, y: 0 });
 	let wrapper = $state<HTMLDivElement | null>(null);
+
+	/**
+	 * The wrapper's viewport rect, measured once when the pointer arrives rather
+	 * than on every `mousemove` — `getBoundingClientRect` forces layout, and a
+	 * mousemove can fire per frame. Invalidated on resize *and* scroll, because
+	 * the rect is viewport-relative and scrolling moves it under a stationary
+	 * pointer. Deliberately not `$state`: nothing in the markup reads it.
+	 */
+	let wrapperRect: DOMRect | null = null;
+
+	function measureWrapper(): void {
+		wrapperRect = wrapper?.getBoundingClientRect() ?? null;
+	}
 
 	const viewHeight = $derived(VIEW_WIDTH / parseAspectRatio(aspectRatio));
 	const plotWidth = $derived(VIEW_WIDTH - MARGIN.left - MARGIN.right);
@@ -103,7 +115,8 @@
 	);
 
 	const toHeight = $derived(linearScale([0, maxValue], [0, plotHeight]));
-	const bands = $derived(bandScale(data.length, plotWidth, BAND_GAP));
+	// Band gap left to `bandScale`'s documented default.
+	const bands = $derived(bandScale(data.length, plotWidth));
 
 	/** Width of one bar, and the sub-slot it is centred in. */
 	const groupStep = $derived(series.length > 0 ? bands.band / series.length : 0);
@@ -117,24 +130,34 @@
 		y: number;
 		width: number;
 		height: number;
+		/** Corner radius for this rect specifically — see the stack cap below. */
+		rx: number;
 	}
 
 	const bars = $derived(
 		values.map((row, bandIndex) => {
 			const bandX = MARGIN.left + bands.x(bandIndex);
+			// In a stack only the highest non-zero segment caps the column; giving
+			// every segment an `rx` notches the joins between them. `-1` when the
+			// whole band is empty, so nothing gets rounded.
+			const topSegment = stacked
+				? row.reduce((top, value, index) => (value > 0 ? index : top), -1)
+				: -1;
 			let stackedTop = 0;
 			return row.map((value, seriesIndex): BarRect => {
-				const height = toHeight(value) * progress;
+				const height = toHeight(value) * draw.value;
+				const rx = stacked ? (seriesIndex === topSegment ? cornerRadius : 0) : cornerRadius;
 				if (stacked) {
 					const y = baseline - stackedTop - height;
 					stackedTop += height;
-					return { x: bandX, y, width: barWidth, height };
+					return { x: bandX, y, width: barWidth, height, rx };
 				}
 				return {
 					x: bandX + seriesIndex * groupStep + (groupStep - barWidth) / 2,
 					y: baseline - height,
 					width: barWidth,
-					height
+					height,
+					rx
 				};
 			});
 		})
@@ -188,27 +211,26 @@
 
 	function trackPointer(event: MouseEvent, bandIndex: number): void {
 		hoveredBand = bandIndex;
-		const rect = wrapper?.getBoundingClientRect();
+		// A move can arrive without an enter (a band swap, or a synthetic event),
+		// so measure lazily rather than assuming the cache is warm.
+		if (!wrapperRect) measureWrapper();
 		pointer = {
-			x: event.clientX - (rect?.left ?? 0),
-			y: event.clientY - (rect?.top ?? 0)
+			x: event.clientX - (wrapperRect?.left ?? 0),
+			y: event.clientY - (wrapperRect?.top ?? 0)
 		};
 	}
 
 	$effect(() => {
-		if (!animateOnMount || reducedMotion()) {
-			progress = 1;
-			return;
-		}
-		progress = 0;
-		const controls = animate(0, 1, {
-			duration: DRAW_DURATION,
-			ease: [...easings.outExpo],
-			onUpdate: (value: number) => {
-				progress = value;
-			}
-		});
-		return () => controls.stop();
+		const invalidate = () => {
+			wrapperRect = null;
+		};
+		window.addEventListener('resize', invalidate, { passive: true });
+		// Capture, so scrolls inside any ancestor container count too.
+		window.addEventListener('scroll', invalidate, { passive: true, capture: true });
+		return () => {
+			window.removeEventListener('resize', invalidate);
+			window.removeEventListener('scroll', invalidate, { capture: true });
+		};
 	});
 </script>
 
@@ -219,6 +241,7 @@
 	bind:this={wrapper}
 	class="bar-chart {className}"
 	role="presentation"
+	onmouseenter={measureWrapper}
 	onmouseleave={() => (hoveredBand = null)}
 >
 	<svg
@@ -254,14 +277,14 @@
 		{/if}
 
 		{#each bars as row, bandIndex (bandIndex)}
-			{#each row as bar, seriesIndex (series[seriesIndex].key)}
+			{#each row as bar, seriesIndex (`${series[seriesIndex].key}-${seriesIndex}`)}
 				<rect
-					class="bar"
+					class="bar chart-series"
 					x={bar.x}
 					y={bar.y}
 					width={bar.width}
 					height={bar.height}
-					rx={cornerRadius}
+					rx={bar.rx}
 					fill={seriesColors[seriesIndex]}
 					data-faded={activeBand !== null && activeBand !== bandIndex}
 					style:filter={activeBand === bandIndex
@@ -325,26 +348,9 @@
 		overflow: visible;
 	}
 
-	.bar {
-		opacity: 1;
-		transition:
-			opacity 0.2s ease,
-			filter 0.2s ease;
-	}
-
-	.bar[data-faded='true'] {
-		opacity: 0.3;
-	}
-
 	.bar-x-label {
 		fill: var(--text-muted);
 		font-family: var(--font-mono);
 		font-variant-numeric: tabular-nums;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.bar {
-			transition: none;
-		}
 	}
 </style>

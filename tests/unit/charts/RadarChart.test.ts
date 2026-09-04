@@ -225,6 +225,32 @@ describe('RadarChart hover emphasis', () => {
 		await fireEvent.mouseLeave(polygons[0]);
 		expect(polygons[1].getAttribute('data-faded')).toBe('false');
 	});
+
+	it('drops the hover when the hovered series disappears from the data', async () => {
+		const { container, rerender } = render(RadarChart, { props: { metrics, data } });
+		await fireEvent.mouseEnter(areas(container)[1]);
+		expect(areas(container)[0].getAttribute('data-faded')).toBe('true');
+
+		// Without a bounds guard the surviving series stays faded forever:
+		// nothing can fire `mouseleave` on the polygon that was removed.
+		await rerender({ metrics, data: [data[0]] });
+		const remaining = areas(container);
+		expect(remaining).toHaveLength(1);
+		expect(remaining[0].getAttribute('data-faded')).toBe('false');
+		expect(remaining[0].style.filter).toBe('');
+	});
+
+	it('also un-fades the vertex dots when the hovered series disappears', async () => {
+		const { container, rerender } = render(RadarChart, {
+			props: { metrics, data, showPoints: true }
+		});
+		await fireEvent.mouseEnter(areas(container)[1]);
+		await rerender({ metrics, data: [data[0]], showPoints: true });
+
+		const dots = [...container.querySelectorAll('.radar-point')];
+		expect(dots).toHaveLength(metrics.length);
+		expect(dots.every((dot) => dot.getAttribute('data-faded') === 'false')).toBe(true);
+	});
 });
 
 describe('RadarChart colours', () => {

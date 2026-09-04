@@ -188,6 +188,21 @@ describe('RingChart hover emphasis', () => {
 		expect(arcs[0].style.filter).toContain('drop-shadow');
 		expect(arcs[1].style.filter).toBe('');
 	});
+
+	it('drops the hover when the hovered ring disappears from the data', async () => {
+		const { container, getByTestId, rerender } = render(RingChart, { props: { data } });
+		await fireEvent.mouseEnter(progressArcs(container)[1]);
+		expect(getByTestId('ring-center-label')).toHaveTextContent('Talks');
+
+		// Without a bounds guard the surviving ring stays faded forever: nothing
+		// can fire `mouseleave` on the element that was removed.
+		await rerender({ data: [data[0]] });
+		const remaining = progressArcs(container);
+		expect(remaining).toHaveLength(1);
+		expect(remaining[0].getAttribute('data-faded')).toBe('false');
+		expect(getByTestId('ring-center-label')).toHaveTextContent('Total');
+		expect(getByTestId('ring-center-value')).toHaveTextContent('8');
+	});
 });
 
 describe('RingChart colours', () => {

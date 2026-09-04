@@ -155,15 +155,28 @@ export interface BandScale {
 	x(i: number): number;
 }
 
+/** Fraction of each band slot left empty when the caller does not say. */
+export const DEFAULT_BAND_GAP = 0.2;
+
 /**
  * An ordinal scale over `count` evenly spaced bands, `gapFraction` of each slot
  * left empty. Coordinates are relative to the plot origin — callers add their
  * own left margin.
+ *
+ * An out-of-range gap fraction is clamped (a caller asking for `-1` or `2`
+ * plainly wants "no gap" or "all gap"), but an *unusable* one — NaN, Infinity,
+ * an explicit `undefined` — falls back to {@link DEFAULT_BAND_GAP}: a bug in
+ * the caller should not silently render as a deliberate gapless design.
  */
-export function bandScale(count: number, width: number, gapFraction = 0.2): BandScale {
+export function bandScale(
+	count: number,
+	width: number,
+	gapFraction: number = DEFAULT_BAND_GAP
+): BandScale {
 	const usableWidth = Number.isFinite(width) && width > 0 ? width : 0;
 	const step = count > 0 && Number.isFinite(count) ? usableWidth / count : 0;
-	const band = step * (1 - clamp01(gapFraction));
+	const gap = Number.isFinite(gapFraction) ? clamp01(gapFraction) : DEFAULT_BAND_GAP;
+	const band = step * (1 - gap);
 	const inset = (step - band) / 2;
 	return {
 		step,

@@ -167,6 +167,56 @@ describe('BarChart geometry', () => {
 		);
 	});
 
+	it('rounds only the topmost segment of a stack, so stacks show no notches', () => {
+		const { container } = render(BarChart, {
+			props: { data, xKey: 'month', series, stacked: true }
+		});
+		// Jan: reads 10 then shares 5 — the shares segment caps the stack.
+		expect(Number(barAt(container, 0, 0).getAttribute('rx'))).toBe(0);
+		expect(Number(barAt(container, 0, 1).getAttribute('rx'))).toBeGreaterThan(0);
+	});
+
+	it('rounds the highest non-zero segment when the top series is empty', () => {
+		const { container } = render(BarChart, {
+			props: { data, xKey: 'month', series, stacked: true }
+		});
+		// Feb: reads 20, shares 0 — the zero-height segment must not take the cap.
+		expect(Number(barAt(container, 1, 0).getAttribute('rx'))).toBeGreaterThan(0);
+		expect(Number(barAt(container, 1, 1).getAttribute('rx'))).toBe(0);
+	});
+
+	it('rounds no segment of an all-zero stack', () => {
+		const { container } = render(BarChart, {
+			props: {
+				data: [{ month: 'Jan', reads: 0, shares: 0 }],
+				xKey: 'month',
+				series,
+				stacked: true
+			}
+		});
+		for (const bar of bars(container)) expect(Number(bar.getAttribute('rx'))).toBe(0);
+	});
+
+	it('rounds every grouped bar, which each cap their own column', () => {
+		const { container } = render(BarChart, { props: { data, xKey: 'month', series } });
+		expect(Number(barAt(container, 0, 0).getAttribute('rx'))).toBeGreaterThan(0);
+		expect(Number(barAt(container, 0, 1).getAttribute('rx'))).toBeGreaterThan(0);
+	});
+
+	it('renders duplicated series keys without a keyed-each collision', () => {
+		const { container } = render(BarChart, {
+			props: {
+				data: [{ month: 'Jan', reads: 10 }],
+				xKey: 'month',
+				series: [
+					{ key: 'reads', label: 'Reads' },
+					{ key: 'reads', label: 'Reads again' }
+				]
+			}
+		});
+		expect(bars(container)).toHaveLength(2);
+	});
+
 	it('rounds bar corners for a round line cap only', () => {
 		const { container: round } = render(BarChart, { props: { data, xKey: 'month', series } });
 		expect(Number(bars(round)[0].getAttribute('rx'))).toBeGreaterThan(0);
@@ -257,6 +307,61 @@ describe('BarChart tooltip', () => {
 		await fireEvent.mouseMove(hit, { clientX: 10, clientY: 10 });
 		await fireEvent.mouseLeave(container.querySelector('.bar-chart')!);
 		expect(getByTestId('chart-tooltip').dataset.visible).toBe('false');
+	});
+
+	it('measures the wrapper once per hover, not once per pointer move', async () => {
+		const { container } = render(BarChart, { props: { data, xKey: 'month', series } });
+		const wrapper = container.querySelector('.bar-chart')!;
+		const spy = vi.spyOn(wrapper, 'getBoundingClientRect');
+
+		await fireEvent.mouseEnter(wrapper);
+		const hit = container.querySelectorAll('.bar-hit')[0];
+		await fireEvent.mouseMove(hit, { clientX: 10, clientY: 10 });
+		await fireEvent.mouseMove(hit, { clientX: 20, clientY: 20 });
+		await fireEvent.mouseMove(hit, { clientX: 30, clientY: 30 });
+
+		expect(spy).toHaveBeenCalledTimes(1);
+	});
+
+	it('re-measures the wrapper after a resize', async () => {
+		const { container } = render(BarChart, { props: { data, xKey: 'month', series } });
+		const wrapper = container.querySelector('.bar-chart')!;
+		const spy = vi.spyOn(wrapper, 'getBoundingClientRect');
+		const hit = container.querySelectorAll('.bar-hit')[0];
+
+		await fireEvent.mouseEnter(wrapper);
+		await fireEvent.mouseMove(hit, { clientX: 10, clientY: 10 });
+		expect(spy).toHaveBeenCalledTimes(1);
+
+		// A resize moves the wrapper, so the cached rect is no longer valid.
+		await fireEvent(window, new Event('resize'));
+		await fireEvent.mouseMove(hit, { clientX: 10, clientY: 10 });
+		expect(spy).toHaveBeenCalledTimes(2);
+	});
+
+	it('re-measures the wrapper after a scroll, which moves it in the viewport', async () => {
+		const { container } = render(BarChart, { props: { data, xKey: 'month', series } });
+		const wrapper = container.querySelector('.bar-chart')!;
+		const spy = vi.spyOn(wrapper, 'getBoundingClientRect');
+		const hit = container.querySelectorAll('.bar-hit')[0];
+
+		await fireEvent.mouseEnter(wrapper);
+		await fireEvent.mouseMove(hit, { clientX: 10, clientY: 10 });
+		await fireEvent.scroll(window);
+		await fireEvent.mouseMove(hit, { clientX: 10, clientY: 10 });
+
+		expect(spy).toHaveBeenCalledTimes(2);
+	});
+
+	it('still positions correctly when a move arrives with no prior enter', async () => {
+		const { container, getByTestId } = render(BarChart, {
+			props: { data, xKey: 'month', series }
+		});
+		await fireEvent.mouseMove(container.querySelectorAll('.bar-hit')[0], {
+			clientX: 55,
+			clientY: 25
+		});
+		expect(getByTestId('chart-tooltip').style.left).toBe('55px');
 	});
 
 	it('drops the hover when the hovered band disappears from the data', async () => {

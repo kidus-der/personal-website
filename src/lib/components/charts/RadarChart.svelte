@@ -6,9 +6,10 @@
 	 *
 	 * Series values are percentages (0..100) keyed by metric.
 	 */
-	import { animate, easings, reducedMotion } from '$lib/motion';
+	import { createDrawProgress } from './drawProgress.svelte';
 	import { chartColor, polarToCartesian, radarPoints, type Point } from './math';
 	import type { RadarMetric, RadarSeries } from './types';
+	import './charts.css';
 
 	interface Props {
 		metrics: RadarMetric[];
@@ -45,12 +46,22 @@
 	const LABEL_OFFSET_RATIO = 0.075;
 	const POINT_RADIUS_RATIO = 0.01;
 	const FILL_OPACITY = 0.2;
-	const DRAW_DURATION = 1;
 	/** Half a unit of slop when deciding whether a label sits on the centre line. */
 	const ANCHOR_EPSILON = 0.5;
 
-	let progress = $state(0);
+	const draw = createDrawProgress({ enabled: () => animateOnMount });
+
 	let hoveredIndex = $state<number | null>(null);
+
+	/**
+	 * The hovered series, or null when nothing is hovered — and also when `data`
+	 * shrank past the hovered index. Without that bounds check the surviving
+	 * polygons stay faded forever, because the element that would have fired
+	 * `mouseleave` no longer exists.
+	 */
+	const activeIndex = $derived(
+		hoveredIndex !== null && hoveredIndex < data.length ? hoveredIndex : null
+	);
 
 	const centre = $derived(size / 2);
 	const radius = $derived(Math.max(0, centre - size * MARGIN_RATIO));
@@ -96,7 +107,7 @@
 		data.map((entry, index) => {
 			const raw = metrics.map((metric) => entry.values[metric.key] ?? 0);
 			const points = radarPoints(raw, axisCount, centre, centre, radius).map((point) =>
-				towardCentre(point, centre, centre, progress)
+				towardCentre(point, centre, centre, draw.value)
 			);
 			return { entry, points, color: entry.color ?? chartColor(index) };
 		})
@@ -123,22 +134,6 @@
 						.join('. ')
 	);
 	const label = $derived(ariaLabel ?? summary);
-
-	$effect(() => {
-		if (!animateOnMount || reducedMotion()) {
-			progress = 1;
-			return;
-		}
-		progress = 0;
-		const controls = animate(0, 1, {
-			duration: DRAW_DURATION,
-			ease: [...easings.outExpo],
-			onUpdate: (value: number) => {
-				progress = value;
-			}
-		});
-		return () => controls.stop();
-	});
 </script>
 
 <div class="radar-chart {className}" style:--radar-size="{size}px">
@@ -172,15 +167,15 @@
 			     pointer handlers only drive the visual emphasis. -->
 			<polygon
 				role="presentation"
-				class="radar-area"
+				class="radar-area chart-series"
 				points={formatPoints(entry.points)}
 				fill={entry.color}
 				fill-opacity={FILL_OPACITY}
 				stroke={entry.color}
 				stroke-width="2"
 				stroke-linejoin="round"
-				data-faded={hoveredIndex !== null && hoveredIndex !== index}
-				style:filter={hoveredIndex === index ? `drop-shadow(0 0 6px ${entry.color})` : ''}
+				data-faded={activeIndex !== null && activeIndex !== index}
+				style:filter={activeIndex === index ? `drop-shadow(0 0 6px ${entry.color})` : ''}
 				onmouseenter={() => (hoveredIndex = index)}
 				onmouseleave={() => (hoveredIndex = null)}
 			/>
@@ -190,12 +185,12 @@
 			{#each series as entry, seriesIndex (`${entry.entry.label}-${seriesIndex}`)}
 				{#each entry.points as point, pointIndex (pointIndex)}
 					<circle
-						class="radar-point"
+						class="radar-point chart-series"
 						cx={point.x}
 						cy={point.y}
 						r={pointRadius}
 						fill={entry.color}
-						data-faded={hoveredIndex !== null && hoveredIndex !== seriesIndex}
+						data-faded={activeIndex !== null && activeIndex !== seriesIndex}
 					/>
 				{/each}
 			{/each}
@@ -229,29 +224,9 @@
 		overflow: visible;
 	}
 
-	.radar-area,
-	.radar-point {
-		opacity: 1;
-		transition:
-			opacity 0.2s ease,
-			filter 0.2s ease;
-	}
-
-	.radar-area[data-faded='true'],
-	.radar-point[data-faded='true'] {
-		opacity: 0.3;
-	}
-
 	.radar-label {
 		fill: var(--text-muted);
 		font-family: var(--font-mono);
 		letter-spacing: 0.01em;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.radar-area,
-		.radar-point {
-			transition: none;
-		}
 	}
 </style>
