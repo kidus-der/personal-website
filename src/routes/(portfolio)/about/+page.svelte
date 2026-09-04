@@ -46,9 +46,11 @@
 
 	const publications: Publication[] = [
 		{
+			id: '2502.10920',
 			title: 'Do Deepfake Detectors Work in Reality?',
 			venue: 'ACM',
-			year: '2025',
+			year: 2025,
+			topics: ['deepfake'],
 			url: 'https://arxiv.org/abs/2502.10920',
 			officialUrl: 'https://dl.acm.org/doi/10.1145/3709022.3736545',
 			bullets: [
@@ -57,9 +59,11 @@
 			]
 		},
 		{
+			id: '2503.20084',
 			title: 'Can Multi-modal (reasoning) LLMs work as deepfake detectors?',
-			venue: 'arXiv preprint',
-			year: '2025',
+			venue: 'arXiv',
+			year: 2025,
+			topics: ['deepfake', 'llm-eval'],
 			url: 'https://arxiv.org/abs/2503.20084',
 			bullets: [
 				'Benchmarked 12 state-of-the-art multi-modal LLMs (including GPT-4o, Gemini 2, Claude 3.7) for zero-shot deepfake detection across multiple datasets.',
@@ -68,9 +72,11 @@
 			]
 		},
 		{
+			id: '2508.11021',
 			title: 'Can Multi-modal (reasoning) LLMs detect document manipulation?',
-			venue: 'arXiv preprint',
-			year: '2025',
+			venue: 'arXiv',
+			year: 2025,
+			topics: ['documents', 'llm-eval'],
 			url: 'https://arxiv.org/abs/2508.11021',
 			bullets: [
 				'Benchmarked GPT-4o, Gemini, and Llama 3.2 for detecting document fraud across diverse forgery types.',
@@ -79,9 +85,11 @@
 			]
 		},
 		{
+			id: '2602.07814',
 			title: 'How well are open-source AI-generated image detection models out-of-the-box?',
-			venue: 'arXiv preprint',
-			year: '2026',
+			venue: 'arXiv',
+			year: 2026,
+			topics: ['benchmark'],
 			url: 'https://arxiv.org/abs/2602.07814',
 			bullets: [
 				'Led the first large-scale zero-shot benchmark of AI-generated image detectors: 23 pretrained models, 12 datasets, 2.6 million image samples.',
@@ -92,8 +100,10 @@
 		{
 			title:
 				'A Synthetic Eye Movement Dataset for Script Reading Detection: Real Trajectory Replay on a 3D Simulator',
-			venue: 'arXiv preprint',
-			year: '2026',
+			id: '2604.05475',
+			venue: 'arXiv',
+			year: 2026,
+			topics: ['dataset', 'behavioral'],
 			url: 'https://arxiv.org/abs/2604.05475',
 			bullets: [
 				'Released "final_dataset_v1", 144 sessions (72 reading, 72 conversation) totaling 12 hours of synthetic eye movement video at 25fps for script-reading detection in video interviews.',
@@ -101,9 +111,11 @@
 			]
 		},
 		{
+			id: '2604.25213',
 			title: 'When the Forger Is the Judge: GPT-Image-2 Cannot Recognize Its Own Faked Documents',
-			venue: 'arXiv preprint',
-			year: '2026',
+			venue: 'arXiv',
+			year: 2026,
+			topics: ['documents', 'benchmark'],
 			url: 'https://arxiv.org/abs/2604.25213',
 			bullets: [
 				'Introduced AIForge-Doc v2: 3,066 GPT-Image-2 forgeries with pixel-precise masks.',
@@ -113,8 +125,10 @@
 		{
 			title:
 				'GPT-Image-2 in the Wild: A Twitter Dataset of Self-Reported AI-Generated Images from the First Week of Deployment',
-			venue: 'arXiv preprint',
-			year: '2026',
+			id: '2604.25370',
+			venue: 'arXiv',
+			year: 2026,
+			topics: ['dataset'],
 			url: 'https://arxiv.org/abs/2604.25370',
 			bullets: [
 				'Curated 10,217 confirmed GPT-image-2 images from Twitter over six days using multilingual heuristics and badge verification.',
