@@ -248,3 +248,138 @@ navigation by hand (`runAfterNavigate({ type: 'link' })`).
 - `src/routes/blog/+layout.svelte`
 
 **Deleted:** none. Legacy animation files stay so the not-yet-rewritten pages keep compiling.
+
+---
+
+# Fix round — review findings
+
+All nine findings addressed. Two deferred items (Footer/`SubscribeSection` duplication →
+Task 11; `isCurrent`/`MorphicNav` duplication → Task 11) left alone as instructed, and the
+`--accent-strong` error colour left for the palette follow-up.
+
+## 1. (Important) Focus trap was cosmetic — `MobileMenu.svelte`
+
+Correct: the `onkeydown` handler was bound to the dialog element, so
+`!dialogEl.contains(active)` could never be true — a keystroke from outside never reached
+the handler — and nothing stopped a screen reader's virtual cursor walking the page behind
+the modal.
+
+Two changes:
+
+- **The Tab listener moved to `document`** (registered in `onMount`, removed in the
+  teardown). The `inside` guards are now live: a Tab pressed while focus has escaped —
+  browser chrome, an address-bar round trip, a stray programmatic focus — is pulled back to
+  the first or last element. Escape moved with it; both existing tests still dispatch on the
+  dialog and still pass, because the events bubble.
+- **`inert` applied to the background.** A new `isolate(dialog)` walks from the dialog up to
+  `<body>` and marks every off-path sibling `inert`, returning an undo that records whether
+  each element *already* had the attribute rather than assuming this component put it there.
+
+  **One deviation from the suggested fix, deliberate.** Option A said "every `document.body`
+  child except the menu's own subtree". In this DOM the menu is nested *inside* the layout
+  shell, which is itself the only meaningful body child — so that rule would skip the shell
+  and leave the header, the page and the footer fully reachable, i.e. it would not fix the
+  bug. The ancestor walk is a strict superset: it produces the same result for a body-level
+  sibling (covered by a test) *and* inerts the header and page content that actually sit
+  behind the overlay.
+
+  **Knock-on fix:** `Nav.closeMenu()` focused the hamburger synchronously, but the header is
+  inert until the menu's teardown runs, and focusing an inert element is a no-op. `closeMenu`
+  is now `async` and `await tick()`s before restoring focus. Covered by a test that asserts
+  the header loses `inert` *and* focus lands on the hamburger.
+
+## 2. (Important) Duplicate "Primary" landmarks — `MobileMenu.svelte`
+
+The inner `<nav>` is now `aria-label="Mobile"`; `MorphicNav` keeps "Primary". The dialog was
+already labelled "Navigation", so nothing lost its name. Test asserts the attribute.
+
+## 3. (Minor) `PageTransition.svelte` inline-style cleanup and destroy
+
+`finished.then(clear).catch(noop)` now removes the inline `opacity`/`transform` Motion
+leaves behind — same discipline as `reveal.ts` — and `onDestroy` stops any in-flight
+animation. The target element is captured in a local so the callback cannot clear a wrapper
+that has since been rebound. Three tests: styles cleared on finish, `stop()` called on
+destroy, and (added while there) `stop()` called on the previous animation when two
+navigations arrive back to back.
+
+## 4. (Minor) `Footer.svelte` live regions
+
+Both `role="status"` and `role="alert"` are now rendered from the first paint and filled
+later, instead of being mounted with their text already in them. An empty `<p>` generates no
+line box, so neither costs vertical space while idle. Test asserts both are present and empty
+on mount, and that the success text lands in the *same* `role="status"` element.
+
+The error region got the same treatment even though the finding named only the status one —
+it was the identical bug one line down.
+
+## 5. (Minor) `Footer.svelte` email label
+
+The dead `id` + `aria-label` pair is replaced by a real
+`<label class="footer__label" for="footer-subscribe-email">Email address</label>`, hidden
+with a scoped clip-path rule. I kept the rule component-scoped rather than adding a
+`.visually-hidden` utility to `src/styles/app.css`, which other tasks are editing in
+parallel. Test asserts the label element exists and that the input's accessible name comes
+from it.
+
+## 6. (Minor) `focusable()` broadened
+
+Now the conventional set: `a[href], button:not([disabled]), input:not([disabled]),
+select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])`, still
+filtered by `tabIndex !== -1`.
+
+## 7. (Minor) `Nav.svelte` closes at the desktop breakpoint
+
+`matchMedia('(min-width: 769px)')`; on a `change` where `matches` is true the menu closes,
+so resizing or rotating past the breakpoint cannot leave an unreachable overlay over the
+page. The listener is removed alongside the scroll listener in the same teardown. Two tests:
+it closes when the query starts matching, and stays open when it does not.
+
+## 8. (Minor) Test gaps
+
+- `stagger` is asserted to be called with exactly `0.06`. Read off the mocked `$lib/motion`
+  export directly rather than adding a `staggerMock` export to `tests/unit/kokonut/motionMock.ts`,
+  which other tasks share.
+- Nav's teardown is asserted to remove **both** listeners (`removeEventListener('scroll', …)`
+  via a spy, and the media-query listener via a counting stub).
+
+## 9. (Minor, controller ruling) `+error.svelte` gets the chrome
+
+Now `<Nav /> <main> … </main> <Footer />` inside an `.error-shell` that mirrors the route-group
+shells, `--nav-height` included. Test finds the "Primary" navigation landmark, asserts its
+four hrefs match `navItems`, and asserts a `<footer>` is present.
+
+## Commands and output
+
+```
+$ pnpm test:unit -- tests/unit/layout
+ ✓ tests/unit/layout/PageTransition.test.ts (7 tests)
+ ✓ tests/unit/layout/MobileMenu.test.ts (13 tests)
+ ✓ tests/unit/layout/Footer.test.ts (9 tests)
+ ✓ tests/unit/layout/Nav.test.ts (13 tests)
+ ✓ tests/unit/layout/ErrorPage.test.ts (5 tests)
+ Test Files  5 passed (5)   Tests  47 passed (47)
+
+$ pnpm test:unit
+ Test Files  54 passed (54)   Tests  575 passed (575)
+
+$ pnpm check
+ COMPLETED 830 FILES 0 ERRORS 1 WARNINGS 1 FILES_WITH_PROBLEMS
+ (the one warning is the pre-existing unused selector in (portfolio)/about/+page.svelte)
+
+$ pnpm lint
+ ✖ 21 problems (0 errors, 21 warnings)   — all pre-existing, none in a file this task touched
+
+$ pnpm format
+ every touched file reported "unchanged"
+
+$ pnpm build
+ ✓ built in 2.45s
+```
+
+Layout tests went 33 → 47; the whole suite 561 → 575.
+
+## Still-standing concern from the first round
+
+The `--nav-height` escape hatch now exists in three shells (portfolio, blog, error) rather
+than two. If Task 11 collapses the two route layouts into a shared `SiteShell`, the error
+page should take it too.

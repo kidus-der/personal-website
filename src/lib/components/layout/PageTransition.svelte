@@ -8,7 +8,7 @@
 	No scroll handling here — SvelteKit already restores or resets scroll itself.
 -->
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { onDestroy, type Snippet } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { animate, durations, easings, reducedMotion } from '$lib/motion';
 	import { cn } from '$lib/utils/cn';
@@ -32,12 +32,28 @@
 
 		// A reader clicking through quickly should not stack transitions.
 		animation?.stop();
+
+		const target = wrapperEl;
 		animation = animate(
-			wrapperEl,
+			target,
 			{ opacity: [0, 1], y: [LIFT, 0] },
 			{ duration: durations.base, ease: easings.outExpo }
 		);
+
+		// Motion leaves the final values inline. Removing them hands the wrapper
+		// back to the stylesheet, so a page's own transform or opacity rule is not
+		// permanently outranked by a leftover `transform: none`.
+		animation.finished
+			.then(() => {
+				target.style.removeProperty('opacity');
+				target.style.removeProperty('transform');
+			})
+			.catch(() => {
+				// Interrupted by the next navigation or an unmount — nothing to clean.
+			});
 	});
+
+	onDestroy(() => animation?.stop());
 </script>
 
 <div bind:this={wrapperEl} class={cn('page-transition', className)}>

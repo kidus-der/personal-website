@@ -1,9 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
-import { createRawSnippet } from 'svelte';
+import { createRawSnippet, tick } from 'svelte';
 import PageTransition from '$lib/components/layout/PageTransition.svelte';
 import { durations, easings } from '$lib/motion/config';
-import { animateMock, preferReducedMotion, resetMotionMocks } from '../kokonut/motionMock';
+import {
+	animateMock,
+	animations,
+	preferReducedMotion,
+	resetMotionMocks
+} from '../kokonut/motionMock';
 import { resetNavigationMocks, runAfterNavigate } from './navigationMock';
 
 vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
@@ -53,5 +58,41 @@ describe('PageTransition', () => {
 		setup();
 		runAfterNavigate({ type: 'link' });
 		expect(animateMock).not.toHaveBeenCalled();
+	});
+
+	it('hands the wrapper back to the stylesheet when the transition finishes', async () => {
+		const { wrapper } = setup();
+		runAfterNavigate({ type: 'link' });
+
+		// Stand in for the final values Motion leaves inline.
+		wrapper().style.opacity = '1';
+		wrapper().style.transform = 'none';
+
+		await animations.at(-1)?.finished;
+		await tick();
+
+		expect(wrapper().style.opacity).toBe('');
+		expect(wrapper().style.transform).toBe('');
+	});
+
+	it('stops an in-flight transition on destroy', async () => {
+		const { unmount } = setup();
+		runAfterNavigate({ type: 'link' });
+		const animation = animations.at(-1);
+
+		unmount();
+		await tick();
+
+		expect(animation?.stop).toHaveBeenCalled();
+	});
+
+	it('does not stack transitions when navigations arrive back to back', () => {
+		setup();
+		runAfterNavigate({ type: 'link' });
+		const first = animations.at(-1);
+		runAfterNavigate({ type: 'link' });
+
+		expect(first?.stop).toHaveBeenCalled();
+		expect(animateMock).toHaveBeenCalledTimes(2);
 	});
 });

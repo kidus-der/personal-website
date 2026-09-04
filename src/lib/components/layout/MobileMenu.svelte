@@ -38,12 +38,50 @@
 	// while it is open — should leave the reader looking at the new page.
 	afterNavigate(() => onclose());
 
+	/** The conventional tabbable set, in DOM order. */
+	const FOCUSABLE =
+		'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 	/** Tabbable descendants, in DOM order. Re-read per keystroke: cheap, and correct. */
 	function focusable(): HTMLElement[] {
 		if (!dialogEl) return [];
-		return [...dialogEl.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')].filter(
+		return [...dialogEl.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
 			(element) => element.tabIndex !== -1
 		);
+	}
+
+	/**
+	 * Take everything outside the dialog out of the accessibility tree.
+	 *
+	 * A focus trap only stops Tab; a screen reader's virtual cursor walks the DOM
+	 * regardless. `inert` is what actually makes the page behind a modal go away,
+	 * so it is applied to every sibling on the path from the dialog up to `<body>`
+	 * — the dialog is nested inside the layout shell, so inerting `body`'s children
+	 * alone would leave the header and the page content reachable.
+	 *
+	 * Returns the undo, which records whether each element already had the
+	 * attribute rather than assuming this component put it there.
+	 */
+	function isolate(dialog: HTMLElement): () => void {
+		const touched: { element: Element; had: boolean }[] = [];
+
+		let node: HTMLElement = dialog;
+		while (node.parentElement) {
+			const parent: HTMLElement = node.parentElement;
+			for (const sibling of parent.children) {
+				if (sibling === node) continue;
+				touched.push({ element: sibling, had: sibling.hasAttribute('inert') });
+				sibling.setAttribute('inert', '');
+			}
+			if (parent === document.body) break;
+			node = parent;
+		}
+
+		return () => {
+			for (const { element, had } of touched) {
+				if (!had) element.removeAttribute('inert');
+			}
+		};
 	}
 
 	function onkeydown(event: KeyboardEvent) {
@@ -55,18 +93,20 @@
 
 		if (event.key !== 'Tab') return;
 
-		// The overlay is not `inert`-siblinged, so the trap is enforced by hand:
-		// wrap from the last element to the first and back.
+		// Bound to `document`, not the dialog: a Tab pressed while focus has escaped
+		// — browser chrome, an address-bar round trip, a stray programmatic focus —
+		// must still be pulled back in, and a listener on the dialog never sees it.
 		const elements = focusable();
 		if (elements.length === 0) return;
 		const first = elements[0];
 		const last = elements[elements.length - 1];
 		const active = document.activeElement;
+		const inside = Boolean(dialogEl?.contains(active));
 
-		if (event.shiftKey && (active === first || !dialogEl?.contains(active))) {
+		if (event.shiftKey && (active === first || !inside)) {
 			event.preventDefault();
 			last.focus();
-		} else if (!event.shiftKey && (active === last || !dialogEl?.contains(active))) {
+		} else if (!event.shiftKey && (active === last || !inside)) {
 			event.preventDefault();
 			first.focus();
 		}
@@ -75,6 +115,9 @@
 	onMount(() => {
 		const previousOverflow = document.body.style.overflow;
 		document.body.style.overflow = 'hidden';
+
+		const release = dialogEl ? isolate(dialogEl) : () => {};
+		document.addEventListener('keydown', onkeydown);
 
 		focusable()[0]?.focus();
 
@@ -111,6 +154,8 @@
 
 		return () => {
 			animation?.stop();
+			document.removeEventListener('keydown', onkeydown);
+			release();
 			document.body.style.overflow = previousOverflow;
 		};
 	});
@@ -129,7 +174,6 @@
 	aria-modal="true"
 	aria-label="Navigation"
 	tabindex="-1"
-	{onkeydown}
 >
 	<button
 		type="button"
@@ -140,7 +184,8 @@
 	></button>
 
 	<div class="mobile-menu__panel">
-		<nav class="mobile-menu__links" aria-label="Primary">
+		<!-- Not "Primary": the desktop `MorphicNav` owns that landmark name. -->
+		<nav class="mobile-menu__links" aria-label="Mobile">
 			{#each navItems as item, index (item.href)}
 				<a
 					bind:this={linkEls[index]}

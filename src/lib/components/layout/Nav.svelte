@@ -11,7 +11,7 @@
 	overlay's `position: fixed` and trap it inside the header's box.
 -->
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { page } from '$app/state';
 	import MorphicNav from '$lib/components/kokonut/MorphicNav.svelte';
 	import ThemeSwitch from '$lib/components/kokonut/ThemeSwitch.svelte';
@@ -31,6 +31,9 @@
 
 	const MENU_ID = 'mobile-menu';
 
+	/** One past the mobile breakpoint: matching means the pill is back. */
+	const DESKTOP_QUERY = '(min-width: 769px)';
+
 	let scrolled = $state(false);
 	let menuOpen = $state(false);
 	let hamburgerEl = $state<HTMLButtonElement | undefined>();
@@ -41,11 +44,14 @@
 			: '/icons/website-logo/website-logo-dark-mode.png'
 	);
 
-	function closeMenu() {
+	async function closeMenu() {
 		if (!menuOpen) return;
 		menuOpen = false;
 		// The overlay is unmounting and focus would fall to <body>; put it back on
-		// the control that opened it.
+		// the control that opened it. Only after the flush, though: the menu marks
+		// this header `inert` while it is open and lifts that in its teardown, and
+		// focusing an inert element is a no-op.
+		await tick();
 		hamburgerEl?.focus();
 	}
 
@@ -55,7 +61,19 @@
 		};
 		onscroll();
 		window.addEventListener('scroll', onscroll, { passive: true });
-		return () => window.removeEventListener('scroll', onscroll);
+
+		// Resizing or rotating past the breakpoint puts the pill back on screen,
+		// which would leave an unreachable overlay covering the page.
+		const desktop = window.matchMedia(DESKTOP_QUERY);
+		const onbreakpoint = (event: MediaQueryListEvent) => {
+			if (event.matches) closeMenu();
+		};
+		desktop.addEventListener('change', onbreakpoint);
+
+		return () => {
+			window.removeEventListener('scroll', onscroll);
+			desktop.removeEventListener('change', onbreakpoint);
+		};
 	});
 </script>
 

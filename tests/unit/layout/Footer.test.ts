@@ -50,6 +50,23 @@ describe('Footer', () => {
 		expect(getByRole('link', { name: 'Email' })).toHaveAttribute('href', `mailto:${site.email}`);
 	});
 
+	it('names the email field with a real label', () => {
+		const { container, email } = setup();
+		const label = container.querySelector('label[for="footer-subscribe-email"]');
+		expect(label).toHaveTextContent('Email address');
+		expect(email()).toHaveAccessibleName('Email address');
+	});
+
+	it('mounts both live regions empty so a later fill is announced', () => {
+		const { container } = setup();
+		const status = container.querySelector('[role="status"]') as HTMLElement;
+		const alert = container.querySelector('[role="alert"]') as HTMLElement;
+		expect(status).toBeInTheDocument();
+		expect(alert).toBeInTheDocument();
+		expect(status).toHaveTextContent('');
+		expect(alert).toHaveTextContent('');
+	});
+
 	it('shows the wordmark to sighted readers only', () => {
 		const { container } = setup();
 		const wordmark = container.querySelector('.footer__wordmark') as HTMLElement;
@@ -70,7 +87,10 @@ describe('Footer', () => {
 		expect(url).toBe('/api/subscribe');
 		expect(init.method).toBe('POST');
 		expect(JSON.parse(String(init.body))).toEqual({ email: 'reader@example.com', website: '' });
-		expect(await findByText(/check your inbox/i)).toBeInTheDocument();
+
+		// The same element that was mounted empty, now filled — not a fresh node.
+		const status = await findByText(/check your inbox/i);
+		expect(status).toHaveAttribute('role', 'status');
 
 		vi.unstubAllGlobals();
 	});

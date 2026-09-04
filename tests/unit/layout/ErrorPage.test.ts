@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import ErrorPage from '../../../src/routes/+error.svelte';
+import { navItems } from '$lib/components/layout/navItems';
 import { resetMotionMocks } from '../kokonut/motionMock';
 
 vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
+vi.mock('$app/navigation', async () => (await import('./navigationMock')).navigationModule());
 
 const pageState = vi.hoisted(() => ({
 	url: new URL('http://localhost/nope'),
@@ -42,6 +44,15 @@ describe('+error.svelte', () => {
 	it('links back home', () => {
 		const { getByRole } = render(ErrorPage);
 		expect(getByRole('link', { name: /back home/i })).toHaveAttribute('href', '/');
+	});
+
+	it('gives a lost reader the site chrome to navigate from', () => {
+		const { getByRole, container } = render(ErrorPage);
+		const nav = getByRole('navigation', { name: 'Primary' });
+		expect([...nav.querySelectorAll('a')].map((link) => link.getAttribute('href'))).toEqual(
+			navItems.map((item) => item.href)
+		);
+		expect(container.querySelector('footer')).toBeInTheDocument();
 	});
 
 	it('falls back to a generic message for other statuses', () => {

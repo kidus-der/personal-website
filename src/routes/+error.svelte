@@ -1,14 +1,18 @@
 <!--
 	The app-wide error page.
 
-	Rendered outside both route groups, so it carries its own frame rather than
-	the portfolio or blog chrome. `MatrixText` scrambles the headline once, which
-	reads as "something got corrupted" without needing to say so.
+	Rendered outside both route groups, so it wires up its own `Nav` and `Footer`
+	rather than inheriting either section's chrome — a reader who lands on a 404
+	needs somewhere to go that is not the browser's back button. `MatrixText`
+	scrambles the headline once, which reads as "something got corrupted" without
+	needing to say so.
 -->
 <script lang="ts">
 	import { page } from '$app/state';
 	import MatrixText from '$lib/components/kokonut/MatrixText.svelte';
 	import SlideTextButton from '$lib/components/kokonut/SlideTextButton.svelte';
+	import Nav from '$lib/components/layout/Nav.svelte';
+	import Footer from '$lib/components/layout/Footer.svelte';
 	import SEO from '$lib/components/ui/SEO.svelte';
 
 	const notFound = $derived(page.status === 404);
@@ -22,20 +26,39 @@
 
 <SEO title={headline} description={explanation} />
 
-<main class="error-page">
-	<div class="container error-page__inner">
-		<p class="error-page__status">{page.status}</p>
-		<h1 class="error-page__headline">
-			<MatrixText text={headline} />
-		</h1>
-		<p class="error-page__body">{explanation}</p>
-		<SlideTextButton href="/" text="Back home" />
-	</div>
-</main>
+<div class="error-shell">
+	<Nav />
+	<main class="error-page">
+		<div class="container error-page__inner">
+			<p class="error-page__status">{page.status}</p>
+			<h1 class="error-page__headline">
+				<MatrixText text={headline} />
+			</h1>
+			<p class="error-page__body">{explanation}</p>
+			<SlideTextButton href="/" text="Back home" />
+		</div>
+	</main>
+	<Footer />
+</div>
 
 <style>
-	.error-page {
+	/* Mirrors the route-group shells — see the note there on `--nav-height`. */
+	.error-shell {
+		--nav-height: 4.5rem;
 		min-height: 100dvh;
+		display: flex;
+		flex-direction: column;
+		padding-top: var(--nav-height);
+	}
+
+	@media (max-width: 768px) {
+		.error-shell {
+			--nav-height: 4rem;
+		}
+	}
+
+	.error-page {
+		flex: 1;
 		display: flex;
 		align-items: center;
 	}

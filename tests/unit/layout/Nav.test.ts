@@ -12,6 +12,27 @@ vi.mock('$app/navigation', async () => (await import('./navigationMock')).naviga
 const pageState = vi.hoisted(() => ({ url: new URL('http://localhost/work') }));
 vi.mock('$app/state', () => ({ page: pageState }));
 
+/** Listeners registered against the desktop media query, so a test can fire one. */
+let breakpointListeners: ((event: { matches: boolean }) => void)[] = [];
+let removedBreakpointListeners = 0;
+
+function stubMatchMedia() {
+	vi.stubGlobal('matchMedia', (query: string) => ({
+		matches: false,
+		media: query,
+		onchange: null,
+		addListener: () => {},
+		removeListener: () => {},
+		addEventListener: (_type: string, listener: (event: { matches: boolean }) => void) => {
+			breakpointListeners.push(listener);
+		},
+		removeEventListener: () => {
+			removedBreakpointListeners += 1;
+		},
+		dispatchEvent: () => false
+	}));
+}
+
 function setup() {
 	const result = render(Nav);
 	const hamburger = () => result.getByRole('button', { name: /menu/i });
@@ -24,8 +45,15 @@ describe('Nav', () => {
 		resetMotionMocks();
 		resetNavigationMocks();
 		pageState.url = new URL('http://localhost/work');
+		breakpointListeners = [];
+		removedBreakpointListeners = 0;
+		stubMatchMedia();
 	});
-	afterEach(cleanup);
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+		vi.restoreAllMocks();
+	});
 
 	it('renders every primary link', async () => {
 		const { primaryNav } = setup();
@@ -85,9 +113,25 @@ describe('Nav', () => {
 
 		await fireEvent.keyDown(getByRole('dialog'), { key: 'Escape' });
 		await tick();
+		await tick();
 
 		expect(queryByRole('dialog')).toBeNull();
 		expect(hamburger()).toHaveAttribute('aria-expanded', 'false');
+		expect(document.activeElement).toBe(hamburger());
+	});
+
+	it('lifts the menu’s inert marking off the header before restoring focus', async () => {
+		const { container, hamburger, getByRole } = setup();
+		const bar = container.querySelector('.nav') as HTMLElement;
+
+		await fireEvent.click(hamburger());
+		expect(bar).toHaveAttribute('inert');
+
+		await fireEvent.keyDown(getByRole('dialog'), { key: 'Escape' });
+		await tick();
+		await tick();
+
+		expect(bar).not.toHaveAttribute('inert');
 		expect(document.activeElement).toBe(hamburger());
 	});
 
@@ -99,6 +143,30 @@ describe('Nav', () => {
 		await fireEvent.keyDown(getByRole('dialog'), { key: 'Escape' });
 		await tick();
 		expect(document.body.style.overflow).toBe('');
+	});
+
+	it('closes the mobile menu when the viewport grows past the breakpoint', async () => {
+		const { hamburger, queryByRole } = setup();
+		await fireEvent.click(hamburger());
+		expect(queryByRole('dialog')).not.toBeNull();
+
+		expect(breakpointListeners).toHaveLength(1);
+		breakpointListeners[0]({ matches: true });
+		await tick();
+		await tick();
+
+		expect(queryByRole('dialog')).toBeNull();
+		expect(hamburger()).toHaveAttribute('aria-expanded', 'false');
+	});
+
+	it('leaves the menu open while the viewport stays narrow', async () => {
+		const { hamburger, queryByRole } = setup();
+		await fireEvent.click(hamburger());
+
+		breakpointListeners[0]({ matches: false });
+		await tick();
+
+		expect(queryByRole('dialog')).not.toBeNull();
 	});
 
 	it('closes the mobile menu when a navigation happens', async () => {
@@ -127,5 +195,16 @@ describe('Nav', () => {
 		await fireEvent.scroll(window);
 		await tick();
 		expect(bar).not.toHaveClass('nav--scrolled');
+	});
+
+	it('removes both of its listeners on destroy', async () => {
+		const removeScroll = vi.spyOn(window, 'removeEventListener');
+		const { unmount } = setup();
+
+		unmount();
+		await tick();
+
+		expect(removeScroll).toHaveBeenCalledWith('scroll', expect.any(Function));
+		expect(removedBreakpointListeners).toBe(1);
 	});
 });

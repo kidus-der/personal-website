@@ -28,6 +28,10 @@
 	let formState = $state<FormState>('idle');
 	let errorMessage = $state('');
 
+	const successMessage = $derived(
+		formState === 'success' ? 'Check your inbox for a confirmation link.' : ''
+	);
+
 	async function subscribe(event: SubmitEvent) {
 		event.preventDefault();
 		if (formState === 'loading') return;
@@ -88,9 +92,7 @@
 				<h2 class="footer__heading">Newsletter</h2>
 				<p class="footer__lede">Occasional notes from the Buna Print</p>
 
-				{#if formState === 'success'}
-					<p class="footer__note" role="status">Check your inbox for a confirmation link.</p>
-				{:else}
+				{#if formState !== 'success'}
 					<form class="footer__form" onsubmit={subscribe} novalidate>
 						<input
 							class="footer__honeypot"
@@ -101,13 +103,13 @@
 							aria-hidden="true"
 							bind:value={honeypot}
 						/>
+						<label class="footer__label" for="footer-subscribe-email">Email address</label>
 						<input
 							id="footer-subscribe-email"
 							class="footer__input"
 							type="email"
 							required
 							placeholder="you@example.com"
-							aria-label="Email address"
 							disabled={formState === 'loading'}
 							bind:value={email}
 						/>
@@ -115,11 +117,15 @@
 							{formState === 'loading' ? 'Sending' : 'Subscribe'}
 						</Button>
 					</form>
-
-					{#if formState === 'error'}
-						<p class="footer__error" role="alert">{errorMessage}</p>
-					{/if}
 				{/if}
+
+				<!--
+					Both live regions are in the DOM from the first render and are filled
+					later. A region mounted with its text already in it is inserted, not
+					updated, and most screen readers stay silent.
+				-->
+				<p class="footer__note" role="status">{successMessage}</p>
+				<p class="footer__error" role="alert">{formState === 'error' ? errorMessage : ''}</p>
 			</section>
 		</div>
 
@@ -209,6 +215,19 @@
 
 	.footer__honeypot {
 		display: none;
+	}
+
+	/* Named for screen readers; the placeholder carries the visual hint. */
+	.footer__label {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		white-space: nowrap;
+		clip-path: inset(50%);
+		border: 0;
 	}
 
 	.footer__input {

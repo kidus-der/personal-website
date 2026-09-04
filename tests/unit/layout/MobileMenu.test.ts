@@ -3,6 +3,7 @@ import { render, cleanup, fireEvent } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import MobileMenu from '$lib/components/layout/MobileMenu.svelte';
 import { navItems } from '$lib/components/layout/navItems';
+import { stagger } from '$lib/motion';
 import { animateMock, preferReducedMotion, resetMotionMocks } from '../kokonut/motionMock';
 import { resetNavigationMocks, runAfterNavigate } from './navigationMock';
 
@@ -10,6 +11,9 @@ vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motio
 vi.mock('$app/navigation', async () => (await import('./navigationMock')).navigationModule());
 
 vi.mock('$app/state', () => ({ page: { url: new URL('http://localhost/work') } }));
+
+/** Stands in for the page behind the modal: a body-level sibling with a control. */
+let background: HTMLElement;
 
 function setup(props: Record<string, unknown> = {}) {
 	const onclose = vi.fn();
@@ -23,9 +27,13 @@ describe('MobileMenu', () => {
 	beforeEach(() => {
 		resetMotionMocks();
 		resetNavigationMocks();
+		background = document.createElement('div');
+		background.innerHTML = '<button type="button">Behind the modal</button>';
+		document.body.appendChild(background);
 	});
 	afterEach(() => {
 		cleanup();
+		background.remove();
 		document.body.style.removeProperty('overflow');
 	});
 
@@ -48,6 +56,13 @@ describe('MobileMenu', () => {
 		expect(call).toBeDefined();
 		expect((call?.[0] as HTMLElement[]).length).toBe(navItems.length);
 		expect(call?.[1]).toMatchObject({ opacity: [0, 1] });
+		expect(vi.mocked(stagger)).toHaveBeenCalledWith(0.06);
+	});
+
+	it('names its landmark something other than the desktop nav', () => {
+		const { dialog } = setup();
+		const landmark = dialog().querySelector('nav') as HTMLElement;
+		expect(landmark).toHaveAttribute('aria-label', 'Mobile');
 	});
 
 	it('skips the entrance under reduced motion and leaves links visible', () => {
@@ -76,6 +91,37 @@ describe('MobileMenu', () => {
 		unmount();
 		await tick();
 		expect(document.body.style.overflow).toBe('auto');
+	});
+
+	it('makes the background inert while open and gives it back on close', async () => {
+		const { unmount } = setup();
+		expect(background).toHaveAttribute('inert');
+
+		unmount();
+		await tick();
+		expect(background).not.toHaveAttribute('inert');
+	});
+
+	it('leaves an element that was already inert alone', async () => {
+		background.setAttribute('inert', '');
+		const { unmount } = setup();
+		unmount();
+		await tick();
+		expect(background).toHaveAttribute('inert');
+	});
+
+	it('pulls Tab back in when focus has escaped the dialog', async () => {
+		const { dialog } = setup();
+		const outside = background.querySelector('button') as HTMLButtonElement;
+		outside.focus();
+		expect(document.activeElement).toBe(outside);
+
+		// Dispatched on `document`, not the dialog: the listener has to be there for
+		// a keystroke from outside the dialog to reach it at all.
+		await fireEvent.keyDown(document, { key: 'Tab' });
+
+		const first = dialog().querySelector('a') as HTMLAnchorElement;
+		expect(document.activeElement).toBe(first);
 	});
 
 	it('traps Tab inside the dialog', async () => {
