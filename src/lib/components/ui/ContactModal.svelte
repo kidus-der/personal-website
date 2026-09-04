@@ -1,63 +1,116 @@
+<!--
+	ContactModal — the Resend-backed contact form, in a dialog.
+
+	The component no longer ships its own trigger. Two places on the home page
+	open it (the "At a glance" location tile and the contact band), so the open
+	flag lives in `$lib/state/contact.svelte` and is bound in by whoever renders
+	the single instance. `open` is `$bindable` because the modal closes *itself*:
+	the exit animation has to finish before the node leaves the DOM.
+
+	The card is portalled to `<body>`. A `position: fixed` overlay is only
+	viewport-relative until an ancestor grows a transform, filter or
+	`will-change` — and this page is full of tilting cards — so the dialog is
+	moved out from under all of them.
+
+	The network and validation behaviour is unchanged from the GSAP-era version:
+	the same payload, the same endpoint, the same error handling. Only the
+	presentation and the animation moved.
+-->
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { gsap } from '$lib/animation/gsap.config';
-	import { cursorTarget } from '$lib/actions/cursor';
-	import { magnetic } from '$lib/actions/magnetic';
+	import { animate, durations, easings, reducedMotion, springs } from '$lib/motion';
+	import Button from './Button.svelte';
 
 	interface Props {
-		label?: string;
+		/** Bound by the owner; the modal sets it back to `false` once it has closed. */
+		open?: boolean;
+		/** Fired after the exit animation, not when the close is requested. */
+		onclose?: () => void;
 	}
 
-	let { label = 'Get in touch' }: Props = $props();
+	let { open = $bindable(false), onclose }: Props = $props();
 
-	let open = $state(false);
-	let overlayEl: HTMLDivElement | undefined = $state();
-	let cardEl: HTMLDivElement | undefined = $state();
-	let status: 'idle' | 'loading' | 'success' | 'error' = $state('idle');
+	/** Enter and exit both scale from here, so the two read as one gesture. */
+	const ENTER_SCALE = 0.92;
+	const EXIT_SCALE = 0.96;
+
+	let overlayEl = $state<HTMLDivElement | undefined>();
+	let cardEl = $state<HTMLDivElement | undefined>();
+
+	let status = $state<'idle' | 'loading' | 'success' | 'error'>('idle');
 	let errorMsg = $state('');
 	let name = $state('');
 	let email = $state('');
 	let subject = $state('');
 	let message = $state('');
 
-	let activeTl: gsap.core.Timeline | null = null;
+	/** Whether the entrance has run for the current opening. */
+	let entered = false;
+	/** Guards against a second close while the exit animation is in flight. */
+	let closing = false;
+	/** Whatever had focus when the dialog opened; focus goes back there. */
+	let opener: HTMLElement | null = null;
 
-	function openModal() {
-		open = true;
-		setTimeout(() => {
-			if (!overlayEl || !cardEl) return;
-			activeTl?.kill();
-			activeTl = gsap.timeline();
-			activeTl
-				.fromTo(overlayEl, { opacity: 0 }, { opacity: 1, duration: 0.35, ease: 'power2.out' })
-				.fromTo(
-					cardEl,
-					{ opacity: 0, scale: 0.85, y: 20 },
-					{ opacity: 1, scale: 1, y: 0, duration: 0.45, ease: 'back.out(1.4)' },
-					'<0.05'
-				);
-		}, 0);
+	$effect(() => {
+		if (open) {
+			// `cardEl`/`overlayEl` are read so the effect re-runs once they bind.
+			if (entered || !cardEl || !overlayEl) return;
+			entered = true;
+			// Read before moving focus into the dialog, or the opener is lost.
+			opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+			cardEl.focus();
+			if (reducedMotion()) return;
+			// Spread: Motion normalises the options object it is handed, and both
+			// of these are shared module-level tokens.
+			animate(
+				overlayEl,
+				{ opacity: [0, 1] },
+				{ duration: durations.base, ease: [...easings.outQuart] }
+			);
+			animate(cardEl, { opacity: [0, 1], scale: [ENTER_SCALE, 1] }, { ...springs.snappy });
+			return;
+		}
+
+		if (!entered) return;
+		entered = false;
+		if (opener?.isConnected) opener.focus();
+		opener = null;
+		// Reset here rather than in `requestClose`, so a close driven from outside
+		// — the owner simply setting the flag false — clears the last submission
+		// too. The typed fields are deliberately kept: reopening should not have
+		// thrown away a half-written message.
+		status = 'idle';
+		errorMsg = '';
+	});
+
+	async function requestClose() {
+		if (closing || !open) return;
+		closing = true;
+		if (!reducedMotion() && cardEl && overlayEl) {
+			// The tuple annotation is what makes it a cubic bezier rather than a
+			// widened `number[]`, which Motion's `Easing` union does not accept.
+			const timing = {
+				duration: durations.fast,
+				ease: [...easings.outQuart] as [number, number, number, number]
+			};
+			await Promise.all([
+				animate(cardEl, { opacity: [1, 0], scale: [1, EXIT_SCALE] }, timing).finished,
+				animate(overlayEl, { opacity: [1, 0] }, timing).finished
+			]);
+		}
+		closing = false;
+		// The effect above does the rest of the teardown, whichever way it closed.
+		open = false;
+		onclose?.();
 	}
 
-	function closeModal() {
-		if (!overlayEl || !cardEl) return;
-		activeTl?.kill();
-		activeTl = gsap.timeline({
-			onComplete: () => {
-				open = false;
-				status = 'idle';
-				errorMsg = '';
-			}
-		});
-		activeTl
-			.to(cardEl, { opacity: 0, scale: 0.9, y: 10, duration: 0.25, ease: 'power2.in' })
-			.to(overlayEl, { opacity: 0, duration: 0.25, ease: 'power2.in' }, '<');
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape' && open) requestClose();
 	}
 
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape' && open) closeModal();
-	}
-
+	/**
+	 * Moves the node to `<body>`. Svelte removes it again on destroy, but only
+	 * from its original parent, so the action has to do the removal itself.
+	 */
 	function portal(node: HTMLElement) {
 		document.body.appendChild(node);
 		return {
@@ -88,59 +141,65 @@
 			errorMsg = 'Network error. Please try again.';
 		}
 	}
-
-	onMount(() => {
-		window.addEventListener('keydown', handleKeydown);
-		return () => window.removeEventListener('keydown', handleKeydown);
-	});
 </script>
 
-<button class="btn btn--primary" onclick={openModal} use:cursorTarget={'hover'} use:magnetic>
-	{label}
-</button>
+<svelte:window onkeydown={handleKeydown} />
 
 {#if open}
+	<!--
+		The overlay is a backdrop, not a control: it carries `role="presentation"`
+		so the click-to-dismiss shortcut never appears in the a11y tree. Escape is
+		the keyboard equivalent, handled on the window above — which is the keyboard
+		route the rule below asks for, just not bound to this node.
+	-->
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div
 		use:portal
 		bind:this={overlayEl}
-		class="modal-overlay"
+		class="contact-modal__overlay"
+		data-testid="contact-modal-overlay"
 		role="presentation"
-		onclick={closeModal}
-		onkeydown={(e) => {
-			if (e.key === 'Enter' || e.key === ' ') closeModal();
-		}}
+		onclick={requestClose}
 	>
 		<div
 			bind:this={cardEl}
-			class="modal-card"
+			class="contact-modal__card"
 			role="dialog"
 			aria-modal="true"
 			aria-label="Contact form"
 			tabindex="-1"
 			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
 		>
-			<button class="modal-close" onclick={closeModal} aria-label="Close" use:cursorTarget={'hover'}
-				>×</button
-			>
+			<button class="contact-modal__close" onclick={requestClose} aria-label="Close">
+				<svg
+					viewBox="0 0 16 16"
+					width="16"
+					height="16"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					stroke-linecap="round"
+					aria-hidden="true"
+				>
+					<path d="m4 4 8 8M12 4l-8 8" />
+				</svg>
+			</button>
 
-			<span class="modal-label">Contact</span>
-			<h2 class="modal-title">Let's build something.</h2>
-			<p class="modal-sub">Fill out the form and I'll get back to you.</p>
+			<h2 class="contact-modal__title">Let's build something.</h2>
+			<p class="contact-modal__lede">Send a note and I'll get back to you.</p>
 
 			{#if status === 'success'}
-				<div class="modal-success">
-					<span class="modal-success__icon">✓</span>
-					<p class="modal-success__heading">Message sent!</p>
-					<p class="modal-success__sub">Thanks for reaching out. I'll get back to you soon.</p>
-					<button class="btn btn--ghost" onclick={closeModal} use:cursorTarget={'hover'}
-						>Close</button
-					>
+				<div class="contact-modal__success">
+					<p class="contact-modal__success-heading">Message sent!</p>
+					<p class="contact-modal__success-lede">
+						Thanks for reaching out. I'll get back to you soon.
+					</p>
+					<Button variant="ghost" onclick={requestClose}>Close</Button>
 				</div>
 			{:else}
-				<form onsubmit={handleSubmit}>
-					<div class="form-row">
-						<div class="form-field">
+				<form data-testid="contact-modal-form" onsubmit={handleSubmit}>
+					<div class="contact-modal__row">
+						<div class="contact-modal__field">
 							<label for="contact-name">Name</label>
 							<input
 								id="contact-name"
@@ -151,7 +210,7 @@
 								autocomplete="name"
 							/>
 						</div>
-						<div class="form-field">
+						<div class="contact-modal__field">
 							<label for="contact-email">Email</label>
 							<input
 								id="contact-email"
@@ -164,7 +223,7 @@
 						</div>
 					</div>
 
-					<div class="form-field">
+					<div class="contact-modal__field">
 						<label for="contact-subject">Subject</label>
 						<input
 							id="contact-subject"
@@ -175,30 +234,24 @@
 						/>
 					</div>
 
-					<div class="form-field">
+					<div class="contact-modal__field">
 						<label for="contact-message">Message</label>
 						<textarea
 							id="contact-message"
 							bind:value={message}
 							rows={5}
-							placeholder="Tell me more..."
+							placeholder="A line or two is plenty."
 							required
 						></textarea>
 					</div>
 
-					<div class="form-footer">
+					<div class="contact-modal__footer">
 						{#if status === 'error'}
-							<p class="form-error">{errorMsg}</p>
+							<p class="contact-modal__error" role="alert">{errorMsg}</p>
 						{/if}
-						<button
-							type="submit"
-							class="btn btn--primary"
-							class:btn--loading={status === 'loading'}
-							disabled={status === 'loading'}
-							use:cursorTarget={'hover'}
-						>
+						<Button type="submit" disabled={status === 'loading'}>
 							{status === 'loading' ? 'Sending…' : 'Send message'}
-						</button>
+						</Button>
 					</div>
 				</form>
 			{/if}
@@ -207,187 +260,126 @@
 {/if}
 
 <style>
-	/* ── Trigger ──────────────────────────────────── */
-	.btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.85rem 2rem;
-		border-radius: var(--radius-full);
-		font-size: var(--text-sm);
-		font-weight: 500;
-		letter-spacing: 0.04em;
-		transition:
-			background 0.25s,
-			color 0.25s,
-			transform 0.2s var(--ease-out-expo);
-		font-family: inherit;
-		cursor: none;
-	}
-
-	.btn:hover {
-		transform: translateY(-2px);
-	}
-
-	.btn--primary {
-		background: var(--accent);
-		color: var(--bg);
-		border: none;
-	}
-
-	.btn--ghost {
-		border: 1px solid var(--border);
-		color: var(--text-muted);
-		background: none;
-	}
-
-	.btn--ghost:hover {
-		border-color: var(--accent);
-		color: var(--accent);
-	}
-
-	.btn--loading {
-		opacity: 0.7;
-		pointer-events: none;
-	}
-
-	/* ── Modal overlay ──────────────────────────── */
-	.modal-overlay {
+	.contact-modal__overlay {
 		position: fixed;
 		inset: 0;
-		z-index: 9999;
+		z-index: 200;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 1.5rem;
-		background: rgba(0, 0, 0, 0.6);
-		cursor: none;
+		padding: clamp(1rem, 4vw, 2rem);
+		background-color: color-mix(in srgb, var(--bg) 72%, transparent);
+		backdrop-filter: blur(6px);
 	}
 
-	/* ── Modal card ─────────────────────────────── */
-	.modal-card {
+	.contact-modal__card {
 		position: relative;
 		width: 100%;
-		max-width: 560px;
+		max-width: 34rem;
 		max-height: 90dvh;
 		overflow-y: auto;
-		padding: 2.5rem;
-		border-radius: var(--radius-lg);
-		background: var(--surface-raised);
-		border: 1px solid var(--border);
-		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
-		cursor: none;
+		padding: clamp(1.5rem, 4vw, 2.25rem);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-card);
+		background-color: var(--surface-raised);
 	}
 
-	:global([data-theme='light']) .modal-card {
-		background: var(--surface);
-		border: 1px solid rgba(43, 92, 230, 0.15);
-		box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15);
-	}
-
-	.modal-close {
+	.contact-modal__close {
 		position: absolute;
-		top: 1.25rem;
-		right: 1.25rem;
-		font-size: 1.25rem;
+		top: 1rem;
+		inset-inline-end: 1rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: var(--radius-full);
 		color: var(--text-muted);
-		line-height: 1;
-		transition: color 0.2s;
-		font-family: inherit;
-		cursor: none;
-		background: none;
-		border: none;
+		transition:
+			color 200ms var(--ease-out-expo),
+			background-color 200ms var(--ease-out-expo);
 	}
 
-	.modal-close:hover {
+	.contact-modal__close:hover,
+	.contact-modal__close:focus-visible {
 		color: var(--text);
+		background-color: var(--surface);
 	}
 
-	.modal-label {
-		font-size: var(--text-xs);
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		color: var(--accent);
-		display: block;
-		margin-bottom: 0.75rem;
-	}
-
-	.modal-title {
-		font-size: var(--text-xl);
+	.contact-modal__title {
+		font-family: var(--font-display);
+		font-size: var(--text-2xl);
 		font-weight: 600;
 		letter-spacing: -0.02em;
-		line-height: 1.3;
+		line-height: 1.15;
+		/* Keeps a long title clear of the close button. */
+		padding-inline-end: 2.5rem;
 		color: var(--text);
-		margin-bottom: 0.5rem;
-		padding-right: 2rem;
 	}
 
-	.modal-sub {
+	.contact-modal__lede {
+		margin-top: 0.5rem;
+		margin-bottom: 1.75rem;
 		font-size: var(--text-sm);
 		color: var(--text-muted);
-		margin-bottom: 2rem;
-		line-height: 1.6;
 	}
 
-	/* ── Form ───────────────────────────────────── */
-	.form-row {
+	.contact-modal__row {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1fr;
 		gap: 1rem;
 	}
 
-	@media (max-width: 540px) {
-		.form-row {
-			grid-template-columns: 1fr;
+	@media (min-width: 540px) {
+		.contact-modal__row {
+			grid-template-columns: 1fr 1fr;
 		}
 	}
 
-	.form-field {
+	.contact-modal__field {
 		display: flex;
 		flex-direction: column;
-		gap: 0.4rem;
+		gap: 0.375rem;
 		margin-bottom: 1rem;
 	}
 
-	.form-field label {
+	/* Sentence case, not an all-caps kicker — see the copy rules in the spec. */
+	.contact-modal__field label {
 		font-size: var(--text-xs);
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
 		color: var(--text-muted);
 	}
 
-	.form-field input,
-	.form-field textarea {
-		background: var(--bg);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
-		padding: 0.65rem 0.875rem;
-		font-size: var(--text-sm);
-		color: var(--text);
-		font-family: inherit;
-		transition: border-color 0.2s;
-		outline: none;
+	.contact-modal__field input,
+	.contact-modal__field textarea {
 		width: 100%;
+		padding: 0.625rem 0.875rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-input);
+		background-color: var(--bg);
+		color: var(--text);
+		font-family: var(--font-body);
+		font-size: var(--text-sm);
+		transition: border-color 200ms var(--ease-out-expo);
 	}
 
-	.form-field input::placeholder,
-	.form-field textarea::placeholder {
+	.contact-modal__field input::placeholder,
+	.contact-modal__field textarea::placeholder {
 		color: var(--text-muted);
-		opacity: 0.6;
+		opacity: 0.7;
 	}
 
-	.form-field input:focus,
-	.form-field textarea:focus {
+	.contact-modal__field input:focus,
+	.contact-modal__field textarea:focus {
 		border-color: var(--accent);
 	}
 
-	.form-field textarea {
-		resize: vertical;
-		min-height: 120px;
+	.contact-modal__field textarea {
+		min-height: 7.5rem;
 		line-height: 1.6;
+		resize: vertical;
 	}
 
-	.form-footer {
+	.contact-modal__footer {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -396,38 +388,38 @@
 		margin-top: 0.5rem;
 	}
 
-	.form-error {
+	.contact-modal__error {
+		flex: 1 1 12rem;
 		font-size: var(--text-xs);
 		color: var(--accent);
-		flex: 1;
 	}
 
-	/* ── Success state ──────────────────────────── */
-	.modal-success {
+	.contact-modal__success {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
-		text-align: center;
-		padding: 2rem 0 0.5rem;
-		gap: 0.75rem;
+		align-items: flex-start;
+		gap: 0.5rem;
+		padding-block: 0.5rem 0.25rem;
 	}
 
-	.modal-success__icon {
-		font-size: 2rem;
-		color: var(--accent);
-		line-height: 1;
-	}
-
-	.modal-success__heading {
+	.contact-modal__success-heading {
+		font-family: var(--font-display);
 		font-size: var(--text-lg);
 		font-weight: 600;
 		color: var(--text);
 	}
 
-	.modal-success__sub {
+	.contact-modal__success-lede {
+		margin-bottom: 1rem;
 		font-size: var(--text-sm);
 		color: var(--text-muted);
-		line-height: 1.6;
-		margin-bottom: 1rem;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.contact-modal__close,
+		.contact-modal__field input,
+		.contact-modal__field textarea {
+			transition: none;
+		}
 	}
 </style>
