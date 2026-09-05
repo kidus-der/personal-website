@@ -14,7 +14,9 @@ export default ts.config(
 			'.vercel/',
 			'static/',
 			'src/content/posts/**/*.md',
-			'.superpowers/'
+			'.superpowers/',
+			// Agent worktrees live here; each carries its own build output.
+			'.claude/**'
 		]
 	},
 	js.configs.recommended,
