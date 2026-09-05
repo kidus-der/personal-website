@@ -6,8 +6,11 @@
  * on whole path segments, not a plain `startsWith`, so a future `/workshop`
  * never lights up `/work`.
  *
- * One rule, three callers: the desktop pill in `MorphicNav`, the mobile menu
- * and the footer. Keeping it here stops them drifting apart.
+ * One rule, two callers: the desktop pill in `MorphicNav` and the mobile menu.
+ * Keeping it here stops them drifting apart.
+ *
+ * `current` and `href` are compared as pathname only (no query or hash) —
+ * callers pass `page.url.pathname`, never the full URL.
  */
 export function isActivePath(current: string, href: string): boolean {
 	const path = normalise(current);
