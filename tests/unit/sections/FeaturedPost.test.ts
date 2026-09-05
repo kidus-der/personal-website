@@ -16,8 +16,8 @@ const base: BlogPost = {
 	readingTime: 7
 };
 
-function setup(post: Partial<BlogPost> = {}) {
-	const result = render(FeaturedPost, { props: { post: { ...base, ...post } } });
+function setup(post: Partial<BlogPost> = {}, props: { level?: 2 | 3 } = {}) {
+	const result = render(FeaturedPost, { props: { post: { ...base, ...post }, ...props } });
 	const card = () => result.container.querySelector('.featured-post') as HTMLAnchorElement;
 	return { ...result, card };
 }
@@ -30,6 +30,16 @@ describe('FeaturedPost', () => {
 		const { card } = setup();
 		expect(card().tagName).toBe('A');
 		expect(card()).toHaveAttribute('href', '/blog/why-deepfakes-are-hard');
+	});
+
+	it('titles the card at level 2 by default, for a card that follows an h1', () => {
+		const { getByRole } = setup();
+		expect(getByRole('heading', { level: 2, name: 'Why deepfakes are hard' })).toBeInTheDocument();
+	});
+
+	it('drops to level 3 when a section heading already introduces it', () => {
+		const { getByRole } = setup({}, { level: 3 });
+		expect(getByRole('heading', { level: 3, name: 'Why deepfakes are hard' })).toBeInTheDocument();
 	});
 
 	it('renders the title and description', () => {

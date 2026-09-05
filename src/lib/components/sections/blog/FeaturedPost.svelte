@@ -13,9 +13,15 @@
 
 	interface Props {
 		post: BlogPost;
+		/**
+		 * Heading rank for the title. The default 2 suits the card following an
+		 * `<h1>` directly, as on `/blog`; pass 3 where a section `<h2>` already
+		 * introduces it, as under "From the Buna Print" on the home page.
+		 */
+		level?: 2 | 3;
 	}
 
-	let { post }: Props = $props();
+	let { post, level = 2 }: Props = $props();
 
 	const topic = $derived(post.tags?.[0]);
 	const published = $derived(formatDate(post.publishedAt, 'short'));
@@ -34,7 +40,7 @@
 		{#if topic}
 			<Tag tone="accent">{topic}</Tag>
 		{/if}
-		<h3 class="featured-post__title">{post.title}</h3>
+		<svelte:element this={`h${level}`} class="featured-post__title">{post.title}</svelte:element>
 		<p class="featured-post__description">{post.description}</p>
 		<!-- Two spans with a gap rather than one interpunct-joined string. -->
 		<div class="featured-post__meta">
