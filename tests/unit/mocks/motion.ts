@@ -49,7 +49,7 @@ export const reducedMotionMock = vi.fn(() => false);
  * `inView`, inert by default: it records the element and the callback and hands
  * back a stop function, exactly like the real one, but never decides that
  * anything is on screen. jsdom has no IntersectionObserver worth driving, so a
- * test that cares runs the recorded callback itself — see `FlowField.test.ts`.
+ * test that cares runs the recorded callback itself — see `ParticleNetwork.test.ts`.
  */
 export const inViewMock = vi.fn<
 	(element: Element, onStart: () => (() => void) | void) => () => void

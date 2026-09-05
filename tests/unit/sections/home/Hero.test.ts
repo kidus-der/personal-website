@@ -103,11 +103,11 @@ describe('Hero', () => {
 		expect(magnetic.calls).toHaveLength(3);
 	});
 
-	it('lays a full-bleed flow field behind the copy, at its bold intensity', () => {
+	it('lays a full-bleed particle network behind the copy, at its bold intensity', () => {
 		const { container } = setup();
-		const field = container.querySelector('.flow-field');
+		const field = container.querySelector('.particle-network');
 		expect(field).toBeInTheDocument();
-		expect(field).toHaveClass('flow-field--bold');
+		expect(field).toHaveClass('particle-network--bold');
 		// The copy is one full-width block over the field now, not a column
 		// beside a picture.
 		expect(container.querySelector('.hero-art')).not.toBeInTheDocument();
@@ -125,7 +125,7 @@ describe('Hero', () => {
 		// from the hero would re-mark an element that had already released
 		// itself, and nothing here would ever lift that claim again.
 		const { container } = setup();
-		const field = container.querySelector('.flow-field') as HTMLElement;
+		const field = container.querySelector('.particle-network') as HTMLElement;
 		expect(field.hasAttribute('data-motion-ready')).toBe(false);
 		expect(field).toHaveAttribute('data-revealed', '');
 	});

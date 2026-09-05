@@ -1,5 +1,5 @@
 <!--
-	Bio — the About page's opening band: a `FlowField` behind the bilingual
+	Bio — the About page's opening band: a `ParticleNetwork` behind the bilingual
 	greeting and two paragraphs of prose.
 
 	The band is full-bleed to the viewport edges with its own `.container` inside,
@@ -31,7 +31,7 @@
 	must not dismiss one the pointer is still resting on.
 -->
 <script lang="ts">
-	import FlowField from '$lib/components/kokonut/FlowField.svelte';
+	import ParticleNetwork from '$lib/components/kokonut/ParticleNetwork.svelte';
 	import { animate, reducedMotion, springs } from '$lib/motion';
 
 	const TOOLTIP_ID = 'selam-tip';
@@ -93,7 +93,7 @@
 <svelte:window onkeydown={onWindowKeydown} />
 
 <section class="bio">
-	<FlowField intensity="soft" />
+	<ParticleNetwork intensity="soft" />
 
 	<div class="container bio__content">
 		<!--

@@ -5,12 +5,13 @@
 	than inheriting either section's chrome — a reader who lands on a 404 needs
 	somewhere to go that is not the browser's back button. `MatrixText` scrambles
 	the headline once, which reads as "something got corrupted" without needing to
-	say so, and the same `FlowField` the rest of the site uses drifts behind it, at
+	say so, and the same `ParticleNetwork` the rest of the site uses drifts behind
+	it, at
 	its soft intensity — this is the one page with nothing else on it to look at.
 -->
 <script lang="ts">
 	import { page } from '$app/state';
-	import FlowField from '$lib/components/kokonut/FlowField.svelte';
+	import ParticleNetwork from '$lib/components/kokonut/ParticleNetwork.svelte';
 	import MatrixText from '$lib/components/kokonut/MatrixText.svelte';
 	import SlideTextButton from '$lib/components/kokonut/SlideTextButton.svelte';
 	import SiteShell from '$lib/components/layout/SiteShell.svelte';
@@ -29,7 +30,7 @@
 
 <SiteShell variant="error">
 	<main class="error-page">
-		<FlowField intensity="soft" />
+		<ParticleNetwork intensity="soft" />
 
 		<div class="container error-page__inner">
 			<p class="error-page__status">{page.status}</p>

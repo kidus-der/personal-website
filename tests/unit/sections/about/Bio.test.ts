@@ -11,8 +11,8 @@ function setup() {
 	const tooltip = () => result.container.querySelector('#selam-tip') as HTMLElement;
 	const greeting = () => result.container.querySelector('.bio__greeting') as HTMLElement;
 	/**
-	 * The animations aimed at the tooltip, and only those. The `FlowField` behind
-	 * the band animates on mount too, so a bare call count on the shared mock
+	 * The animations aimed at the tooltip, and only those. The `ParticleNetwork`
+	 * behind the band animates on mount too, so a bare call count on the shared mock
 	 * would be counting the background's entrance as the tooltip's spring.
 	 */
 	const tooltipAnimations = () => animateMock.mock.calls.filter((call) => call[0] === tooltip());
@@ -158,11 +158,11 @@ describe('Bio', () => {
 		expect(paragraphs[1]).toHaveTextContent('film photography and good coffee');
 	});
 
-	it('sits over a soft flow field, full-bleed and clipped by the section', () => {
+	it('sits over a soft particle network, full-bleed and clipped by the section', () => {
 		const { container } = setup();
-		const field = container.querySelector('.flow-field');
+		const field = container.querySelector('.particle-network');
 		expect(field).toBeInTheDocument();
-		expect(field).toHaveClass('flow-field--soft');
+		expect(field).toHaveClass('particle-network--soft');
 		// The band is full-bleed, so the copy carries the container itself rather
 		// than inheriting one from the route.
 		expect(container.querySelector('.bio__content')).toHaveClass('container');

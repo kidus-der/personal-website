@@ -5,10 +5,10 @@
 	motion brief allows. The greeting, the three headline lines, the sub, the
 	buttons and the social row each rise into place on a fixed beat.
 
-	The hero is one full-width block of copy over a full-bleed `FlowField`. It used
-	to be a 7/12 column of text beside a 5/12 picture; the picture is the whole
-	hero now, and `FlowField` runs its own entrance rather than being staged from
-	here — it is the background, not one of the staged lines.
+	The hero is one full-width block of copy over a full-bleed `ParticleNetwork`. It
+	used to be a 7/12 column of text beside a 5/12 picture; the picture is the
+	whole hero now, and `ParticleNetwork` runs its own entrance rather than being
+	staged from here — it is the background, not one of the staged lines.
 
 	**One deterministic sequence, started on mount.** The entrance used to be
 	chained off `DynamicText`'s `onDone`, with a fallback timer in case that never
@@ -29,7 +29,7 @@
 	import { magnetic } from '$lib/actions/magnetic';
 	import DynamicText from '$lib/components/kokonut/DynamicText.svelte';
 	import SlideTextButton from '$lib/components/kokonut/SlideTextButton.svelte';
-	import FlowField from '$lib/components/kokonut/FlowField.svelte';
+	import ParticleNetwork from '$lib/components/kokonut/ParticleNetwork.svelte';
 	import { site } from '$content/site';
 	import { cn } from '$lib/utils/cn';
 
@@ -136,7 +136,7 @@
 </script>
 
 <section class={cn('hero', className)} bind:this={sectionEl}>
-	<FlowField intensity="bold" />
+	<ParticleNetwork intensity="bold" />
 
 	<div class="container hero__inner">
 		<div class="hero__copy">

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import FlowField from '$lib/components/kokonut/FlowField.svelte';
+	import ParticleNetwork from '$lib/components/kokonut/ParticleNetwork.svelte';
 	import FeaturedPost from '$lib/components/sections/blog/FeaturedPost.svelte';
 	import PostCard from '$lib/components/sections/blog/PostCard.svelte';
 	import TagFilter from '$lib/components/sections/blog/TagFilter.svelte';
@@ -46,7 +46,7 @@
 
 <main class="blog">
 	<div class="blog__masthead">
-		<FlowField intensity="soft" />
+		<ParticleNetwork intensity="soft" />
 		<div class="container">
 			<header class="blog__header">
 				<h1 class="display-heading blog__title">The Buna Print</h1>
