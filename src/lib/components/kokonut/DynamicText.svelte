@@ -118,11 +118,18 @@
 </span>
 
 <style>
+	/*
+		A fixed line box, not one sized by whichever word is currently in it. The
+		outgoing word is lifted out of flow while it leaves (below), so exactly one
+		word ever takes layout — two in flow is what rendered "Bonjour Hola" side
+		by side — and the reserved height keeps the words from nudging the line as
+		they swap.
+	*/
 	.dynamic-text {
 		position: relative;
 		display: inline-block;
+		height: 1.2em;
 		overflow: hidden;
-		/* Keeps the line box from collapsing while a word is mid-flight. */
 		vertical-align: bottom;
 	}
 
@@ -134,8 +141,7 @@
 
 	.dynamic-text__outgoing {
 		position: absolute;
-		inset-inline-start: 0;
-		top: 0;
+		inset: 0;
 		pointer-events: none;
 	}
 </style>

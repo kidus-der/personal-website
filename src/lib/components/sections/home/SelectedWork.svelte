@@ -34,7 +34,7 @@
 			{/snippet}
 		</SectionHeading>
 
-		<div class="selected-work__grid" use:reveal={GRID_REVEAL}>
+		<div class="selected-work__grid" data-reveal-group use:reveal={GRID_REVEAL}>
 			{#each projects as project (project.slug)}
 				<ProjectCard
 					{project}

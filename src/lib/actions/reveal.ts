@@ -1,16 +1,27 @@
 /**
  * use:reveal — the one entrance animation the site uses away from the hero.
  *
- * The node (or, with `stagger`, its direct children) is hidden synchronously on
- * mount so there is no flash of the final state before the observer fires, then
- * faded and lifted into place the first time it scrolls into view. The inline
- * styles are removed again once the animation completes, so the element goes
- * back to being styled purely by the stylesheet — a `transform` from `use:tilt`
- * or a `:hover` rule would otherwise lose to the inline `transform: none` that
- * Motion leaves behind.
+ * The node (or, with `stagger`, its direct children) is faded and lifted into
+ * place the first time it scrolls into view, then handed back to the stylesheet:
+ * the inline styles are removed once the animation completes, so a `transform`
+ * from `use:tilt` or a `:hover` rule is not beaten by the `transform: none`
+ * Motion would otherwise leave behind.
  *
- *   <section use:reveal>…</section>
- *   <ul use:reveal={{ stagger: 0.06 }}>…</ul>
+ *   <section data-reveal use:reveal>…</section>
+ *   <ul data-reveal-group use:reveal={{ stagger: 0.06 }}>…</ul>
+ *
+ * **Who does the hiding.** The markup carries `data-reveal` (or, for a stagger,
+ * `data-reveal-group` on the parent) and `app.css` hides those elements while
+ * `<html>` has the `js` class — see CLAUDE.md, "Animation system". Hiding in the
+ * stylesheet rather than here is what removes the flash: the action used to
+ * write `opacity: 0` on mount, which meant server-rendered content painted,
+ * disappeared a beat later and faded back in. The action now only sets the
+ * starting transform, and marks each target `data-revealed` when it arrives,
+ * which is what releases the stylesheet's hold.
+ *
+ * An element with neither attribute — third-party use, or a call site that has
+ * not been updated — falls back to the old behaviour and is hidden inline. That
+ * still works; it just flashes.
  *
  * The staggered children are captured once, at mount: children added later are
  * neither hidden nor animated. That suits the static, server-rendered lists this
@@ -47,6 +58,20 @@ function resolveTargets(node: HTMLElement, staggerEach: number | undefined): HTM
 }
 
 /**
+ * Is the stylesheet already hiding this target?
+ *
+ * Either it carries `data-reveal` itself, or it is a direct child of the
+ * `data-reveal-group` this instance is animating — the two selectors `app.css`
+ * pre-hides.
+ */
+function isPreHidden(target: HTMLElement, group: HTMLElement | null): boolean {
+	if (target.hasAttribute('data-reveal')) return true;
+	return (
+		group !== null && target.parentElement === group && group.hasAttribute('data-reveal-group')
+	);
+}
+
+/**
  * `intersectionRatio` is capped at `viewportHeight / elementHeight`, so a
  * numeric threshold an element is too tall to ever reach would leave it hidden
  * forever. Measured once, at mount.
@@ -59,35 +84,45 @@ function resolveAmount(node: HTMLElement, amount: RevealOptions['amount']) {
 	return Math.min(amount, (window.innerHeight / height) * TALL_ELEMENT_MARGIN);
 }
 
-function hide(targets: HTMLElement[], y: number) {
+/** The state a target waits in. `opacity` only for targets the CSS is not hiding. */
+function hide(targets: HTMLElement[], y: number, group: HTMLElement | null, force = false) {
 	for (const target of targets) {
-		target.style.opacity = '0';
+		target.removeAttribute('data-revealed');
+		if (force || !isPreHidden(target, group)) target.style.opacity = '0';
 		target.style.transform = `translateY(${y}px)`;
 	}
 }
 
 /** Hand the element back to the stylesheet once it has arrived. */
-function clearInlineState(targets: HTMLElement[]) {
+function markRevealed(targets: HTMLElement[]) {
 	for (const target of targets) {
+		target.setAttribute('data-revealed', '');
 		target.style.removeProperty('opacity');
 		target.style.removeProperty('transform');
 	}
 }
 
 export const reveal: Action<HTMLElement, RevealOptions | undefined> = (node, options) => {
-	// Reduced motion means no entrance at all: the node is already at its final
-	// state in the markup, so the correct behaviour is to touch nothing.
-	if (reducedMotion()) return { destroy() {} };
-
 	const opts = { ...DEFAULTS, ...options };
+	const group = opts.stagger === undefined ? null : node;
 	const targets = resolveTargets(node, opts.stagger);
+
+	// Reduced motion means no entrance at all. The markup is already at its final
+	// state, so the only thing to do is release the pre-hide — the media query in
+	// `app.css` does that too, but marking the targets keeps the two answers to
+	// "does this user get animations" from ever disagreeing.
+	if (reducedMotion()) {
+		for (const target of targets) target.setAttribute('data-revealed', '');
+		return { destroy() {} };
+	}
+
 	const delay =
 		opts.stagger === undefined ? opts.delay : stagger(opts.stagger, { startDelay: opts.delay });
 
 	let animation: Animation | undefined;
 	let revealed = false;
 
-	hide(targets, opts.y);
+	hide(targets, opts.y, group);
 
 	const play = (
 		keyframes: { opacity: number; y: number },
@@ -110,12 +145,14 @@ export const reveal: Action<HTMLElement, RevealOptions | undefined> = (node, opt
 			// `once` this fires a single time anyway; the flag is belt and braces.
 			if (opts.once && revealed) return;
 			revealed = true;
-			play({ opacity: 1, y: 0 }, delay, () => clearInlineState(targets));
+			play({ opacity: 1, y: 0 }, delay, () => markRevealed(targets));
 
 			if (opts.once) return;
 			// Re-hiding on the way out is what keeps the next entrance an entrance,
-			// now that the inline styles are dropped when the reveal completes.
-			return () => play({ opacity: 0, y: opts.y }, 0, () => hide(targets, opts.y));
+			// now that the inline styles are dropped when the reveal completes. The
+			// inline opacity is forced here: the element is mid-exit, not waiting on
+			// a stylesheet that has already had its say.
+			return () => play({ opacity: 0, y: opts.y }, 0, () => hide(targets, opts.y, group, true));
 		},
 		{ amount: resolveAmount(node, opts.amount) }
 	);

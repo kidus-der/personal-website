@@ -45,7 +45,7 @@
 			</div>
 
 			{#if rest.length > 0}
-				<div class="latest-writing__grid" use:reveal={GRID_REVEAL}>
+				<div class="latest-writing__grid" data-reveal-group use:reveal={GRID_REVEAL}>
 					{#each rest as post, index (post.slug)}
 						<PostCard {post} {index} />
 					{/each}

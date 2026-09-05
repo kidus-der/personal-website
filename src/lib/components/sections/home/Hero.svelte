@@ -1,32 +1,32 @@
 <!--
 	Hero — the one orchestrated entrance on the site.
 
-	The greeting cycles through six languages and settles on the Amharic hello,
-	then the headline arrives line by line, then the sub, the buttons and the
-	social row, and finally the verification card draws its ring. Everything else
-	on the site reveals on scroll with `use:reveal`; this is the exception the
-	motion brief allows.
+	Everything else reveals on scroll with `use:reveal`; this is the exception the
+	motion brief allows. The greeting, the three headline lines, the sub, the
+	buttons, the social row and the art each rise into place on a fixed beat.
 
-	The handover is `DynamicText`'s `onDone` rather than a guessed delay, so the
-	headline never lands on top of a greeting that is still cycling. A fallback
-	timer covers the case where that callback never arrives, and `startEntrance`
-	is idempotent so whichever gets there first wins.
+	**One deterministic sequence, started on mount.** The entrance used to be
+	chained off `DynamicText`'s `onDone`, with a fallback timer in case that never
+	arrived — which meant the headline waited nearly two seconds on a greeting it
+	has nothing to do with. The greeting now cycles alongside it and the sequence
+	is a plain schedule: no handover, no timer, nothing that can strand the hero
+	if one part of it misbehaves.
 
-	The staged elements are hidden in `onMount`, not in the stylesheet, and only
-	when the animation is actually going to run. Server-rendered markup is
-	therefore complete and visible: a reader with no JavaScript, or with reduced
-	motion asked for, sees the finished hero rather than a blank column.
+	**Nothing is hidden from here.** The staged elements carry `data-hero` and the
+	stylesheet hides them before first paint while `<html>` has the `js` class —
+	see CLAUDE.md, "Animation system". Writing `opacity: 0` from `onMount`, as
+	this used to, is what made the server-rendered hero paint, vanish and fade
+	back in. Each element is released with `data-revealed` as its animation lands.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { animate, durations, easings, reducedMotion, stagger } from '$lib/motion';
+	import { animate, easings, reducedMotion, stagger } from '$lib/motion';
 	import { magnetic } from '$lib/actions/magnetic';
-	import BackgroundPaths from '$lib/components/kokonut/BackgroundPaths.svelte';
 	import DynamicText from '$lib/components/kokonut/DynamicText.svelte';
 	import SlideTextButton from '$lib/components/kokonut/SlideTextButton.svelte';
 	import { site } from '$content/site';
 	import { cn } from '$lib/utils/cn';
-	import VerificationCard from './VerificationCard.svelte';
+	import HeroArt from './HeroArt.svelte';
 
 	interface Props {
 		class?: string;
@@ -39,10 +39,14 @@
 		{ text: 'Hello' },
 		{ text: 'Bonjour', lang: 'fr' },
 		{ text: 'Hola', lang: 'es' },
-		{ text: 'こんにちは', lang: 'ja' },
 		{ text: 'Ciao', lang: 'it' }
 	];
 	const GREETING_FINAL = "ሰላም, I'm Kidus.";
+	/**
+	 * Fast enough that the whole cycle is over well inside the entrance it now
+	 * runs alongside, rather than being something the rest of the hero waits on.
+	 */
+	const GREETING_INTERVAL = 260;
 
 	const SOCIALS = [
 		{ label: 'GitHub', href: site.socials.github, icon: 'github' },
@@ -50,121 +54,97 @@
 		{ label: 'Google Scholar', href: site.socials.scholar, icon: 'scholar' }
 	] as const;
 
-	/** `DynamicText`'s own default, restated so the fallback can be derived. */
-	const GREETING_INTERVAL = 320;
-	/**
-	 * Milliseconds. If `onDone` never arrives — the component unmounts its timer,
-	 * a future refactor drops the callback — the rest of the hero still shows up.
-	 * One interval longer than the full cycle, plus a little slack.
-	 */
-	const GREETING_FALLBACK = GREETING_WORDS.length * GREETING_INTERVAL + 200;
-
+	/** How far each element rises, and how long it takes. */
+	const LIFT = 16;
+	const DURATION = 0.7;
 	const LINE_STAGGER = 0.08;
-	/** Gap between the sub, the buttons and the social row. */
-	const STEP = 0.1;
-	const SUB_DELAY = 0.3;
-	/** Milliseconds after the entrance starts; the card draws while the buttons arrive. */
-	const CARD_DELAY = 600;
-	const LIFT = 24;
 
-	let headlineEl = $state<HTMLHeadingElement | undefined>();
-	let subEl = $state<HTMLParagraphElement | undefined>();
-	let buttonsEl = $state<HTMLDivElement | undefined>();
-	let socialsEl = $state<HTMLUListElement | undefined>();
-
-	/** The verification card's cue. True from the start when nothing animates. */
-	let cardStarted = $state(false);
+	/**
+	 * The schedule, in seconds from mount. Selectors rather than bindings: the
+	 * order a reader sees is the order this list is written in, which is the part
+	 * worth being able to take in at a glance.
+	 */
+	const ENTRANCE: { selector: string; delay: number; stagger?: number }[] = [
+		{ selector: '.hero__greeting', delay: 0 },
+		{ selector: '.hero__line', delay: 0.15, stagger: LINE_STAGGER },
+		{ selector: '.hero-art', delay: 0.2 },
+		{ selector: '.hero__sub', delay: 0.55 },
+		{ selector: '.hero__actions', delay: 0.65 },
+		{ selector: '.hero__socials', delay: 0.75 }
+	];
 
 	type Animation = ReturnType<typeof animate>;
 
+	let sectionEl = $state<HTMLElement | undefined>();
 	/** Everything in flight, so unmounting mid-entrance stops it dead. */
 	let running: Animation[] = [];
-	let timers: ReturnType<typeof setTimeout>[] = [];
-	/** The entrance is a one-shot: `onDone` and the fallback both aim at it. */
-	let started = false;
 
-	function stopEverything() {
-		for (const animation of running) animation.stop();
-		running = [];
-		for (const timer of timers) clearTimeout(timer);
-		timers = [];
+	function find(selector: string): HTMLElement[] {
+		return [...(sectionEl?.querySelectorAll<HTMLElement>(selector) ?? [])];
 	}
 
-	/**
-	 * Runs when the greeting has settled — chained off `DynamicText`'s `onDone`
-	 * rather than a guessed delay, so the two never overlap however long the
-	 * cycle takes.
-	 */
-	function startEntrance() {
-		if (started || reducedMotion()) return;
-		started = true;
-
-		const lines = [...(headlineEl?.querySelectorAll<HTMLElement>('.hero__line') ?? [])];
-
-		// Spread: Motion normalises the easing array, and the token is shared.
-		// The tuple annotation is what makes it a cubic bezier rather than a
-		// widened `number[]`, which Motion's `Easing` union does not accept.
-		const timing = {
-			duration: durations.slow,
-			ease: [...easings.outExpo] as [number, number, number, number]
-		};
-		const rise = { y: [LIFT, 0], opacity: [0, 1] };
-
-		if (lines.length > 0) {
-			running.push(animate(lines, rise, { ...timing, delay: stagger(LINE_STAGGER) }));
+	/** Hand an element back to the stylesheet, fully arrived. */
+	function release(elements: HTMLElement[]) {
+		for (const element of elements) {
+			element.setAttribute('data-revealed', '');
+			element.style.removeProperty('opacity');
+			element.style.removeProperty('transform');
 		}
-		if (subEl) running.push(animate(subEl, rise, { ...timing, delay: SUB_DELAY }));
-		if (buttonsEl) running.push(animate(buttonsEl, rise, { ...timing, delay: SUB_DELAY + STEP }));
-		if (socialsEl)
-			running.push(animate(socialsEl, rise, { ...timing, delay: SUB_DELAY + STEP * 2 }));
-
-		timers.push(setTimeout(() => (cardStarted = true), CARD_DELAY));
 	}
 
 	onMount(() => {
+		// Reduced motion: the markup is already the finished hero, so the only
+		// thing left to do is lift the pre-hide.
 		if (reducedMotion()) {
-			cardStarted = true;
+			release(find('[data-hero]'));
 			return;
 		}
 
-		const staged = [
-			...(headlineEl?.querySelectorAll<HTMLElement>('.hero__line') ?? []),
-			subEl,
-			buttonsEl,
-			socialsEl
-		].filter((element): element is HTMLElement => element !== undefined);
-		for (const element of staged) element.style.opacity = '0';
+		// The tuple annotation is what makes the shared token a cubic bezier
+		// rather than a widened `number[]`, which Motion's `Easing` union rejects.
+		const ease = [...easings.outExpo] as [number, number, number, number];
+		const rise = { opacity: [0, 1], y: [LIFT, 0] };
 
-		timers.push(setTimeout(startEntrance, GREETING_FALLBACK));
-		return stopEverything;
+		for (const step of ENTRANCE) {
+			const elements = find(step.selector);
+			if (elements.length === 0) continue;
+			const delay =
+				step.stagger === undefined ? step.delay : stagger(step.stagger, { startDelay: step.delay });
+			running.push(
+				animate(elements, rise, {
+					duration: DURATION,
+					ease,
+					delay,
+					onComplete: () => release(elements)
+				})
+			);
+		}
+
+		return () => {
+			for (const animation of running) animation.stop();
+			running = [];
+		};
 	});
 </script>
 
-<section class={cn('hero', className)}>
-	<BackgroundPaths opacity={0.5} />
-
+<section class={cn('hero', className)} bind:this={sectionEl}>
 	<div class="container hero__inner">
 		<div class="hero__copy">
 			<!--
 				The wrapper exists so the greeting can be styled from here: a `class`
 				handed to a component is not touched by Svelte's style scoping.
 			-->
-			<div class="hero__greeting">
-				<DynamicText
-					words={GREETING_WORDS}
-					final={GREETING_FINAL}
-					interval={GREETING_INTERVAL}
-					onDone={startEntrance}
-				/>
+			<div class="hero__greeting" data-hero>
+				<DynamicText words={GREETING_WORDS} final={GREETING_FINAL} interval={GREETING_INTERVAL} />
 			</div>
 
-			<h1 class="hero__headline" bind:this={headlineEl}>
-				<span class="hero__line">I build intelligent</span>
-				<span class="hero__line">systems that</span>
-				<span class="hero__line"><em class="hero__emphasis">reason and act</em>.</span>
+			<h1 class="hero__headline">
+				<span class="hero__line" data-hero>I build intelligent</span>
+				<span class="hero__line" data-hero>systems that</span>
+				<span class="hero__line" data-hero><em class="hero__emphasis">reason and act</em>.</span>
 			</h1>
 
-			<p class="hero__sub" bind:this={subEl}>
+			<p class="hero__sub" data-hero>
 				Founding Engineer at <a
 					class="accent-link"
 					href="https://www.scam.ai/en"
@@ -174,12 +154,12 @@
 				University of Alberta.
 			</p>
 
-			<div class="hero__actions" bind:this={buttonsEl}>
+			<div class="hero__actions" data-hero>
 				<SlideTextButton text="See my work" href="/work" />
 				<SlideTextButton variant="ghost" text="Read the Buna Print" href="/blog" />
 			</div>
 
-			<ul class="hero__socials" bind:this={socialsEl}>
+			<ul class="hero__socials" data-hero>
 				{#each SOCIALS as social (social.label)}
 					<li>
 						<a
@@ -236,16 +216,12 @@
 			</ul>
 		</div>
 
-		<div class="hero__card">
-			<VerificationCard animate={cardStarted} />
-		</div>
+		<HeroArt class="hero__art" />
 	</div>
 </section>
 
 <style>
 	.hero {
-		/* The background paths are absolutely positioned into this box, and
-		   `color` is what tints their strokes. */
 		position: relative;
 		overflow: hidden;
 		color: var(--accent);
@@ -262,7 +238,7 @@
 
 	@media (min-width: 960px) {
 		.hero__inner {
-			/* 7/12 text, 5/12 card — the asymmetry the layout brief asks for. */
+			/* 7/12 text, 5/12 art — the asymmetry the layout brief asks for. */
 			grid-template-columns: 7fr 5fr;
 		}
 	}
@@ -354,9 +330,10 @@
 		border-color: var(--border-strong);
 	}
 
-	.hero__card {
+	.hero__art {
 		width: 100%;
 		max-width: 30rem;
+		justify-self: center;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

@@ -20,10 +20,17 @@ export interface MockAnimation {
 export const animations: MockAnimation[] = [];
 
 export const animateMock = vi.fn(
-	(_element: unknown, _keyframes: unknown, options?: { onUpdate?: (value: number) => void }) => {
+	(
+		_element: unknown,
+		_keyframes: unknown,
+		options?: { onUpdate?: (value: number) => void; onComplete?: () => void }
+	) => {
 		// Motion drives `onUpdate` from its own ticker; jump straight to the end so
-		// components that write derived state from it settle synchronously.
+		// components that write derived state from it settle synchronously. The
+		// same goes for `onComplete`, which is how an entrance releases its
+		// element from the pre-hide.
 		options?.onUpdate?.(1);
+		options?.onComplete?.();
 		const animation: MockAnimation = {
 			stop: vi.fn(),
 			complete: vi.fn(),

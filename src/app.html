@@ -5,11 +5,17 @@
 		<link rel="icon" href="%sveltekit.assets%/favicon.ico" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<!--
-			Blocking theme script — runs before first paint so there is no flash of
-			the wrong theme. Must stay synchronous and inline.
+			Blocking script — runs before first paint so there is no flash of the
+			wrong theme and no flash of content that is about to animate in. Must
+			stay synchronous and inline.
 		-->
 		<script>
 			(function () {
+				// Marks the document as scripted. `app.css` keys the entrance
+				// pre-hide off this, so it must be set before first paint and
+				// before anything that can throw — see CLAUDE.md, "Animation
+				// system".
+				document.documentElement.classList.add('js');
 				try {
 					var stored = localStorage.getItem('theme');
 					var preferred = window.matchMedia('(prefers-color-scheme: light)').matches

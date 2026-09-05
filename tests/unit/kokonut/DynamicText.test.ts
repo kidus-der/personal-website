@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import DynamicText from '$lib/components/kokonut/DynamicText.svelte';
 import { animateMock, preferReducedMotion, resetMotionMocks } from '../mocks/motion';
+import source from '$lib/components/kokonut/DynamicText.svelte?raw';
 
 vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
@@ -98,6 +99,37 @@ describe('DynamicText', () => {
 		expect(read()).toBe('Kidus');
 		expect(onDone).toHaveBeenCalledTimes(1);
 		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	describe('layout while two words cross over', () => {
+		it('keeps exactly one word in normal flow at every step of the cycle', async () => {
+			const { container } = setup();
+
+			// A leaving word is `.dynamic-text__outgoing`, which the stylesheet
+			// takes out of flow; the one word still in flow is the current one.
+			// Two words in flow is what rendered "Bonjour Hola" side by side.
+			for (let step = 0; step <= WORDS.length; step += 1) {
+				expect(container.querySelectorAll('.dynamic-text__current')).toHaveLength(1);
+				await vi.advanceTimersByTimeAsync(INTERVAL);
+			}
+		});
+
+		it('lifts the exiting word out of flow, filling the box', () => {
+			// jsdom does not apply Svelte's scoped stylesheet, so the source is
+			// where this can be checked at all.
+			// `.dynamic-text__outgoing` appears in two rules; join their bodies.
+			const rules = [...source.matchAll(/\.dynamic-text__outgoing \{([^}]*)\}/g)]
+				.map((match) => match[1])
+				.join('');
+			expect(rules).toContain('position: absolute;');
+			expect(rules).toContain('inset: 0;');
+		});
+
+		it('reserves a fixed line box so the words never shift the layout', () => {
+			const rule = source.match(/\.dynamic-text \{([^}]*)\}/)?.[1] ?? '';
+			expect(rule).toContain('position: relative;');
+			expect(rule).toContain('height: 1.2em;');
+		});
 	});
 
 	it('clears its interval when destroyed mid-cycle', async () => {
