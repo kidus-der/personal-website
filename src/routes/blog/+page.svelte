@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { BeamsBackground } from '$lib/components/kokonut';
+	import FlowField from '$lib/components/kokonut/FlowField.svelte';
 	import FeaturedPost from '$lib/components/sections/blog/FeaturedPost.svelte';
 	import PostCard from '$lib/components/sections/blog/PostCard.svelte';
 	import TagFilter from '$lib/components/sections/blog/TagFilter.svelte';
@@ -46,7 +46,7 @@
 
 <main class="blog">
 	<div class="blog__masthead">
-		<BeamsBackground intensity="subtle" />
+		<FlowField intensity="soft" />
 		<div class="container">
 			<header class="blog__header">
 				<h1 class="display-heading blog__title">The Buna Print</h1>
@@ -113,8 +113,28 @@
 		border-bottom: 1px solid var(--border);
 	}
 
+	/*
+		The same wash the home hero lays under its copy: a pool of the page's own
+		background so the masthead keeps its contrast over the busiest part of the
+		field without dimming the field at the edges.
+	*/
+	.blog__header::before {
+		content: '';
+		position: absolute;
+		inset: -2rem -1.5rem;
+		z-index: -1;
+		pointer-events: none;
+		background: radial-gradient(
+			60% 80% at 25% 50%,
+			color-mix(in srgb, var(--bg) 80%, transparent),
+			transparent
+		);
+	}
+
 	.blog__header {
 		position: relative;
+		/* Its own stacking context, so the wash above stays above the field. */
+		z-index: 1;
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;

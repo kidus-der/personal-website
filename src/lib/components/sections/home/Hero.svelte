@@ -3,7 +3,12 @@
 
 	Everything else reveals on scroll with `use:reveal`; this is the exception the
 	motion brief allows. The greeting, the three headline lines, the sub, the
-	buttons, the social row and the art each rise into place on a fixed beat.
+	buttons and the social row each rise into place on a fixed beat.
+
+	The hero is one full-width block of copy over a full-bleed `FlowField`. It used
+	to be a 7/12 column of text beside a 5/12 picture; the picture is the whole
+	hero now, and `FlowField` runs its own entrance rather than being staged from
+	here — it is the background, not one of the staged lines.
 
 	**One deterministic sequence, started on mount.** The entrance used to be
 	chained off `DynamicText`'s `onDone`, with a fallback timer in case that never
@@ -24,9 +29,9 @@
 	import { magnetic } from '$lib/actions/magnetic';
 	import DynamicText from '$lib/components/kokonut/DynamicText.svelte';
 	import SlideTextButton from '$lib/components/kokonut/SlideTextButton.svelte';
+	import FlowField from '$lib/components/kokonut/FlowField.svelte';
 	import { site } from '$content/site';
 	import { cn } from '$lib/utils/cn';
-	import HeroArt from './HeroArt.svelte';
 
 	interface Props {
 		class?: string;
@@ -67,7 +72,6 @@
 	const ENTRANCE: { selector: string; delay: number; stagger?: number }[] = [
 		{ selector: '.hero__greeting', delay: 0 },
 		{ selector: '.hero__line', delay: 0.15, stagger: LINE_STAGGER },
-		{ selector: '.hero-art', delay: 0.2 },
 		{ selector: '.hero__sub', delay: 0.55 },
 		{ selector: '.hero__actions', delay: 0.65 },
 		{ selector: '.hero__socials', delay: 0.75 }
@@ -84,26 +88,34 @@
 	}
 
 	onMount(() => {
+		// Resolved once, from the schedule rather than from `[data-hero]`: the
+		// field behind the copy carries that attribute too and runs its own
+		// entrance, and claiming it from here would re-mark an element that has
+		// already released itself, leaving it claimed forever.
+		const staged = ENTRANCE.map((step) => ({ step, elements: find(step.selector) })).filter(
+			({ elements }) => elements.length > 0
+		);
+
 		// Reduced motion: the markup is already the finished hero, so the only
 		// thing left to do is lift the pre-hide.
 		if (reducedMotion()) {
-			markRevealed(find('[data-hero]'));
+			markRevealed(staged.flatMap(({ elements }) => elements));
 			return;
 		}
 
 		// This component owns the entrance of everything it staged, so the
 		// stylesheet's safety net can stand down for all of it — a net that fired
 		// at three seconds would override the inline opacity mid-animation.
-		for (const element of find('[data-hero]')) element.setAttribute('data-motion-ready', '');
+		for (const { elements } of staged) {
+			for (const element of elements) element.setAttribute('data-motion-ready', '');
+		}
 
 		// The tuple annotation is what makes the shared token a cubic bezier
 		// rather than a widened `number[]`, which Motion's `Easing` union rejects.
 		const ease = [...easings.outExpo] as [number, number, number, number];
 		const rise = { opacity: [0, 1], y: [LIFT, 0] };
 
-		for (const step of ENTRANCE) {
-			const elements = find(step.selector);
-			if (elements.length === 0) continue;
+		for (const { step, elements } of staged) {
 			const delay =
 				step.stagger === undefined ? step.delay : stagger(step.stagger, { startDelay: step.delay });
 			running.push(
@@ -124,6 +136,8 @@
 </script>
 
 <section class={cn('hero', className)} bind:this={sectionEl}>
+	<FlowField intensity="bold" />
+
 	<div class="container hero__inner">
 		<div class="hero__copy">
 			<!--
@@ -211,8 +225,6 @@
 				{/each}
 			</ul>
 		</div>
-
-		<HeroArt />
 	</div>
 </section>
 
@@ -224,19 +236,32 @@
 		padding-block: clamp(3.5rem, 9vw, 7rem) var(--spacing-section);
 	}
 
-	.hero__inner {
-		position: relative;
-		display: grid;
-		gap: clamp(2.5rem, 6vw, 4rem);
-		align-items: center;
-		color: var(--text);
+	/*
+		A soft wash of the page's own background behind the copy. The field runs
+		the full width of the hero now, so the headline sits over the busiest part
+		of the weave; this is what keeps it at AA in both themes without dimming
+		the field everywhere else.
+	*/
+	.hero::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: radial-gradient(
+			60% 80% at 25% 50%,
+			color-mix(in srgb, var(--bg) 80%, transparent),
+			transparent
+		);
 	}
 
-	@media (min-width: 960px) {
-		.hero__inner {
-			/* 7/12 text, 5/12 art — the asymmetry the layout brief asks for. */
-			grid-template-columns: 7fr 5fr;
-		}
+	/*
+		One full-width text block over the field, rather than the old 7/12 column
+		beside a 5/12 picture. The picture is the whole hero now.
+	*/
+	.hero__inner {
+		position: relative;
+		z-index: 1;
+		color: var(--text);
 	}
 
 	.hero__copy {
@@ -265,6 +290,9 @@
 	.hero__headline {
 		display: flex;
 		flex-direction: column;
+		/* Three short lines at display size: the measure, not the column, is what
+		   decides where the headline breaks. */
+		max-width: 12ch;
 		font-family: var(--font-display);
 		font-size: var(--text-display);
 		font-weight: 500;
@@ -289,7 +317,7 @@
 	}
 
 	.hero__sub {
-		max-width: 46ch;
+		max-width: 560px;
 		font-size: var(--text-lg);
 		color: var(--text-muted);
 	}

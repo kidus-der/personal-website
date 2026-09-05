@@ -17,8 +17,18 @@ declare global {
  * asserted here against the built site.
  */
 
-/** What `document.getAnimations()` may report on a settled page. */
-const ANIMATION_BUDGET = 40;
+/**
+ * What `document.getAnimations()` may report on a settled page.
+ *
+ * Raised from 40 with the `FlowField` hero: 36 drifting paths plus the hero's
+ * own entrance. Most of the field does not actually show up in this count —
+ * Motion drives `pathLength` and `pathOffset` off its own ticker rather than
+ * through the Web Animations API, so a settled `/` reports far fewer than the
+ * ceiling — but the ceiling is written for what the page renders, not for what
+ * one animation library happens to hand to the browser. It is what catches the
+ * next background that goes back to one WAAPI animation per element.
+ */
+const ANIMATION_BUDGET = 60;
 /** Everything the hero stages. */
 const HERO = '[data-hero]';
 /** How long the whole hero entrance has to finish, from `load`. */

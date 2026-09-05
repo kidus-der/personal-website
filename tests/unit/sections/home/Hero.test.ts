@@ -19,7 +19,6 @@ vi.mock('$lib/actions/magnetic', async () =>
  */
 const SCHEDULE: Record<string, number> = {
 	'.hero__greeting': 0,
-	'.hero-art': 0.2,
 	'.hero__sub': 0.55,
 	'.hero__actions': 0.65,
 	'.hero__socials': 0.75
@@ -104,21 +103,31 @@ describe('Hero', () => {
 		expect(magnetic.calls).toHaveLength(3);
 	});
 
-	it('renders the hero art beside the copy', () => {
+	it('lays a full-bleed flow field behind the copy, at its bold intensity', () => {
 		const { container } = setup();
-		expect(container.querySelector('.hero-art')).toBeInTheDocument();
-	});
-
-	it('lays no background path field behind the hero — the art is the visual', () => {
-		const { container } = setup();
-		expect(container.querySelector('.background-paths')).not.toBeInTheDocument();
+		const field = container.querySelector('.flow-field');
+		expect(field).toBeInTheDocument();
+		expect(field).toHaveClass('flow-field--bold');
+		// The copy is one full-width block over the field now, not a column
+		// beside a picture.
+		expect(container.querySelector('.hero-art')).not.toBeInTheDocument();
 	});
 
 	it('marks every staged element for the stylesheet pre-hide', () => {
 		const { container } = setup();
 		const staged = [...container.querySelectorAll('[data-hero]')].map((el) => el.className);
-		// Greeting, three headline lines, sub, actions, socials, art.
+		// Greeting, three headline lines, sub, actions, socials, and the field.
 		expect(staged.length).toBeGreaterThanOrEqual(8);
+	});
+
+	it('claims only what it stages, leaving the field to release itself', () => {
+		// The field carries `data-hero` and runs its own entrance. Claiming it
+		// from the hero would re-mark an element that had already released
+		// itself, and nothing here would ever lift that claim again.
+		const { container } = setup();
+		const field = container.querySelector('.flow-field') as HTMLElement;
+		expect(field.hasAttribute('data-motion-ready')).toBe(false);
+		expect(field).toHaveAttribute('data-revealed', '');
 	});
 
 	it('never writes an inline opacity, which is what made the hero flash', () => {
@@ -181,12 +190,16 @@ describe('Hero', () => {
 
 	it('stops its own entrance animations when the hero unmounts mid-flight', () => {
 		const { unmount } = setup();
-		// `animations` holds every animation the mock handed out, the art's and
-		// the greeting's included. The hero's own are the ones aimed at a group
-		// of elements, and they line up with the calls by index.
+		// `animations` holds every animation the mock handed out — the greeting's
+		// and the field's included — and they line up with the calls by index. The
+		// hero's own are the ones aimed at a group of its staged elements.
 		const owned = animateMock.mock.calls
 			.map((call, index) => ({ target: call[0], animation: animations[index] }))
-			.filter(({ target }) => Array.isArray(target));
+			.filter(
+				({ target }) =>
+					Array.isArray(target) &&
+					target.every((node) => node instanceof HTMLElement && node.className.includes('hero__'))
+			);
 		expect(owned).toHaveLength(Object.keys(SCHEDULE).length + 1);
 
 		unmount();

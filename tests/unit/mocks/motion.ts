@@ -45,6 +45,16 @@ export const animateMock = vi.fn(
 
 export const reducedMotionMock = vi.fn(() => false);
 
+/**
+ * `inView`, inert by default: it records the element and the callback and hands
+ * back a stop function, exactly like the real one, but never decides that
+ * anything is on screen. jsdom has no IntersectionObserver worth driving, so a
+ * test that cares runs the recorded callback itself — see `FlowField.test.ts`.
+ */
+export const inViewMock = vi.fn<
+	(element: Element, onStart: () => (() => void) | void) => () => void
+>(() => () => {});
+
 /** The module shape `vi.mock('$lib/motion', …)` should return. */
 export async function motionModule() {
 	const config = await import('$lib/motion/config');
@@ -55,7 +65,7 @@ export async function motionModule() {
 		markRevealed,
 		animate: animateMock,
 		reducedMotion: reducedMotionMock,
-		inView: vi.fn(() => () => {}),
+		inView: inViewMock,
 		scroll: vi.fn(() => () => {}),
 		stagger: vi.fn(() => 0),
 		spring: vi.fn(),
@@ -68,6 +78,7 @@ export async function motionModule() {
 export function resetMotionMocks() {
 	animations.length = 0;
 	animateMock.mockClear();
+	inViewMock.mockClear();
 	reducedMotionMock.mockClear();
 	reducedMotionMock.mockReturnValue(false);
 }

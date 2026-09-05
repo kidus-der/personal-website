@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi, type MockInstance } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup, fireEvent, waitFor } from '@testing-library/svelte';
 import { readable } from 'svelte/store';
 import { createRawSnippet } from 'svelte';
@@ -62,22 +62,11 @@ describe('pickNeighbours', () => {
 });
 
 describe('blog listing page', () => {
-	// The masthead's BeamsBackground reaches for a 2D context jsdom does not
-	// implement; it bails out cleanly on null, this just silences the warning.
-	// Scoped to this block and restored, so the prototype is left as found —
-	// `vi.restoreAllMocks()` is avoided because it would also flatten the shared
-	// `$lib/motion` doubles the next describe relies on.
-	let getContextSpy: MockInstance;
-
 	beforeEach(() => {
 		resetMotionMocks();
-		getContextSpy = vi
-			.spyOn(HTMLCanvasElement.prototype, 'getContext')
-			.mockReturnValue(null) as unknown as MockInstance;
 	});
 	afterEach(() => {
 		cleanup();
-		getContextSpy.mockRestore();
 	});
 
 	function setup(posts: BlogPost[] = threePosts) {
