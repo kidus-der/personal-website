@@ -3,8 +3,8 @@ import { RESEND_API_KEY, RESEND_SEGMENT_ID, ADMIN_SECRET } from '$env/static/pri
 import { PUBLIC_SITE_URL } from '$env/static/public';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import type { BlogPost } from '$lib/types/content';
 import { buildNewPostEmail } from '$lib/server/emailTemplates';
+import { loadPosts } from '$lib/utils/posts';
 
 export const POST: RequestHandler = async ({ request }) => {
 	// Verify bearer token with timing-safe comparison
@@ -17,7 +17,13 @@ export const POST: RequestHandler = async ({ request }) => {
 	let authorized = false;
 	if (secretBytes.length === tokenBytes.length) {
 		// Timing-safe comparison using crypto.subtle
-		const secretKey = await crypto.subtle.importKey('raw', secretBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+		const secretKey = await crypto.subtle.importKey(
+			'raw',
+			secretBytes,
+			{ name: 'HMAC', hash: 'SHA-256' },
+			false,
+			['sign']
+		);
 		const [sigA, sigB] = await Promise.all([
 			crypto.subtle.sign('HMAC', secretKey, secretBytes),
 			crypto.subtle.sign('HMAC', secretKey, tokenBytes)
@@ -36,19 +42,14 @@ export const POST: RequestHandler = async ({ request }) => {
 		return json({ error: 'postSlug is required' }, { status: 400 });
 	}
 
-	// Load post metadata from mdsvex glob
-	const postModules = import.meta.glob('/src/content/posts/*.md', { eager: true });
-	const matchEntry = Object.entries(postModules).find(([path]) => {
-		const slug = path.split('/').pop()?.replace('.md', '');
-		return slug === postSlug;
-	});
+	// `loadPosts` drops drafts, so a draft slug 404s here rather than being
+	// announced to the list.
+	const posts = loadPosts(import.meta.glob('/src/content/posts/*.md', { eager: true }));
+	const post = posts.find((candidate) => candidate.slug === postSlug);
 
-	if (!matchEntry) {
+	if (!post) {
 		return json({ error: `Post "${postSlug}" not found` }, { status: 404 });
 	}
-
-	const meta = (matchEntry[1] as Record<string, unknown>).metadata as Omit<BlogPost, 'slug'>;
-	const post: BlogPost = { slug: postSlug, ...meta };
 
 	const html = buildNewPostEmail(post, PUBLIC_SITE_URL);
 

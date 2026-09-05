@@ -53,7 +53,12 @@ export async function verifyToken(
 	// Verify signature
 	const key = await getKey(secret);
 	const sigBytes = base64urlDecode(signature);
-	const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(message));
+	const valid = await crypto.subtle.verify(
+		'HMAC',
+		key,
+		sigBytes,
+		new TextEncoder().encode(message)
+	);
 	if (!valid) return null;
 
 	const emailBytes = base64urlDecode(encodedEmail);

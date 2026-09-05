@@ -40,6 +40,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 		html: buildConfirmationEmail(confirmUrl)
 	});
 
-	if (error) return json({ error: 'Failed to send confirmation. Please try again.' }, { status: 500 });
+	if (error)
+		return json({ error: 'Failed to send confirmation. Please try again.' }, { status: 500 });
 	return json({ success: true, message: 'Check your inbox for a confirmation link.' });
 };

@@ -1,0 +1,219 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, cleanup } from '@testing-library/svelte';
+import Hero from '$lib/components/sections/home/Hero.svelte';
+import { site } from '$content/site';
+import { animateMock, animations, preferReducedMotion, resetMotionMocks } from '../../mocks/motion';
+import { magnetic, resetActionMocks } from '../../mocks/actions';
+import { stagger } from '$lib/motion';
+
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../../mocks/actions')).tilt.module());
+vi.mock('$lib/actions/reveal', async () => (await import('../../mocks/actions')).reveal.module());
+vi.mock('$lib/actions/magnetic', async () =>
+	(await import('../../mocks/actions')).magnetic.module()
+);
+
+/**
+ * The hero's own entrance schedule, restated so the test asserts a contract
+ * rather than reading it back out of the component.
+ */
+const SCHEDULE: Record<string, number> = {
+	'.hero__greeting': 0,
+	'.hero__sub': 0.55,
+	'.hero__actions': 0.65,
+	'.hero__socials': 0.75
+};
+const LINE_DELAY = 0.15;
+
+/** Collapses the whitespace the split headline spans introduce. */
+function text(node: Element | null): string {
+	return (node?.textContent ?? '').replace(/\s+/g, ' ').trim();
+}
+
+function setup() {
+	const result = render(Hero);
+	const lines = () => [...result.container.querySelectorAll<HTMLElement>('.hero__line')];
+	return { ...result, lines };
+}
+
+describe('Hero', () => {
+	beforeEach(() => {
+		resetMotionMocks();
+		resetActionMocks();
+	});
+
+	afterEach(cleanup);
+
+	it('renders the headline as the page h1', () => {
+		const { getByRole } = setup();
+		const heading = getByRole('heading', { level: 1 });
+		expect(text(heading)).toBe('I build intelligent systems that reason and act.');
+	});
+
+	it('emphasises exactly one phrase, in italic display type', () => {
+		const { container } = setup();
+		const emphasis = container.querySelectorAll('.hero__emphasis');
+		expect(emphasis).toHaveLength(1);
+		expect(emphasis[0]).toHaveTextContent('reason and act');
+	});
+
+	it('splits the headline into animatable lines', () => {
+		const { lines } = setup();
+		expect(lines().length).toBeGreaterThanOrEqual(2);
+		expect(lines().length).toBeLessThanOrEqual(3);
+	});
+
+	it('settles the multilingual greeting on the Amharic hello', () => {
+		const { getByRole } = setup();
+		expect(getByRole('img', { name: "ሰላም, I'm Kidus." })).toBeInTheDocument();
+	});
+
+	it('renders both calls to action with the right destinations', () => {
+		const { getByRole } = setup();
+		expect(getByRole('link', { name: 'See my work' })).toHaveAttribute('href', '/work');
+		expect(getByRole('link', { name: 'Read the Buna Print' })).toHaveAttribute('href', '/blog');
+	});
+
+	it('links Scam AI out of the sub-headline', () => {
+		const { getByRole } = setup();
+		const link = getByRole('link', { name: 'Scam AI' });
+		expect(link).toHaveAttribute('href', 'https://www.scam.ai/en');
+		expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+	});
+
+	it('states the credentials in the sub-headline', () => {
+		const { container } = setup();
+		expect(text(container.querySelector('.hero__sub'))).toBe(
+			'Founding Engineer at Scam AI. Nine papers on deepfake and document forensics. Computing Science and Economics at the University of Alberta.'
+		);
+	});
+
+	it('offers the three labelled social links from the site content', () => {
+		const { getByRole } = setup();
+		expect(getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', site.socials.github);
+		expect(getByRole('link', { name: 'LinkedIn' })).toHaveAttribute('href', site.socials.linkedin);
+		expect(getByRole('link', { name: 'Google Scholar' })).toHaveAttribute(
+			'href',
+			site.socials.scholar
+		);
+	});
+
+	it('makes each social link magnetic', () => {
+		setup();
+		expect(magnetic.calls).toHaveLength(3);
+	});
+
+	it('lays a full-bleed particle network behind the copy, at its bold intensity', () => {
+		const { container } = setup();
+		const field = container.querySelector('.particle-network');
+		expect(field).toBeInTheDocument();
+		expect(field).toHaveClass('particle-network--bold');
+		// The copy is one full-width block over the field now, not a column
+		// beside a picture.
+		expect(container.querySelector('.hero-art')).not.toBeInTheDocument();
+	});
+
+	it('marks every staged element for the stylesheet pre-hide', () => {
+		const { container } = setup();
+		const staged = [...container.querySelectorAll('[data-hero]')].map((el) => el.className);
+		// Greeting, three headline lines, sub, actions, socials, and the field.
+		expect(staged.length).toBeGreaterThanOrEqual(8);
+	});
+
+	it('claims only what it stages, leaving the field to release itself', () => {
+		// The field carries `data-hero` and runs its own entrance. Claiming it
+		// from the hero would re-mark an element that had already released
+		// itself, and nothing here would ever lift that claim again.
+		const { container } = setup();
+		const field = container.querySelector('.particle-network') as HTMLElement;
+		expect(field.hasAttribute('data-motion-ready')).toBe(false);
+		expect(field).toHaveAttribute('data-revealed', '');
+	});
+
+	it('never writes an inline opacity, which is what made the hero flash', () => {
+		const { lines, container } = setup();
+		// The stylesheet hid these before first paint; the hero only animates
+		// them up and releases them.
+		for (const line of lines()) expect(line.style.opacity).toBe('');
+		expect((container.querySelector('.hero__sub') as HTMLElement).style.opacity).toBe('');
+	});
+
+	it('starts the whole sequence on mount, without waiting on the greeting', () => {
+		const { container } = setup();
+		const sub = container.querySelector('.hero__sub');
+		// The greeting cycles concurrently now; nothing is chained off it, so a
+		// greeting that never settles can no longer strand the rest of the hero.
+		expect(animateMock.mock.calls.some((call) => (call[0] as Element[])?.includes?.(sub!))).toBe(
+			true
+		);
+	});
+
+	it.each(Object.entries(SCHEDULE))('animates %s in on its own beat', (selector, delay) => {
+		const { container } = setup();
+		const element = container.querySelector(selector);
+		expect(element).toBeInTheDocument();
+
+		const call = animateMock.mock.calls.find((entry) =>
+			(entry[0] as Element[])?.includes?.(element!)
+		);
+		expect(call).toBeDefined();
+		expect(call?.[1]).toEqual({ opacity: [0, 1], y: [16, 0] });
+		expect(call?.[2]).toMatchObject({ duration: 0.7, delay });
+	});
+
+	it('staggers the headline lines from their own start delay', () => {
+		const { lines } = setup();
+		const call = animateMock.mock.calls.find((entry) =>
+			(entry[0] as Element[])?.includes?.(lines()[0])
+		);
+		expect(call?.[0]).toEqual(lines());
+		expect(call?.[1]).toEqual({ opacity: [0, 1], y: [16, 0] });
+		expect(stagger).toHaveBeenCalledWith(0.08, { startDelay: LINE_DELAY });
+	});
+
+	it('claims every staged element on mount, so the safety net stands down', () => {
+		// The claim is dropped again as each element is released, so a hero that
+		// has finished carries neither attribute.
+		const { container } = setup();
+		for (const element of container.querySelectorAll('[data-hero]')) {
+			expect(element.hasAttribute('data-motion-ready')).toBe(false);
+			expect(element).toHaveAttribute('data-revealed', '');
+		}
+	});
+
+	it('releases each element from the pre-hide when its entrance lands', () => {
+		const { container } = setup();
+		for (const element of container.querySelectorAll('[data-hero]')) {
+			expect(element).toHaveAttribute('data-revealed', '');
+		}
+	});
+
+	it('stops its own entrance animations when the hero unmounts mid-flight', () => {
+		const { unmount } = setup();
+		// `animations` holds every animation the mock handed out — the greeting's
+		// and the field's included — and they line up with the calls by index. The
+		// hero's own are the ones aimed at a group of its staged elements.
+		const owned = animateMock.mock.calls
+			.map((call, index) => ({ target: call[0], animation: animations[index] }))
+			.filter(
+				({ target }) =>
+					Array.isArray(target) &&
+					target.every((node) => node instanceof HTMLElement && node.className.includes('hero__'))
+			);
+		expect(owned).toHaveLength(Object.keys(SCHEDULE).length + 1);
+
+		unmount();
+
+		for (const { animation } of owned) expect(animation.stop).toHaveBeenCalled();
+	});
+
+	it('releases everything and animates nothing under reduced motion', () => {
+		preferReducedMotion();
+		const { container, lines } = setup();
+		expect(lines()[0].style.opacity).toBe('');
+		for (const element of container.querySelectorAll('[data-hero]')) {
+			expect(element).toHaveAttribute('data-revealed', '');
+		}
+		expect(animateMock).not.toHaveBeenCalled();
+	});
+});

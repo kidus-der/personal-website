@@ -1,69 +1,117 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* ============================================================
    Design tokens — single source of truth.
-   Both Tailwind utilities and CSS custom properties derive from here.
+   Tailwind utilities read the `--color-*` / `--font-*` / `--text-*`
+   namespaces here; hand-written CSS reads the raw vars (`--bg`, `--text`, …)
+   defined by the theme blocks below.
    ============================================================ */
-@theme {
-	/* Typography */
-	--font-display: "Neue Montreal", "Inter", system-ui, sans-serif;
-	--font-body: "Neue Montreal", "Inter", system-ui, sans-serif;
-	--font-mono: "JetBrains Mono", "Fira Code", monospace;
+@theme static {
+	/* --- Typography ------------------------------------------------ */
+	--font-display: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
+	--font-body: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+	--font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+	--font-ethiopic: 'Noto Sans Ethiopic', 'Kefa', 'Nyala', sans-serif;
 
-	/* Color — semantic (resolved from data-theme on <html>) */
+	/* Fluid type scale */
+	--text-xs: 0.75rem;
+	--text-sm: 0.875rem;
+	--text-base: 1rem;
+	--text-lg: 1.125rem;
+	--text-xl: 1.375rem;
+	--text-2xl: clamp(1.75rem, 2.5vw, 2.25rem);
+	--text-3xl: clamp(2.25rem, 4vw, 3.5rem);
+	--text-display: clamp(3rem, 7vw, 6.5rem);
+
+	/* --- Color: Tailwind mappings over the theme vars --------------- */
 	--color-bg: var(--bg);
 	--color-surface: var(--surface);
 	--color-surface-raised: var(--surface-raised);
 	--color-border: var(--border);
+	--color-border-strong: var(--border-strong);
 	--color-text: var(--text);
 	--color-text-muted: var(--text-muted);
 	--color-accent: var(--accent);
+	--color-accent-strong: var(--accent-strong);
 	--color-accent-dim: var(--accent-dim);
+	--color-ember: var(--ember);
 
-	/* Spacing scale */
-	--spacing-section: clamp(5rem, 12vw, 10rem);
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
+
+	/* --- Layout ----------------------------------------------------- */
+	--container: 1180px;
+	--spacing-section: clamp(5rem, 10vw, 8rem);
 	--spacing-container: clamp(1.25rem, 5vw, 4rem);
 
-	/* Animation easings as CSS tokens */
-	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-	--ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
-	--ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
-	--ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
-
-	/* Border radius */
+	/* --- Radii ------------------------------------------------------ */
+	--radius-chip: 8px;
+	--radius-input: 12px;
+	--radius-card: 20px;
+	--radius-pill: 9999px;
 	--radius-sm: 4px;
 	--radius-md: 8px;
 	--radius-lg: 16px;
 	--radius-full: 9999px;
+
+	/* --- Easings ---------------------------------------------------- */
+	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+	--ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+	--ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
 /* ============================================================
    Theme: Dark (default)
    ============================================================ */
-[data-theme="dark"],
-:root {
-	--bg: #0a0a0a;
-	--surface: #111111;
-	--surface-raised: #1a1a1a;
+:root,
+[data-theme='dark'] {
+	--bg: #000000;
+	--surface: #0b0b0c;
+	--surface-raised: #141416;
 	--border: rgba(255, 255, 255, 0.08);
-	--text: #f0f0f0;
-	--text-muted: rgba(240, 240, 240, 0.65);
-	--accent: #F05924;
-	--accent-dim: rgba(240, 89, 36, 0.15);
+	--border-strong: rgba(255, 255, 255, 0.16);
+	--text: #f4f4f5;
+	--text-muted: rgba(244, 244, 245, 0.62);
+	--accent: #ef5824;
+	--accent-strong: #fa5429;
+	--accent-dim: rgba(239, 88, 36, 0.14);
+	--ember: #2c0702;
+
+	--chart-1: #ef5824;
+	--chart-2: #f59e0b;
+	--chart-3: #e8c9b0;
+	--chart-4: #7c8aa5;
+	--chart-5: #4b5563;
+
+	color-scheme: dark;
 }
 
 /* ============================================================
    Theme: Light
    ============================================================ */
-[data-theme="light"] {
+[data-theme='light'] {
 	--bg: #ffffff;
-	--surface: #f4f6ff;
-	--surface-raised: #eef1ff;
-	--border: rgba(43, 92, 230, 0.12);
+	--surface: #f6f8fc;
+	--surface-raised: #eef2fb;
+	--border: rgba(10, 10, 10, 0.08);
+	--border-strong: rgba(10, 10, 10, 0.18);
 	--text: #0a0a0a;
-	--text-muted: rgba(10, 10, 10, 0.8);
-	--accent: #2B5CE6;
-	--accent-dim: rgba(43, 92, 230, 0.10);
+	--text-muted: rgba(10, 10, 10, 0.62);
+	--accent: #2b5ce4;
+	--accent-strong: #1f4bd1;
+	--accent-dim: rgba(43, 92, 228, 0.1);
+	--ember: #ddf0fd;
+
+	--chart-1: #2b5ce4;
+	--chart-2: #0ea5e9;
+	--chart-3: #7c3aed;
+	--chart-4: #64748b;
+	--chart-5: #cbd5e1;
+
+	color-scheme: light;
 }
 
 /* ============================================================
@@ -75,7 +123,6 @@
 	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
-	cursor: none;
 }
 
 html {
@@ -83,6 +130,8 @@ html {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	text-rendering: optimizeLegibility;
+	scrollbar-width: thin;
+	scrollbar-color: var(--accent) transparent;
 }
 
 body {
@@ -93,34 +142,207 @@ body {
 	overflow-x: hidden;
 }
 
-/* Hide scrollbar while keeping scroll — Lenis handles the visual */
-html.lenis,
-html.lenis body {
-	height: auto;
-}
-.lenis.lenis-smooth {
-	scroll-behavior: auto !important;
-}
-.lenis.lenis-smooth [data-lenis-prevent] {
-	overscroll-behavior: contain;
-}
-.lenis.lenis-stopped {
-	overflow: hidden;
+a {
+	color: inherit;
+	text-decoration: none;
 }
 
-/* Custom scrollbar — accent-tinted, minimal */
-html {
-	scrollbar-width: thin;
-	scrollbar-color: var(--accent) transparent;
+img,
+video {
+	max-width: 100%;
+	display: block;
 }
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
+
+button {
+	cursor: pointer;
+	border: none;
+	background: none;
+	font-family: inherit;
+}
+
+/* ============================================================
+   Entrance pre-hide
+
+   Anything that animates in is hidden here, not by the script that animates
+   it. The old arrangement wrote `opacity: 0` from an action on mount, which
+   meant server-rendered content painted, vanished a beat after hydration and
+   faded back in — a visible flash on every load.
+
+   Three conditions gate it, and all three matter:
+     - `html.js` is set by the blocking script in `app.html`, so a reader with
+       no JavaScript is never hidden by a rule nothing will ever lift.
+     - `:not([data-revealed])` is the release. `use:reveal` and the hero's own
+       sequence set that attribute when an element has finished arriving.
+     - `prefers-reduced-motion: no-preference` keeps the whole mechanism away
+       from readers who asked for less movement; nothing animates for them, so
+       nothing should be hidden either.
+
+   The `reveal-safety` animation is the failsafe: if a script stalls, throws or
+   never hydrates, the content still fades up three seconds in rather than
+   leaving a blank page behind. It stands down for anything carrying
+   `data-motion-ready`, which is what a script sets when it takes ownership of
+   an element's entrance — a net that fired anyway would leave a section that is
+   merely waiting to be scrolled to sitting at full opacity, with no fade left
+   to play when it finally arrives.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+	html.js [data-reveal]:not([data-revealed]),
+	html.js [data-reveal-group]:not([data-revealed]) > *:not([data-revealed]),
+	html.js [data-hero]:not([data-revealed]) {
+		opacity: 0;
+	}
+
+	html.js [data-reveal]:not([data-revealed]):not([data-motion-ready]),
+	html.js
+		[data-reveal-group]:not([data-revealed])
+		> *:not([data-revealed]):not([data-motion-ready]),
+	html.js [data-hero]:not([data-revealed]):not([data-motion-ready]) {
+		animation: reveal-safety 0s linear 3s forwards;
+	}
+
+	@keyframes reveal-safety {
+		to {
+			opacity: 1;
+		}
+	}
+}
+
+/* ============================================================
+   Layout utilities
+   ============================================================ */
+.container {
+	max-width: var(--container);
+	margin-inline: auto;
+	padding-inline: var(--spacing-container);
+}
+
+/* The interactive counterpart to the `Tag` primitive: a small hairline pill that
+   is a button or a link. Shared by the blog tag filter and the share row, which
+   otherwise carried the same dozen declarations twice. */
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4375rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-chip);
+	background-color: color-mix(in srgb, var(--surface-raised) 60%, transparent);
+	padding: 0.3125rem 0.75rem;
+	font-family: var(--font-body);
+	font-size: var(--text-sm);
+	line-height: 1.4;
+	color: var(--text-muted);
+	cursor: pointer;
+	transition:
+		border-color 200ms var(--ease-out-quart),
+		background-color 200ms var(--ease-out-quart),
+		color 200ms var(--ease-out-quart);
+}
+
+.chip:hover,
+.chip:focus-visible {
+	border-color: var(--border-strong);
+	color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.chip {
+		transition: none;
+	}
+}
+
+/*
+	Named for assistive tech, never drawn. Clipped rather than `display: none`,
+	which would take the text back out of the accessibility tree. Three components
+	had each grown their own copy of these seven declarations.
+*/
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	clip-path: inset(50%);
+	border: 0;
+}
+
+/*
+	The site's display-face heading treatment: the five declarations — font
+	family, font weight, letter spacing, `line-height: 1.1`, and color — every
+	page title and section title on the site repeated verbatim. Size stays with
+	the component, since that is what actually varies from one heading to the
+	next.
+*/
+.display-heading {
+	font-family: var(--font-display);
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	line-height: 1.1;
+	color: var(--text);
+}
+
+/* Faint dot grid for light-mode section bands (KokonutUI spotlight cards). */
+.dot-grid {
+	background-image: radial-gradient(circle, var(--border-strong) 1px, transparent 1px);
+	background-size: 22px 22px;
+	background-position: center;
+}
+
+/*
+	The site's prose bullet list: the marker is a drawn dot rather than a
+	`list-style` disc, so its size, colour and alignment to the first line are all
+	controllable. Lives here rather than in a component because the experience
+	timeline and the publication rows render the same treatment, and a second copy
+	is how the two drift apart. `--bullet-gap` tunes the spacing per context.
+*/
+.bullet-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--bullet-gap, 0.75rem);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-size: var(--text-base);
+	line-height: 1.6;
+	color: var(--text-muted);
+}
+
+.bullet-list > li {
+	position: relative;
+	padding-left: 1.125rem;
+}
+
+.bullet-list > li::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	/* Centres the dot on the first line's x-height at line-height 1.6. */
+	top: 0.6em;
+	width: 4px;
+	height: 4px;
+	border-radius: var(--radius-full);
+	background-color: var(--border-strong);
+}
+
+/* ============================================================
+   Scrollbar
+   ============================================================ */
+::-webkit-scrollbar {
+	width: 5px;
+	height: 5px;
+}
+::-webkit-scrollbar-track {
+	background: transparent;
+}
 ::-webkit-scrollbar-thumb {
 	background: var(--accent);
 	border-radius: var(--radius-full);
 	opacity: 0.7;
 }
-::-webkit-scrollbar-thumb:hover { opacity: 1; }
+::-webkit-scrollbar-thumb:hover {
+	opacity: 1;
+}
 
 /* ============================================================
    Shiki syntax highlighting — always dark regardless of site theme
@@ -141,7 +363,9 @@ html {
 	background-size: 0% 1px;
 	transition: background-size 0.3s ease;
 }
-.accent-link:hover { background-size: 100% 1px; }
+.accent-link:hover {
+	background-size: 100% 1px;
+}
 
 /* Focus ring */
 :focus-visible {
@@ -154,22 +378,4 @@ html {
 ::selection {
 	background: var(--accent);
 	color: var(--bg);
-}
-
-a {
-	color: inherit;
-	text-decoration: none;
-}
-
-img,
-video {
-	max-width: 100%;
-	display: block;
-}
-
-button {
-	cursor: pointer;
-	border: none;
-	background: none;
-	font-family: inherit;
 }

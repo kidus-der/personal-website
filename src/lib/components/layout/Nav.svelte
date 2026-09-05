@@ -1,186 +1,110 @@
+<!--
+	Nav — the site's fixed header.
+
+	Three zones on one grid so the pill is optically centred regardless of how
+	wide the logo or the controls get: logo, `MorphicNav`, controls. Past 24px of
+	scroll the bar picks up a glass background and a hairline, which is the only
+	thing that separates it from content once the page moves.
+
+	The mobile overlay is rendered as a sibling of the bar, not inside it: the
+	bar's `backdrop-filter` would otherwise become the containing block for the
+	overlay's `position: fixed` and trap it inside the header's box.
+-->
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { beforeNavigate, afterNavigate } from '$app/navigation';
-	import { gsap } from '$lib/animation/gsap.config';
-	import { themeStore } from '$lib/stores/theme';
-	import { scrollStore } from '$lib/stores/scroll';
-	import { cursorTarget } from '$lib/actions/cursor';
-	import { magnetic } from '$lib/actions/magnetic';
+	import { onMount, tick } from 'svelte';
+	import { page } from '$app/state';
+	import MorphicNav from '$lib/components/kokonut/MorphicNav.svelte';
+	import ThemeSwitch from '$lib/components/kokonut/ThemeSwitch.svelte';
+	import MobileMenu from './MobileMenu.svelte';
+	import { navItems } from './navItems';
+	import { theme } from '$lib/state/theme.svelte';
+	import { cn } from '$lib/utils/cn';
 
-	const { scrollY } = scrollStore;
-
-	const navLinks = [
-		{ href: '/work', label: 'Work' },
-		{ href: '/about', label: 'About' },
-		{ href: '/blog', label: 'The Buna Print' }
-	];
-
-	let mobileMenuOpen = $state(false);
-	let overlayEl: HTMLDivElement | undefined = $state();
-	let menuEl: HTMLDivElement | undefined = $state();
-	let hamburgerEl: HTMLButtonElement | undefined = $state();
-
-	let activeTl: gsap.core.Timeline | null = null;
-
-	function openMobileMenu() {
-		mobileMenuOpen = true;
-		setTimeout(() => {
-			if (!overlayEl || !menuEl || !hamburgerEl) return;
-			activeTl?.kill();
-			activeTl = gsap.timeline();
-			activeTl
-				.fromTo(overlayEl, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' })
-				.fromTo(
-					menuEl,
-					{ opacity: 0, x: '100%' },
-					{ opacity: 1, x: '0%', duration: 0.4, ease: 'power3.out' },
-					'<0.05'
-				);
-			hamburgerEl.setAttribute('aria-expanded', 'true');
-		}, 0);
+	interface Props {
+		class?: string;
 	}
 
-	function closeMobileMenu() {
-		if (!overlayEl || !menuEl) return;
-		activeTl?.kill();
-		activeTl = gsap.timeline({
-			onComplete: () => {
-				mobileMenuOpen = false;
-				hamburgerEl?.setAttribute('aria-expanded', 'false');
-			}
-		});
-		activeTl.to(menuEl, { opacity: 0, x: '100%', duration: 0.3, ease: 'power2.in' });
-		activeTl.to(overlayEl, { opacity: 0, duration: 0.25, ease: 'power2.in' }, '<');
+	let { class: className = '' }: Props = $props();
+
+	/** Pixels of scroll before the bar becomes glass. */
+	const GLASS_AT = 24;
+
+	const MENU_ID = 'mobile-menu';
+
+	/** One past the mobile breakpoint: matching means the pill is back. */
+	const DESKTOP_QUERY = '(min-width: 769px)';
+
+	let scrolled = $state(false);
+	let menuOpen = $state(false);
+	let hamburgerEl = $state<HTMLButtonElement | undefined>();
+
+	const logoSrc = $derived(
+		theme.current === 'light'
+			? '/icons/website-logo/website-logo-light-mode.png'
+			: '/icons/website-logo/website-logo-dark-mode.png'
+	);
+
+	async function closeMenu() {
+		if (!menuOpen) return;
+		menuOpen = false;
+		// The overlay is unmounting and focus would fall to <body>; put it back on
+		// the control that opened it. Only after the flush, though: the menu marks
+		// this header `inert` while it is open and lifts that in its teardown, and
+		// focusing an inert element is a no-op.
+		await tick();
+		hamburgerEl?.focus();
 	}
 
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape' && mobileMenuOpen) closeMobileMenu();
-	}
-
-	function portal(node: HTMLElement) {
-		document.body.appendChild(node);
-		return {
-			destroy() {
-				if (node.isConnected) node.remove();
-			}
+	onMount(() => {
+		const onscroll = () => {
+			scrolled = window.scrollY > GLASS_AT;
 		};
-	}
+		onscroll();
+		window.addEventListener('scroll', onscroll, { passive: true });
 
-	// Close mobile menu on navigation
-	beforeNavigate(() => {
-		if (mobileMenuOpen) closeMobileMenu();
-	});
+		// Resizing or rotating past the breakpoint puts the pill back on screen,
+		// which would leave an unreachable overlay covering the page.
+		const desktop = window.matchMedia(DESKTOP_QUERY);
+		const onbreakpoint = (event: MediaQueryListEvent) => {
+			if (event.matches) closeMenu();
+		};
+		desktop.addEventListener('change', onbreakpoint);
 
-	afterNavigate(() => {
-		if (mobileMenuOpen) closeMobileMenu();
+		return () => {
+			window.removeEventListener('scroll', onscroll);
+			desktop.removeEventListener('change', onbreakpoint);
+		};
 	});
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
-<header class="nav" class:nav--scrolled={$scrollY > 60}>
-	<nav class="nav__inner">
-		<a href="/" class="nav__logo" use:cursorTarget={'hover'}>
-			<img
-				src={$themeStore === 'light'
-					? '/icons/website-logo/website-logo-light-mode.png'
-					: '/icons/website-logo/website-logo-dark-mode.png'}
-				alt="Home"
-				class="nav__logo-img"
-			/>
+<header class={cn('nav', scrolled && 'nav--scrolled', className)}>
+	<div class="container nav__inner">
+		<a href="/" class="nav__logo">
+			<img src={logoSrc} alt="Kidus Dereje home" width="44" height="44" />
 		</a>
 
-		<ul class="nav__links">
-			{#each navLinks as link}
-				<li>
-					<a
-						href={link.href}
-						class="nav__link"
-						class:nav__link--active={$page.url.pathname.startsWith(link.href)}
-						use:cursorTarget={'hover'}
-					>
-						{link.label}
-					</a>
-				</li>
-			{/each}
-		</ul>
+		<MorphicNav class="nav__pill" items={navItems} current={page.url.pathname} />
 
-		<button
-			class="nav__hamburger"
-			bind:this={hamburgerEl}
-			onclick={openMobileMenu}
-			aria-label="Open menu"
-			aria-expanded="false"
-			aria-controls="mobile-menu"
-			use:cursorTarget={'hover'}
-		>
-			<span class="nav__hamburger-line"></span>
-			<span class="nav__hamburger-line"></span>
-			<span class="nav__hamburger-line"></span>
-		</button>
-
-		<button
-			class="nav__theme-toggle"
-			onclick={() => themeStore.toggle()}
-			aria-label="Toggle theme"
-			use:magnetic
-			use:cursorTarget={'hover'}
-		>
-			<span class="nav__theme-icon" aria-hidden="true">
-				{#if $themeStore === 'dark'}☀{:else}☾{/if}
-			</span>
-		</button>
-	</nav>
-</header>
-
-{#if mobileMenuOpen}
-	<div
-		id="mobile-menu"
-		use:portal
-		bind:this={overlayEl}
-		class="mobile-overlay"
-		role="presentation"
-		onclick={closeMobileMenu}
-		onkeydown={(e) => {
-			if (e.key === 'Enter' || e.key === ' ') closeMobileMenu();
-		}}
-	>
-		<div
-			bind:this={menuEl}
-			class="mobile-menu"
-			role="dialog"
-			aria-modal="true"
-			aria-label="Navigation menu"
-			tabindex="-1"
-			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
-		>
+		<div class="nav__controls">
+			<ThemeSwitch />
 			<button
-				class="mobile-menu__close"
-				onclick={closeMobileMenu}
-				aria-label="Close menu"
-				use:cursorTarget={'hover'}
+				bind:this={hamburgerEl}
+				type="button"
+				class="nav__hamburger"
+				aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+				aria-expanded={menuOpen}
+				aria-controls={MENU_ID}
+				onclick={() => (menuOpen ? closeMenu() : (menuOpen = true))}
 			>
-				×
+				<span class="nav__hamburger-bar" aria-hidden="true"></span>
+				<span class="nav__hamburger-bar" aria-hidden="true"></span>
 			</button>
-
-			<ul class="mobile-menu__links">
-				{#each navLinks as link}
-					<li>
-						<a
-							href={link.href}
-							class="mobile-menu__link"
-							class:mobile-menu__link--active={$page.url.pathname.startsWith(link.href)}
-							use:cursorTarget={'hover'}
-							onclick={closeMobileMenu}
-						>
-							{link.label}
-						</a>
-					</li>
-				{/each}
-			</ul>
 		</div>
 	</div>
+</header>
+
+{#if menuOpen}
+	<MobileMenu id={MENU_ID} onclose={closeMenu} />
 {/if}
 
 <style>
@@ -189,210 +113,73 @@
 		top: 0;
 		left: 0;
 		right: 0;
-		z-index: 100;
-		padding: 1.25rem var(--spacing-container);
-		transition: padding 0.4s var(--ease-out-expo), background 0.4s var(--ease-out-expo),
-			backdrop-filter 0.4s;
+		z-index: 60;
+		border-bottom: 1px solid transparent;
+		transition:
+			background-color 300ms var(--ease-out-expo),
+			border-color 300ms var(--ease-out-expo);
 	}
 
 	.nav--scrolled {
-		padding: 1rem var(--spacing-container);
-		background: rgba(0, 0, 0, 0.4);
-		backdrop-filter: blur(16px) saturate(1.5);
-	}
-
-	:global([data-theme='light']) .nav--scrolled {
-		background: rgba(240, 240, 240, 0.75);
+		background-color: color-mix(in srgb, var(--surface) 70%, transparent);
+		backdrop-filter: blur(16px);
+		border-bottom-color: var(--border);
 	}
 
 	.nav__inner {
-		display: flex;
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
 		align-items: center;
-		justify-content: space-between;
-		max-width: 1400px;
-		margin: 0 auto;
+		gap: 1rem;
+		height: 4.5rem;
 	}
 
 	.nav__logo {
-		display: block;
-		line-height: 0;
-		flex-shrink: 0;
+		justify-self: start;
+		display: inline-flex;
+		align-items: center;
+		border-radius: var(--radius-md);
 	}
 
-	.nav__logo-img {
-		height: 5.6rem;
+	.nav__logo img {
+		height: 44px;
 		width: auto;
-		border-radius: var(--radius-sm);
-		transition: transform 0.35s var(--ease-out-expo);
+		display: block;
 	}
 
-	.nav__logo:hover .nav__logo-img {
-		transform: scale(1.1);
-	}
-
-	.nav__links {
+	.nav__controls {
+		justify-self: end;
 		display: flex;
-		gap: 2.5rem;
-		list-style: none;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
-	.nav__link {
-		font-size: var(--text-sm);
-		letter-spacing: 0.05em;
-		color: var(--text-muted);
-		transition: color 0.2s;
-		position: relative;
-	}
-
-	.nav__link::after {
-		content: '';
-		position: absolute;
-		bottom: -2px;
-		left: 0;
-		width: 0;
-		height: 1px;
-		background: var(--accent);
-		transition: width 0.3s var(--ease-out-expo);
-	}
-
-	.nav__link:hover,
-	.nav__link--active {
-		color: var(--text);
-	}
-
-	.nav__link:hover::after,
-	.nav__link--active::after {
-		width: 100%;
-	}
-
-	/* ── Hamburger ───────────────────────────────── */
 	.nav__hamburger {
 		display: none;
 		flex-direction: column;
-		justify-content: center;
-		gap: 5px;
-		width: 32px;
-		height: 32px;
-		background: none;
-		border: none;
-		cursor: none;
-		padding: 0;
-	}
-
-	.nav__hamburger-line {
-		display: block;
-		width: 100%;
-		height: 2px;
-		background: var(--text-muted);
-		border-radius: 2px;
-		transition: background 0.2s;
-	}
-
-	.nav__hamburger:hover .nav__hamburger-line {
-		background: var(--accent);
-	}
-
-	/* ── Theme toggle ────────────────────────────── */
-	.nav__theme-toggle {
-		width: 32px;
-		height: 32px;
-		display: flex;
 		align-items: center;
 		justify-content: center;
-		color: var(--text-muted);
-		transition: color 0.2s;
-		font-size: 1.75rem;
-		background: none;
-		border: none;
-		cursor: none;
-		flex-shrink: 0;
-	}
-
-	.nav__theme-toggle:hover {
-		color: var(--accent);
-	}
-
-	/* ── Mobile overlay ──────────────────────────── */
-	.mobile-overlay {
-		position: fixed;
-		inset: 0;
-		z-index: 9999;
-		background: rgba(0, 0, 0, 0.7);
-		cursor: none;
-	}
-
-	/* ── Mobile menu panel ──────────────────────── */
-	.mobile-menu {
-		position: absolute;
-		top: 0;
-		right: 0;
-		bottom: 0;
-		width: min(320px, 85vw);
-		background: var(--surface);
-		border-left: 1px solid var(--border);
-		padding: 5rem 2rem 2rem;
-		display: flex;
-		flex-direction: column;
-		cursor: none;
-	}
-
-	:global([data-theme='light']) .mobile-menu {
-		background: var(--bg);
-		border-left: 1px solid rgba(43, 92, 230, 0.12);
-	}
-
-	.mobile-menu__close {
-		position: absolute;
-		top: 1.25rem;
-		right: 1.25rem;
-		font-size: 2rem;
-		color: var(--text-muted);
-		line-height: 1;
-		transition: color 0.2s;
-		font-family: inherit;
-		cursor: none;
-		background: none;
-		border: none;
-	}
-
-	.mobile-menu__close:hover {
+		gap: 5px;
+		height: 2.25rem;
+		width: 2.25rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		background: transparent;
 		color: var(--text);
+		cursor: pointer;
 	}
 
-	.mobile-menu__links {
-		list-style: none;
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-	}
-
-	.mobile-menu__link {
+	.nav__hamburger-bar {
 		display: block;
-		font-size: var(--text-xl);
-		font-weight: 500;
-		color: var(--text-muted);
-		padding: 0.75rem 0;
-		transition: color 0.2s, padding-left 0.3s var(--ease-out-expo);
-		border-bottom: 1px solid var(--border);
+		width: 16px;
+		height: 1.5px;
+		border-radius: var(--radius-full);
+		background-color: currentColor;
 	}
 
-	.mobile-menu__link:hover,
-	.mobile-menu__link--active {
-		color: var(--text);
-		padding-left: 0.5rem;
-	}
-
-	.mobile-menu__link--active {
-		color: var(--accent);
-	}
-
-	/* ── Responsive: tablet + mobile ─────────────── */
+	/* The pill is the desktop affordance; below this the hamburger takes over. */
 	@media (max-width: 768px) {
-		.nav__logo-img {
-			height: 3rem;
-		}
-
-		.nav__links {
+		.nav :global(.nav__pill) {
 			display: none;
 		}
 
@@ -401,14 +188,14 @@
 		}
 
 		.nav__inner {
-			gap: 0.75rem;
+			grid-template-columns: auto 1fr;
+			height: 4rem;
 		}
 	}
 
-	/* ── Responsive: tablet gap reduction ────────── */
-	@media (min-width: 769px) and (max-width: 1024px) {
-		.nav__links {
-			gap: 1.5rem;
+	@media (prefers-reduced-motion: reduce) {
+		.nav {
+			transition: none;
 		}
 	}
 </style>
