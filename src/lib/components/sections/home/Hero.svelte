@@ -222,7 +222,7 @@
 			</ul>
 		</div>
 
-		<HeroArt class="hero__art" />
+		<HeroArt />
 	</div>
 </section>
 
@@ -334,12 +334,6 @@
 	.hero__social:focus-visible {
 		color: var(--accent);
 		border-color: var(--border-strong);
-	}
-
-	.hero__art {
-		width: 100%;
-		max-width: 30rem;
-		justify-self: center;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

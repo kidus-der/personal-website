@@ -146,6 +146,16 @@
 	.hero-art {
 		position: relative;
 		width: 100%;
+		/*
+			The cap and the centring belong here, not on the caller: a class handed
+			to a component is not touched by the caller's style scoping, so a
+			`.hero__art` rule over in `Hero.svelte` would compile to a selector that
+			matches nothing. Below the 960px breakpoint the art is a full-width band
+			under the copy, and without the cap a tablet gets a very wide, very short
+			one.
+		*/
+		max-width: 30rem;
+		margin-inline: auto;
 		height: 260px;
 		overflow: hidden;
 		border-radius: var(--radius-card);
