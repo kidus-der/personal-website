@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import BackgroundPaths from '$lib/components/kokonut/BackgroundPaths.svelte';
 import { animateMock, animations, preferReducedMotion, resetMotionMocks } from '../mocks/motion';
+import { PATH_COUNTS } from '$lib/components/kokonut/backgroundPaths';
 
 vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
-/** 12 primary + 15 secondary + 10 accent, mirrored. */
-const PATHS_PER_SIDE = 37;
+const PATHS_PER_SIDE = PATH_COUNTS.primary + PATH_COUNTS.secondary + PATH_COUNTS.accent;
 const TOTAL_PATHS = PATHS_PER_SIDE * 2;
 
 describe('BackgroundPaths', () => {
@@ -17,6 +17,12 @@ describe('BackgroundPaths', () => {
 		const { container } = render(BackgroundPaths);
 		expect(container.querySelectorAll('svg path')).toHaveLength(TOTAL_PATHS);
 		expect(container.querySelectorAll('svg')).toHaveLength(2);
+	});
+
+	it('keeps the field inside the animation budget', () => {
+		// Each path is a looping animation. 74 of them was most of what made the
+		// home page jank; 44 is what the budget allows across the whole document.
+		expect(TOTAL_PATHS).toBe(44);
 	});
 
 	it('is decorative and inert', () => {
@@ -61,11 +67,10 @@ describe('BackgroundPaths', () => {
 		expect(animateMock).toHaveBeenCalledTimes(TOTAL_PATHS);
 		const [element, keyframes, options] = animateMock.mock.calls[0];
 		expect((element as Element).tagName).toBe('path');
-		expect(keyframes).toEqual({
-			pathLength: [0.3, 1],
-			pathOffset: [0, 1],
-			opacity: [0.3, 0.6, 0.3]
-		});
+		// `pathLength` is dropped: animating it forces a fresh dash calculation on
+		// every frame for a difference nobody can see behind the content.
+		expect(keyframes).toEqual({ pathOffset: [0, 1], opacity: [0.3, 0.6, 0.3] });
+		expect(keyframes).not.toHaveProperty('pathLength');
 		expect(options).toMatchObject({ repeat: Infinity, ease: 'linear', duration: 25 });
 	});
 

@@ -3,6 +3,8 @@ import { render, cleanup } from '@testing-library/svelte';
 import { tick, createRawSnippet } from 'svelte';
 import MouseEffectCard from '$lib/components/kokonut/MouseEffectCard.svelte';
 import { preferReducedMotion, resetMotionMocks } from '../mocks/motion';
+import { MAX_DOTS } from '$lib/components/kokonut/mouseEffectDots';
+import source from '$lib/components/kokonut/MouseEffectCard.svelte?raw';
 
 vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
@@ -87,10 +89,26 @@ describe('MouseEffectCard', () => {
 
 	it('fills a 400x300 container without exceeding the dot cap', async () => {
 		const { dots } = await setup();
-		// 25 columns x 18 rows = 450 candidates, trimmed to the 400 cap.
+		// At the default 24px pitch: 16 columns x 12 rows = 192 candidates,
+		// trimmed to the cap.
 		expect(dots().length).toBeGreaterThan(0);
-		expect(dots().length).toBeLessThanOrEqual(400);
-		expect(dots()).toHaveLength(400);
+		expect(dots()).toHaveLength(MAX_DOTS);
+	});
+
+	it('spaces the dots at the wider default pitch', async () => {
+		const { dots } = await setup({ dotSpacing: 24 });
+		// The same field the default produces: the default is 24.
+		expect(dots()).toHaveLength(MAX_DOTS);
+	});
+
+	it('gives the dots no perpetual animation of their own', () => {
+		// 400 dots each running a CSS pulse was, with the path field, most of
+		// what `document.getAnimations()` reported on the home page. The dots now
+		// sit at a static opacity and only brighten near the pointer.
+		const rule = source.match(/\.mouse-effect-card__dot \{([^}]*)\}/)?.[1] ?? '';
+		expect(rule).not.toContain('animation:');
+		expect(source).not.toContain('@keyframes dot-pulse');
+		expect(source).not.toContain('animation-delay');
 	});
 
 	it('lays every dot out inside the container', async () => {

@@ -37,7 +37,7 @@
 	<div class="container">
 		<a class="project-page__back" href="/work">All work</a>
 
-		<header class="project-page__header" use:reveal>
+		<header class="project-page__header" data-reveal use:reveal>
 			{#if project.tags.length > 0}
 				<ul class="project-page__tags">
 					{#each project.tags as tag (tag)}
@@ -70,7 +70,7 @@
 			{/if}
 		</header>
 
-		<div class="project-page__visual" style="--project-accent: {accent}" use:reveal>
+		<div class="project-page__visual" style="--project-accent: {accent}" data-reveal use:reveal>
 			<!--
 				`alt=""`: the content model carries no alt text, and every cover so far
 				is a logo or a screenshot of a project this page has already named and
@@ -85,7 +85,7 @@
 		</div>
 
 		{#if project.highlights.length > 0}
-			<section class="project-page__section" use:reveal>
+			<section class="project-page__section" data-reveal use:reveal>
 				<h2 class="display-heading project-page__section-title">Highlights</h2>
 				<ul class="project-page__highlights">
 					{#each project.highlights as highlight (highlight)}

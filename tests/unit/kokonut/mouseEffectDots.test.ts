@@ -21,6 +21,12 @@ function makeDots(count: number): Dot[] {
 	return Array.from({ length: count }, (_, i) => ({ x: i, y: i, opacity: 0.5 }));
 }
 
+describe('MAX_DOTS', () => {
+	it('caps the field at what a repulsion loop can carry per frame', () => {
+		expect(MAX_DOTS).toBe(160);
+	});
+});
+
 describe('generateDots', () => {
 	afterEach(() => vi.restoreAllMocks());
 

@@ -213,6 +213,34 @@ hover` plus the shared `springs`, `easings`, `durations` and `reducedMotion()`.
 - Every animation must respect `reducedMotion()` (or a
   `prefers-reduced-motion` media query for pure-CSS transitions).
 
+**Entrance pre-hide.** Anything that animates in is hidden by the stylesheet,
+never by the script that animates it — a script writing `opacity: 0` on mount
+makes server-rendered content paint, vanish and fade back in.
+
+- The blocking script in `src/app.html` adds `class="js"` to `<html>` before
+  first paint, ahead of anything that can throw.
+- `app.css` hides `html.js [data-reveal]:not([data-revealed])`,
+  `html.js [data-reveal-group]:not([data-revealed]) > *:not([data-revealed])`
+  and `html.js [data-hero]:not([data-revealed])`, all inside
+  `@media (prefers-reduced-motion: no-preference)`.
+- Markup carries the attribute: `data-reveal` on a `use:reveal` node,
+  `data-reveal-group` on a staggered parent, `data-hero` on each element the
+  hero stages. `use:reveal` only sets the starting transform, then animates and
+  sets `data-revealed` when the element has arrived, which releases the rule.
+  A staggered group is released alongside its children, so a list that swaps
+  its items later (the `/work` and `/blog` filters) does not hand the new items
+  to a rule nothing will lift. `markRevealed()` from `$lib/motion` is the one
+  place that release is written; the hero's own sequence uses it too.
+- A `reveal-safety` keyframe fades anything still hidden at 3s back in, so a
+  stalled or failed script cannot leave a blank page. A reader with no
+  JavaScript never gets `html.js` and so is never hidden at all.
+- `tests/unit/styles/prehide.test.ts` guards all of this, including that every
+  `use:reveal` call site in `src/` carries the attribute.
+- Budget: `document.getAnimations().length` on a settled `/` stays at or under
+  40, asserted in `tests/e2e/perf.spec.ts`. `/` is the page the budget is
+  written for; `+error.svelte` renders the 44-path `BackgroundPaths` field by
+  design and has nothing else on it.
+
 ### Design tokens
 
 - Single source of truth: the `@theme` block in `src/styles/app.css`.

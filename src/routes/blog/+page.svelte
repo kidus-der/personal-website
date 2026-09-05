@@ -63,7 +63,7 @@
 					{#if rest.length > 0}
 						<section class="blog__more">
 							<SectionHeading title="More posts" level={2} />
-							<div class="blog__grid" use:reveal={{ stagger: 0.06 }}>
+							<div class="blog__grid" data-reveal-group use:reveal={{ stagger: 0.06 }}>
 								{#each rest as post, index (post.slug)}
 									<PostCard {post} {index} />
 								{/each}

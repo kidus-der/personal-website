@@ -54,7 +54,7 @@
 	{#if projects.length === 0}
 		<p class="project-grid__empty">Nothing in this category yet.</p>
 	{:else}
-		<ul class="project-grid__list" use:reveal={{ stagger: 0.06 }}>
+		<ul class="project-grid__list" data-reveal-group use:reveal={{ stagger: 0.06 }}>
 			{#each projects as project (project.slug)}
 				<li class="project-grid__item">
 					<ProjectCard

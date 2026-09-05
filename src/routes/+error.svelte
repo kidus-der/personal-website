@@ -5,10 +5,12 @@
 	than inheriting either section's chrome — a reader who lands on a 404 needs
 	somewhere to go that is not the browser's back button. `MatrixText` scrambles
 	the headline once, which reads as "something got corrupted" without needing to
-	say so.
+	say so, and the path field drifts faintly behind it — this is the one page
+	with nothing else on it to look at.
 -->
 <script lang="ts">
 	import { page } from '$app/state';
+	import BackgroundPaths from '$lib/components/kokonut/BackgroundPaths.svelte';
 	import MatrixText from '$lib/components/kokonut/MatrixText.svelte';
 	import SlideTextButton from '$lib/components/kokonut/SlideTextButton.svelte';
 	import SiteShell from '$lib/components/layout/SiteShell.svelte';
@@ -27,6 +29,8 @@
 
 <SiteShell variant="error">
 	<main class="error-page">
+		<BackgroundPaths opacity={0.35} />
+
 		<div class="container error-page__inner">
 			<p class="error-page__status">{page.status}</p>
 			<h1 class="error-page__headline">
@@ -40,12 +44,18 @@
 
 <style>
 	.error-page {
+		position: relative;
 		flex: 1;
 		display: flex;
 		align-items: center;
+		overflow: hidden;
+		/* `stroke="currentColor"` on the path field reads from here. */
+		color: var(--accent);
 	}
 
 	.error-page__inner {
+		/* Above the path field, which is absolutely positioned into the main. */
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;

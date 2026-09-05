@@ -161,6 +161,53 @@ button {
 }
 
 /* ============================================================
+   Entrance pre-hide
+
+   Anything that animates in is hidden here, not by the script that animates
+   it. The old arrangement wrote `opacity: 0` from an action on mount, which
+   meant server-rendered content painted, vanished a beat after hydration and
+   faded back in — a visible flash on every load.
+
+   Three conditions gate it, and all three matter:
+     - `html.js` is set by the blocking script in `app.html`, so a reader with
+       no JavaScript is never hidden by a rule nothing will ever lift.
+     - `:not([data-revealed])` is the release. `use:reveal` and the hero's own
+       sequence set that attribute when an element has finished arriving.
+     - `prefers-reduced-motion: no-preference` keeps the whole mechanism away
+       from readers who asked for less movement; nothing animates for them, so
+       nothing should be hidden either.
+
+   The `reveal-safety` animation is the failsafe: if a script stalls, throws or
+   never hydrates, the content still fades up three seconds in rather than
+   leaving a blank page behind. It stands down for anything carrying
+   `data-motion-ready`, which is what a script sets when it takes ownership of
+   an element's entrance — a net that fired anyway would leave a section that is
+   merely waiting to be scrolled to sitting at full opacity, with no fade left
+   to play when it finally arrives.
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+	html.js [data-reveal]:not([data-revealed]),
+	html.js [data-reveal-group]:not([data-revealed]) > *:not([data-revealed]),
+	html.js [data-hero]:not([data-revealed]) {
+		opacity: 0;
+	}
+
+	html.js [data-reveal]:not([data-revealed]):not([data-motion-ready]),
+	html.js
+		[data-reveal-group]:not([data-revealed])
+		> *:not([data-revealed]):not([data-motion-ready]),
+	html.js [data-hero]:not([data-revealed]):not([data-motion-ready]) {
+		animation: reveal-safety 0s linear 3s forwards;
+	}
+
+	@keyframes reveal-safety {
+		to {
+			opacity: 1;
+		}
+	}
+}
+
+/* ============================================================
    Layout utilities
    ============================================================ */
 .container {

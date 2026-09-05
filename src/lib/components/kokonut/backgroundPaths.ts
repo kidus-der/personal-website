@@ -38,11 +38,26 @@ const TYPE_CONFIG = {
 	accent: { baseAmplitude: 60, segments: 6 }
 } as const satisfies Record<PathType, { baseAmplitude: number; segments: number }>;
 
+/**
+ * How many paths each set draws, per mirrored half.
+ *
+ * The original draws 12 / 15 / 10, which is 74 looping animations once both
+ * halves are on screen — most of the jank the home page was reported to have.
+ * 44 keeps the field reading as a current while leaving room in the budget for
+ * everything else on a page.
+ */
+export const PATH_COUNTS = { primary: 8, secondary: 8, accent: 6 } as const;
+
 /** Set-level constants: how many paths and how their opacity/width/speed ramp. */
 const SET_CONFIG = {
-	primary: { count: 12, opacity: [0.15, 0.02], width: [4, 0.3], duration: 25 },
-	secondary: { count: 15, opacity: [0.12, 0.015], width: [3, 0.25], duration: 20 },
-	accent: { count: 10, opacity: [0.08, 0.12], width: [2, 0.2], duration: 15 }
+	primary: { count: PATH_COUNTS.primary, opacity: [0.15, 0.02], width: [4, 0.3], duration: 25 },
+	secondary: {
+		count: PATH_COUNTS.secondary,
+		opacity: [0.12, 0.015],
+		width: [3, 0.25],
+		duration: 20
+	},
+	accent: { count: PATH_COUNTS.accent, opacity: [0.08, 0.12], width: [2, 0.2], duration: 15 }
 } as const satisfies Record<
 	PathType,
 	{
@@ -114,7 +129,7 @@ function buildSet(type: PathType, position: number): AestheticPath[] {
 	}));
 }
 
-/** All three path sets for one mirror half. 37 paths per call. */
+/** All three path sets for one mirror half. 22 paths per call. */
 export function buildPathSets(position: number): PathSets {
 	return {
 		primary: buildSet('primary', position),

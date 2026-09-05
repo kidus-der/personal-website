@@ -80,7 +80,7 @@
 
 <section class={cn('glance', className)}>
 	<div class="container">
-		<div class="glance__grid" use:reveal={GRID_REVEAL}>
+		<div class="glance__grid" data-reveal-group use:reveal={GRID_REVEAL}>
 			<BentoCard
 				title="{role.role}, {role.company}"
 				description={firstClause(role.bullets[0])}

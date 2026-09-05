@@ -6,6 +6,8 @@
  */
 export { animate, inView, scroll, stagger, spring, press, hover } from 'motion';
 
+export { markRevealed } from './prehide';
+
 export {
 	springs,
 	easings,

@@ -38,7 +38,7 @@
 		<span class="timeline__rail-fill"></span>
 	</div>
 
-	<ol class="timeline__list" bind:this={listEl} use:reveal={{ stagger: STAGGER }}>
+	<ol class="timeline__list" bind:this={listEl} data-reveal-group use:reveal={{ stagger: STAGGER }}>
 		{#each roles as role, index (`${role.company}-${role.role}-${role.period.start}`)}
 			<li class="timeline__item">
 				<span

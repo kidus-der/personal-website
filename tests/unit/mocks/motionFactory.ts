@@ -15,6 +15,7 @@
  */
 import { vi } from 'vitest';
 import { springs, easings, durations } from '$lib/motion/config';
+import { markRevealed } from '$lib/motion/prehide';
 
 export interface FakeAnimation {
 	stop: ReturnType<typeof vi.fn>;
@@ -86,6 +87,8 @@ export function createMotionMock() {
 		stagger,
 		spring: vi.fn(),
 		reducedMotion: vi.fn(() => false),
+		// Plain DOM writes; jsdom runs them, so the real helper is used.
+		markRevealed,
 		springs,
 		easings,
 		durations

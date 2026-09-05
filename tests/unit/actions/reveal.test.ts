@@ -29,7 +29,7 @@ afterEach(() => {
 });
 
 describe('reveal', () => {
-	it('hides the node synchronously and observes it with the default amount', () => {
+	it('hides a node that carries no data-reveal, so third-party use still works', () => {
 		reveal(node, undefined);
 
 		expect(node.style.opacity).toBe('0');
@@ -206,5 +206,173 @@ describe('reveal', () => {
 		const result = reveal(node, undefined);
 
 		expect(() => result?.destroy?.()).not.toThrow();
+	});
+
+	describe('with the stylesheet pre-hide', () => {
+		it('never writes an inline opacity when the node carries data-reveal', () => {
+			node.setAttribute('data-reveal', '');
+
+			reveal(node, undefined);
+
+			// The stylesheet already hid it. Writing `opacity: 0` here is what made
+			// server-rendered content flash: visible, then hidden, then faded back.
+			expect(node.style.opacity).toBe('');
+			expect(node.style.transform).toBe('translateY(16px)');
+		});
+
+		it('marks the node revealed once the entrance completes', () => {
+			node.setAttribute('data-reveal', '');
+
+			reveal(node, undefined);
+			expect(node.hasAttribute('data-revealed')).toBe(false);
+
+			enterView();
+
+			expect(node).toHaveAttribute('data-revealed', '');
+			expect(node.getAttribute('style')).toBe('');
+		});
+
+		it('leaves the children of a data-reveal-group to the stylesheet', () => {
+			const first = document.createElement('span');
+			const second = document.createElement('span');
+			node.append(first, second);
+			node.setAttribute('data-reveal-group', '');
+
+			reveal(node, { stagger: 0.06 });
+
+			expect(first.style.opacity).toBe('');
+			expect(second.style.opacity).toBe('');
+			expect(first.style.transform).toBe('translateY(16px)');
+		});
+
+		it('marks every staggered child revealed once they land', () => {
+			const first = document.createElement('span');
+			const second = document.createElement('span');
+			node.append(first, second);
+			node.setAttribute('data-reveal-group', '');
+
+			reveal(node, { stagger: 0.06 });
+			enterView();
+
+			expect(first).toHaveAttribute('data-revealed', '');
+			expect(second).toHaveAttribute('data-revealed', '');
+		});
+
+		it('releases the group itself, so children rendered into it later are visible', () => {
+			const first = document.createElement('span');
+			node.append(first);
+			node.setAttribute('data-reveal-group', '');
+
+			reveal(node, { stagger: 0.06 });
+			enterView();
+
+			expect(node).toHaveAttribute('data-revealed', '');
+
+			// The /work and /blog filters swap the list's children while keeping
+			// the list. The pre-hide selector matches children by position, so a
+			// child rendered in after the reveal has run would be hidden by a rule
+			// this instance is never going to lift again — it would sit invisible
+			// until the 3s safety net caught it.
+			first.remove();
+			const late = document.createElement('span');
+			node.append(late);
+
+			expect(
+				late.matches('[data-reveal-group]:not([data-revealed]) > *:not([data-revealed])')
+			).toBe(false);
+		});
+
+		it('re-arms the group when a non-once stagger scrolls back out', () => {
+			node.append(document.createElement('span'));
+			node.setAttribute('data-reveal-group', '');
+
+			reveal(node, { stagger: 0.06, once: false });
+			const leave = enterView() as () => void;
+			expect(node).toHaveAttribute('data-revealed', '');
+
+			leave();
+
+			expect(node.hasAttribute('data-revealed')).toBe(false);
+		});
+
+		it('still hides a group child that the group does not own', () => {
+			// A grid whose parent was never marked: the stylesheet is not hiding
+			// these, so the action has to.
+			const child = document.createElement('span');
+			node.append(child);
+
+			reveal(node, { stagger: 0.06 });
+
+			expect(child.style.opacity).toBe('0');
+		});
+
+		it('claims the node on mount, so the safety net stands down', () => {
+			node.setAttribute('data-reveal', '');
+
+			reveal(node, undefined);
+
+			// The net exists for a script that never ran. This one did, and owns
+			// the element's entrance — letting the net fire at 3s anyway would
+			// leave a below-the-fold element already at full opacity, with no
+			// fade left to play when it finally scrolls into view.
+			expect(node).toHaveAttribute('data-motion-ready', '');
+		});
+
+		it('drops the claim once the node has arrived', () => {
+			node.setAttribute('data-reveal', '');
+
+			reveal(node, undefined);
+			enterView();
+
+			expect(node.hasAttribute('data-motion-ready')).toBe(false);
+			expect(node).toHaveAttribute('data-revealed', '');
+		});
+
+		it('claims every staggered child', () => {
+			const first = document.createElement('span');
+			const second = document.createElement('span');
+			node.append(first, second);
+			node.setAttribute('data-reveal-group', '');
+
+			reveal(node, { stagger: 0.06 });
+
+			expect(first).toHaveAttribute('data-motion-ready', '');
+			expect(second).toHaveAttribute('data-motion-ready', '');
+		});
+
+		it('marks the node revealed synchronously under reduced motion', () => {
+			motion.reducedMotion.mockReturnValue(true);
+			node.setAttribute('data-reveal', '');
+
+			reveal(node, undefined);
+
+			// Without this the pre-hide rule would keep a node hidden forever on a
+			// machine where the action never animates anything.
+			expect(node).toHaveAttribute('data-revealed', '');
+			expect(node.style.opacity).toBe('');
+		});
+
+		it('marks staggered children revealed synchronously under reduced motion', () => {
+			motion.reducedMotion.mockReturnValue(true);
+			const child = document.createElement('span');
+			node.append(child);
+			node.setAttribute('data-reveal-group', '');
+
+			reveal(node, { stagger: 0.06 });
+
+			expect(child).toHaveAttribute('data-revealed', '');
+		});
+
+		it('re-arms the pre-hide when a non-once reveal scrolls back out', () => {
+			node.setAttribute('data-reveal', '');
+
+			reveal(node, { once: false });
+			const leave = enterView() as () => void;
+			expect(node).toHaveAttribute('data-revealed', '');
+
+			leave();
+
+			expect(node.hasAttribute('data-revealed')).toBe(false);
+		});
 	});
 });

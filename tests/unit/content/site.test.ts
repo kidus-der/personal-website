@@ -7,7 +7,7 @@ describe('site', () => {
 		expect(site.shortName).toBe('Kidus');
 		expect(site.url).toBe('https://kidusder.com');
 		expect(site.email).toBe('kidusdereje41@gmail.com');
-		expect(site.tagline).toBe('I build the systems that tell real from fake.');
+		expect(site.tagline).toBe('I build intelligent systems that reason and act.');
 	});
 
 	it('has the expected socials', () => {

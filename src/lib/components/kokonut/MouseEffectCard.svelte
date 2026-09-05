@@ -12,8 +12,10 @@
 	    each dot its own `animate()` call per move would allocate hundreds of
 	    animations a second.
 	  - The loop integrates a fixed-timestep spring and writes `transform`
-	    directly. The ambient opacity pulse is a CSS animation with a staggered
-	    delay, so it costs nothing and keeps running while the loop is asleep.
+	    directly, and nothing else moves. The dots used to breathe on a staggered
+	    CSS pulse, which meant several hundred animations running forever on a
+	    page whose hero also had its own; they now sit at a static opacity and
+	    only brighten as the pointer nears them.
 
 	Keyboard access is opt-in through `keyboardInteractive`. Arrow keys drive a
 	virtual pointer, which is the only way a keyboard user gets the effect at all
@@ -35,7 +37,7 @@
 	interface Props {
 		/** Dot diameter in px. */
 		dotSize?: number;
-		/** Grid pitch in px. */
+		/** Grid pitch in px. Wide enough that a large card stays under the cap. */
 		dotSpacing?: number;
 		/** How far the pointer's push reaches, in px. */
 		repulsionRadius?: number;
@@ -52,7 +54,7 @@
 
 	let {
 		dotSize = 2,
-		dotSpacing = 16,
+		dotSpacing = 24,
 		repulsionRadius = 80,
 		repulsionStrength = 20,
 		keyboardInteractive = false,
@@ -159,9 +161,9 @@
 
 			element.style.transform = `translate(${round(offset.x)}px, ${round(offset.y)}px)`;
 
-			// The pulse keyframes multiply this, so raising it brightens the dot
-			// without fighting the running CSS animation. Most frames leave it
-			// where it was; skipping the write avoids a style invalidation per dot.
+			// The dot's resting opacity plus the pointer's proximity boost. Most
+			// frames leave it where it was; skipping the write avoids a style
+			// invalidation per dot.
 			const opacity = round(dot.opacity + target.boost);
 			if (opacity !== offset.opacity) {
 				offset.opacity = opacity;
@@ -266,10 +268,7 @@
 		{#each dots as dot, index (index)}
 			<span
 				class="mouse-effect-card__dot"
-				style="left: {dot.x}px; top: {dot.y}px; --dot-opacity: {dot.opacity}; animation-delay: {(
-					(index % 75) *
-					0.02
-				).toFixed(2)}s"
+				style="left: {dot.x}px; top: {dot.y}px; --dot-opacity: {dot.opacity}"
 			></span>
 		{/each}
 	</div>
@@ -308,27 +307,10 @@
 		background-color: var(--accent);
 		opacity: var(--dot-opacity, 0.3);
 		will-change: transform;
-		/* The staggered ambient breath. Each dot's delay is set inline. */
-		animation: dot-pulse 1.6s ease-in-out infinite alternate;
-	}
-
-	@keyframes dot-pulse {
-		from {
-			opacity: calc(var(--dot-opacity, 0.3) * 0.5);
-		}
-		to {
-			opacity: calc(var(--dot-opacity, 0.3) * 1.5);
-		}
 	}
 
 	.mouse-effect-card__content {
 		position: relative;
 		padding: 1.5rem;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.mouse-effect-card__dot {
-			animation: none;
-		}
 	}
 </style>

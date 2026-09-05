@@ -48,7 +48,7 @@
 
 <main class="work-page">
 	<div class="container">
-		<header class="work-page__header" use:reveal>
+		<header class="work-page__header" data-reveal use:reveal>
 			<h1 class="display-heading work-page__title">Work</h1>
 			<p class="work-page__lede">Projects I've built, from research tooling to production apps.</p>
 		</header>

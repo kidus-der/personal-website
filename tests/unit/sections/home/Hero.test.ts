@@ -4,6 +4,7 @@ import Hero from '$lib/components/sections/home/Hero.svelte';
 import { site } from '$content/site';
 import { animateMock, animations, preferReducedMotion, resetMotionMocks } from '../../mocks/motion';
 import { magnetic, resetActionMocks } from '../../mocks/actions';
+import { stagger } from '$lib/motion';
 
 vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
 vi.mock('$lib/actions/tilt', async () => (await import('../../mocks/actions')).tilt.module());
@@ -12,11 +13,18 @@ vi.mock('$lib/actions/magnetic', async () =>
 	(await import('../../mocks/actions')).magnetic.module()
 );
 
-/** Mirrors the hero's own greeting timings; see `GREETING_INTERVAL` there. */
-const GREETING_WORDS = 6;
-const GREETING_INTERVAL = 320;
-const GREETING_CYCLE_MS = GREETING_WORDS * GREETING_INTERVAL;
-const FALLBACK_MS = GREETING_CYCLE_MS + 200;
+/**
+ * The hero's own entrance schedule, restated so the test asserts a contract
+ * rather than reading it back out of the component.
+ */
+const SCHEDULE: Record<string, number> = {
+	'.hero__greeting': 0,
+	'.hero-art': 0.2,
+	'.hero__sub': 0.55,
+	'.hero__actions': 0.65,
+	'.hero__socials': 0.75
+};
+const LINE_DELAY = 0.15;
 
 /** Collapses the whitespace the split headline spans introduce. */
 function text(node: Element | null): string {
@@ -40,14 +48,14 @@ describe('Hero', () => {
 	it('renders the headline as the page h1', () => {
 		const { getByRole } = setup();
 		const heading = getByRole('heading', { level: 1 });
-		expect(text(heading)).toBe('I build the systems that tell real from fake.');
+		expect(text(heading)).toBe('I build intelligent systems that reason and act.');
 	});
 
 	it('emphasises exactly one phrase, in italic display type', () => {
 		const { container } = setup();
 		const emphasis = container.querySelectorAll('.hero__emphasis');
 		expect(emphasis).toHaveLength(1);
-		expect(emphasis[0]).toHaveTextContent('real from fake');
+		expect(emphasis[0]).toHaveTextContent('reason and act');
 	});
 
 	it('splits the headline into animatable lines', () => {
@@ -96,85 +104,103 @@ describe('Hero', () => {
 		expect(magnetic.calls).toHaveLength(3);
 	});
 
-	it('renders the verification card beside the copy', () => {
+	it('renders the hero art beside the copy', () => {
 		const { container } = setup();
-		expect(container.querySelector('.verification-card')).toBeInTheDocument();
+		expect(container.querySelector('.hero-art')).toBeInTheDocument();
 	});
 
-	it('lays a background path field behind the hero', () => {
+	it('lays no background path field behind the hero — the art is the visual', () => {
 		const { container } = setup();
-		expect(container.querySelector('.background-paths')).toBeInTheDocument();
+		expect(container.querySelector('.background-paths')).not.toBeInTheDocument();
 	});
 
-	it('hides the staged elements on mount, before anything has moved', () => {
+	it('marks every staged element for the stylesheet pre-hide', () => {
+		const { container } = setup();
+		const staged = [...container.querySelectorAll('[data-hero]')].map((el) => el.className);
+		// Greeting, three headline lines, sub, actions, socials, art.
+		expect(staged.length).toBeGreaterThanOrEqual(8);
+	});
+
+	it('never writes an inline opacity, which is what made the hero flash', () => {
+		const { lines, container } = setup();
+		// The stylesheet hid these before first paint; the hero only animates
+		// them up and releases them.
+		for (const line of lines()) expect(line.style.opacity).toBe('');
+		expect((container.querySelector('.hero__sub') as HTMLElement).style.opacity).toBe('');
+	});
+
+	it('starts the whole sequence on mount, without waiting on the greeting', () => {
+		const { container } = setup();
+		const sub = container.querySelector('.hero__sub');
+		// The greeting cycles concurrently now; nothing is chained off it, so a
+		// greeting that never settles can no longer strand the rest of the hero.
+		expect(animateMock.mock.calls.some((call) => (call[0] as Element[])?.includes?.(sub!))).toBe(
+			true
+		);
+	});
+
+	it.each(Object.entries(SCHEDULE))('animates %s in on its own beat', (selector, delay) => {
+		const { container } = setup();
+		const element = container.querySelector(selector);
+		expect(element).toBeInTheDocument();
+
+		const call = animateMock.mock.calls.find((entry) =>
+			(entry[0] as Element[])?.includes?.(element!)
+		);
+		expect(call).toBeDefined();
+		expect(call?.[1]).toEqual({ opacity: [0, 1], y: [16, 0] });
+		expect(call?.[2]).toMatchObject({ duration: 0.7, delay });
+	});
+
+	it('staggers the headline lines from their own start delay', () => {
 		const { lines } = setup();
-		// The pre-hide happens on mount only, so the server-rendered markup is
-		// visible for anyone who never runs the script.
-		expect(lines()[0].style.opacity).toBe('0');
+		const call = animateMock.mock.calls.find((entry) =>
+			(entry[0] as Element[])?.includes?.(lines()[0])
+		);
+		expect(call?.[0]).toEqual(lines());
+		expect(call?.[1]).toEqual({ opacity: [0, 1], y: [16, 0] });
+		expect(stagger).toHaveBeenCalledWith(0.08, { startDelay: LINE_DELAY });
 	});
 
-	it('holds the headline back until the greeting has settled', async () => {
-		vi.useFakeTimers();
-		try {
-			const { container } = setup();
-			const sub = container.querySelector('.hero__sub');
-			const animated = () => animateMock.mock.calls.some((call) => call[0] === sub);
-
-			// The greeting is still cycling: nothing else has been touched.
-			expect(animated()).toBe(false);
-			await vi.advanceTimersByTimeAsync(GREETING_CYCLE_MS / 2);
-			expect(animated()).toBe(false);
-
-			// `DynamicText` settles and fires `onDone`.
-			await vi.advanceTimersByTimeAsync(GREETING_CYCLE_MS);
-			expect(animated()).toBe(true);
-		} finally {
-			vi.useRealTimers();
+	it('claims every staged element on mount, so the safety net stands down', () => {
+		// The claim is dropped again as each element is released, so a hero that
+		// has finished carries neither attribute.
+		const { container } = setup();
+		for (const element of container.querySelectorAll('[data-hero]')) {
+			expect(element.hasAttribute('data-motion-ready')).toBe(false);
+			expect(element).toHaveAttribute('data-revealed', '');
 		}
 	});
 
-	it('runs the entrance exactly once, even after the fallback deadline passes', async () => {
-		vi.useFakeTimers();
-		try {
-			const { container } = setup();
-			const sub = container.querySelector('.hero__sub');
-			await vi.advanceTimersByTimeAsync(GREETING_CYCLE_MS + FALLBACK_MS + 1000);
-			const runs = animateMock.mock.calls.filter((call) => call[0] === sub);
-			expect(runs).toHaveLength(1);
-		} finally {
-			vi.useRealTimers();
+	it('releases each element from the pre-hide when its entrance lands', () => {
+		const { container } = setup();
+		for (const element of container.querySelectorAll('[data-hero]')) {
+			expect(element).toHaveAttribute('data-revealed', '');
 		}
 	});
 
-	it('stops its own entrance animations when the hero unmounts mid-flight', async () => {
-		vi.useFakeTimers();
-		try {
-			const { container, unmount } = setup();
-			const staged = ['.hero__sub', '.hero__actions', '.hero__socials'].map((selector) =>
-				container.querySelector(selector)
-			);
-			await vi.advanceTimersByTimeAsync(GREETING_CYCLE_MS);
+	it('stops its own entrance animations when the hero unmounts mid-flight', () => {
+		const { unmount } = setup();
+		// `animations` holds every animation the mock handed out, the art's and
+		// the greeting's included. The hero's own are the ones aimed at a group
+		// of elements, and they line up with the calls by index.
+		const owned = animateMock.mock.calls
+			.map((call, index) => ({ target: call[0], animation: animations[index] }))
+			.filter(({ target }) => Array.isArray(target));
+		expect(owned).toHaveLength(Object.keys(SCHEDULE).length + 1);
 
-			// `animations` is every animation the mock handed out, including
-			// `DynamicText`'s; only the ones aimed at the hero's own staged
-			// elements are the hero's to stop, and they line up by call index.
-			const owned = animateMock.mock.calls
-				.map((call, index) => ({ target: call[0], animation: animations[index] }))
-				.filter(({ target }) => staged.includes(target as Element));
-			expect(owned).toHaveLength(staged.length);
+		unmount();
 
-			unmount();
-
-			for (const { animation } of owned) expect(animation.stop).toHaveBeenCalled();
-		} finally {
-			vi.useRealTimers();
-		}
+		for (const { animation } of owned) expect(animation.stop).toHaveBeenCalled();
 	});
 
-	it('leaves everything visible and animates nothing under reduced motion', () => {
+	it('releases everything and animates nothing under reduced motion', () => {
 		preferReducedMotion();
-		const { lines } = setup();
+		const { container, lines } = setup();
 		expect(lines()[0].style.opacity).toBe('');
+		for (const element of container.querySelectorAll('[data-hero]')) {
+			expect(element).toHaveAttribute('data-revealed', '');
+		}
 		expect(animateMock).not.toHaveBeenCalled();
 	});
 });
