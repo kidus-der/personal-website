@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { generateAestheticPath, buildPathSets } from '$lib/components/kokonut/backgroundPaths';
+import {
+	generateAestheticPath,
+	buildPathSets,
+	PATH_COUNTS
+} from '$lib/components/kokonut/backgroundPaths';
 
 /** Count occurrences of an SVG path command at a token boundary. */
 function countCommands(d: string, command: 'M' | 'C'): number {
@@ -51,10 +55,16 @@ describe('generateAestheticPath', () => {
 describe('buildPathSets', () => {
 	const sets = buildPathSets(1);
 
-	it('produces 12 primary, 15 secondary and 10 accent paths', () => {
-		expect(sets.primary).toHaveLength(12);
-		expect(sets.secondary).toHaveLength(15);
-		expect(sets.accent).toHaveLength(10);
+	it('produces the budgeted number of paths in each set', () => {
+		expect(PATH_COUNTS).toEqual({ primary: 8, secondary: 8, accent: 6 });
+		expect(sets.primary).toHaveLength(PATH_COUNTS.primary);
+		expect(sets.secondary).toHaveLength(PATH_COUNTS.secondary);
+		expect(sets.accent).toHaveLength(PATH_COUNTS.accent);
+	});
+
+	it('stays inside the 44-path budget once both halves are drawn', () => {
+		const perSide = PATH_COUNTS.primary + PATH_COUNTS.secondary + PATH_COUNTS.accent;
+		expect(perSide * 2).toBe(44);
 	});
 
 	it('gives every path a deterministic, unique id scoped to the position', () => {
@@ -74,9 +84,11 @@ describe('buildPathSets', () => {
 		expect(sets.accent[4].opacity).toBeCloseTo(0.56, 5);
 	});
 
-	it('caps accent opacity at 1', () => {
+	it('ramps accent opacity without ever exceeding 1', () => {
+		// The accent ramp is steep enough to overshoot at the original count; the
+		// cap stays in place whatever the count is set to.
 		for (const path of sets.accent) expect(path.opacity).toBeLessThanOrEqual(1);
-		expect(sets.accent[9].opacity).toBe(1);
+		expect(sets.accent.at(-1)!.opacity).toBeGreaterThan(sets.accent[0].opacity);
 	});
 
 	it('carries the generated geometry for each path', () => {

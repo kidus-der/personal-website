@@ -18,9 +18,11 @@ export interface Dot {
  *
  * Every dot is an element the repulsion loop touches on each frame, so the cap
  * is what keeps a large card from turning a decorative background into the most
- * expensive thing on the page.
+ * expensive thing on the page. It was 400, and with two of these cards on the
+ * home page that was 800 elements and — while they still pulsed — 800 running
+ * animations. 160 reads the same at the pitch the cards actually use.
  */
-export const MAX_DOTS = 400;
+export const MAX_DOTS = 160;
 
 /** The original's three-step opacity cycle across the grid diagonal. */
 const BASE_OPACITIES = [0.3, 0.5, 0.7];

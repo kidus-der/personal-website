@@ -1,14 +1,16 @@
 <!--
 	BackgroundPaths — KokonutUI `backgrounds/background-paths`.
 
-	Two mirrored fans of 37 hairline curves that sweep through the viewport. The
+	Two mirrored fans of 22 hairline curves that sweep through the viewport. The
 	geometry sweeps far outside the 696×316 viewBox on purpose: only the middle of
 	each curve is ever visible, which is what makes the motion read as a current
 	rather than a loop.
 
 	Geometry comes from `./backgroundPaths.ts` (pure, tested, deterministic). The
-	`pathLength`/`pathOffset` loop is Motion's SVG line-drawing pair, started from
-	an action so each `<path>` animates exactly once, as it mounts.
+	`pathOffset` sweep is started from an action so each `<path>` animates exactly
+	once, as it mounts. `pathLength` used to animate alongside it; it was dropped
+	with the path count, because re-deriving a dash array every frame is not worth
+	a difference nobody can see behind a page of content.
 -->
 <script lang="ts">
 	import type { Action } from 'svelte/action';
@@ -29,7 +31,7 @@
 
 	// `reducedMotion()` is read once per mount rather than per path: the answer
 	// cannot change between two paths of the same render, and reading it once
-	// keeps the 74 path animations consistent with each other.
+	// keeps the 44 path animations consistent with each other.
 	const reduce = reducedMotion();
 
 	const sets = MIRRORS.map((position) => {
@@ -41,7 +43,7 @@
 		if (reduce) return;
 		const animation = animate(
 			node,
-			{ pathLength: [0.3, 1], pathOffset: [0, 1], opacity: [0.3, 0.6, 0.3] },
+			{ pathOffset: [0, 1], opacity: [0.3, 0.6, 0.3] },
 			{ duration: path.duration, repeat: Infinity, ease: 'linear' }
 		);
 		return { destroy: () => animation.stop() };

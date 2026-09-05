@@ -31,6 +31,15 @@ describe('+error.svelte', () => {
 	});
 	afterEach(cleanup);
 
+	it('lays a faint path field behind the message', () => {
+		const { container } = render(ErrorPage);
+		const paths = container.querySelector('.background-paths') as HTMLElement;
+		// Faint enough to stay a texture: the error copy is the thing to read.
+		expect(paths).toBeInTheDocument();
+		expect(paths).toHaveAttribute('aria-hidden', 'true');
+		expect(paths.style.opacity).toBe('0.35');
+	});
+
 	it('says the page was not found for a 404', () => {
 		const { getByRole } = render(ErrorPage);
 		expect(getByRole('img', { name: 'Page not found' })).toBeInTheDocument();
