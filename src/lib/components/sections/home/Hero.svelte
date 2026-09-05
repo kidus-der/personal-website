@@ -146,7 +146,7 @@
 					href="https://www.scam.ai/en"
 					target="_blank"
 					rel="noopener noreferrer">Scam AI</a
-				>. Eight papers on deepfake and document forensics. Computing Science and Economics at the
+				>. Nine papers on deepfake and document forensics. Computing Science and Economics at the
 				University of Alberta.
 			</p>
 

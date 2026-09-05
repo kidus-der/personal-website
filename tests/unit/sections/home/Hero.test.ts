@@ -85,7 +85,7 @@ describe('Hero', () => {
 	it('states the credentials in the sub-headline', () => {
 		const { container } = setup();
 		expect(text(container.querySelector('.hero__sub'))).toBe(
-			'Founding Engineer at Scam AI. Eight papers on deepfake and document forensics. Computing Science and Economics at the University of Alberta.'
+			'Founding Engineer at Scam AI. Nine papers on deepfake and document forensics. Computing Science and Economics at the University of Alberta.'
 		);
 	});
 
