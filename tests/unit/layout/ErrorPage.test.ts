@@ -31,13 +31,13 @@ describe('+error.svelte', () => {
 	});
 	afterEach(cleanup);
 
-	it('lays a faint path field behind the message', () => {
+	it('lays the site flow field behind the message, at its soft intensity', () => {
 		const { container } = render(ErrorPage);
-		const paths = container.querySelector('.background-paths') as HTMLElement;
-		// Faint enough to stay a texture: the error copy is the thing to read.
-		expect(paths).toBeInTheDocument();
-		expect(paths).toHaveAttribute('aria-hidden', 'true');
-		expect(paths.style.opacity).toBe('0.35');
+		const field = container.querySelector('.flow-field') as HTMLElement;
+		// Soft enough to stay a texture: the error copy is the thing to read.
+		expect(field).toBeInTheDocument();
+		expect(field).toHaveClass('flow-field--soft');
+		expect(field).toHaveAttribute('aria-hidden', 'true');
 	});
 
 	it('says the page was not found for a 404', () => {

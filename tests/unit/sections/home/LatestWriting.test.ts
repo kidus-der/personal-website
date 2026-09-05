@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, cleanup } from '@testing-library/svelte';
+import { render, cleanup, fireEvent } from '@testing-library/svelte';
 import LatestWriting from '$lib/components/sections/home/LatestWriting.svelte';
 import type { BlogPost } from '$lib/types/content';
 import { resetMotionMocks } from '../../mocks/motion';
@@ -62,5 +62,32 @@ describe('LatestWriting', () => {
 	it('renders nothing at all when there are no posts', () => {
 		const { container } = setup([]);
 		expect(container.querySelector('.latest-writing')).toBeNull();
+	});
+
+	it('dims the whole band but the hovered card, the feature included', async () => {
+		const { featured, cards } = setup([post(1), post(2), post(3)]);
+
+		await fireEvent(cards()[0], new Event('pointerenter'));
+		expect(featured()).toHaveClass('spotlight-card--dimmed');
+		expect(cards()[0]).not.toHaveClass('spotlight-card--dimmed');
+		expect(cards()[1]).toHaveClass('spotlight-card--dimmed');
+
+		await fireEvent(cards()[0], new Event('pointerleave'));
+		expect(featured()).not.toHaveClass('spotlight-card--dimmed');
+		expect(cards()[1]).not.toHaveClass('spotlight-card--dimmed');
+	});
+
+	it('dims the small cards when the feature itself is hovered', async () => {
+		const { featured, cards } = setup([post(1), post(2), post(3)]);
+
+		await fireEvent(featured() as Element, new Event('pointerenter'));
+		expect(featured()).not.toHaveClass('spotlight-card--dimmed');
+		expect(cards().every((card) => card.classList.contains('spotlight-card--dimmed'))).toBe(true);
+	});
+
+	it('starts with nothing dimmed', () => {
+		const { featured, cards } = setup([post(1), post(2), post(3)]);
+		expect(featured()).not.toHaveClass('spotlight-card--dimmed');
+		expect(cards().some((card) => card.classList.contains('spotlight-card--dimmed'))).toBe(false);
 	});
 });

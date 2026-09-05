@@ -10,7 +10,13 @@ function setup() {
 	const trigger = () => result.getByRole('button', { name: /ሰላም/ });
 	const tooltip = () => result.container.querySelector('#selam-tip') as HTMLElement;
 	const greeting = () => result.container.querySelector('.bio__greeting') as HTMLElement;
-	return { ...result, trigger, tooltip, greeting };
+	/**
+	 * The animations aimed at the tooltip, and only those. The `FlowField` behind
+	 * the band animates on mount too, so a bare call count on the shared mock
+	 * would be counting the background's entrance as the tooltip's spring.
+	 */
+	const tooltipAnimations = () => animateMock.mock.calls.filter((call) => call[0] === tooltip());
+	return { ...result, trigger, tooltip, greeting, tooltipAnimations };
 }
 
 describe('Bio', () => {
@@ -97,12 +103,12 @@ describe('Bio', () => {
 	});
 
 	it('springs the tooltip in once, not again for the second request', async () => {
-		const { greeting, trigger, tooltip } = setup();
+		const { greeting, trigger, tooltip, tooltipAnimations } = setup();
 
 		await fireEvent.pointerEnter(greeting());
 		await fireEvent.focus(trigger());
 
-		expect(animateMock).toHaveBeenCalledTimes(1);
+		expect(tooltipAnimations()).toHaveLength(1);
 		expect(tooltip()).toBeVisible();
 	});
 
@@ -117,21 +123,20 @@ describe('Bio', () => {
 	});
 
 	it('springs the tooltip in from a slight scale', async () => {
-		const { trigger } = setup();
+		const { trigger, tooltipAnimations } = setup();
 		await fireEvent.focus(trigger());
 
-		expect(animateMock).toHaveBeenCalled();
-		const [, keyframes] = animateMock.mock.calls.at(-1) ?? [];
+		const [, keyframes] = tooltipAnimations().at(-1) ?? [];
 		expect(keyframes).toMatchObject({ opacity: [0, 1], scale: [0.93, 1] });
 	});
 
 	it('skips the spring under reduced motion but still shows the tooltip', async () => {
 		preferReducedMotion();
-		const { trigger, tooltip } = setup();
+		const { trigger, tooltip, tooltipAnimations } = setup();
 
 		await fireEvent.focus(trigger());
 		expect(tooltip()).toBeVisible();
-		expect(animateMock).not.toHaveBeenCalled();
+		expect(tooltipAnimations()).toHaveLength(0);
 	});
 
 	it('links Scam AI out and the paper count down to the publications section', () => {
@@ -153,9 +158,13 @@ describe('Bio', () => {
 		expect(paragraphs[1]).toHaveTextContent('film photography and good coffee');
 	});
 
-	it('sits over a beams canvas that is clipped by the section', () => {
+	it('sits over a soft flow field, full-bleed and clipped by the section', () => {
 		const { container } = setup();
-		expect(container.querySelector('canvas')).toBeInTheDocument();
-		expect(container.querySelector('.bio')).toBeInTheDocument();
+		const field = container.querySelector('.flow-field');
+		expect(field).toBeInTheDocument();
+		expect(field).toHaveClass('flow-field--soft');
+		// The band is full-bleed, so the copy carries the container itself rather
+		// than inheriting one from the route.
+		expect(container.querySelector('.bio__content')).toHaveClass('container');
 	});
 });

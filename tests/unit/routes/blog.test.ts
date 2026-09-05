@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi, type MockInstance } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup, fireEvent, waitFor } from '@testing-library/svelte';
 import { readable } from 'svelte/store';
 import { createRawSnippet } from 'svelte';
@@ -62,22 +62,11 @@ describe('pickNeighbours', () => {
 });
 
 describe('blog listing page', () => {
-	// The masthead's BeamsBackground reaches for a 2D context jsdom does not
-	// implement; it bails out cleanly on null, this just silences the warning.
-	// Scoped to this block and restored, so the prototype is left as found —
-	// `vi.restoreAllMocks()` is avoided because it would also flatten the shared
-	// `$lib/motion` doubles the next describe relies on.
-	let getContextSpy: MockInstance;
-
 	beforeEach(() => {
 		resetMotionMocks();
-		getContextSpy = vi
-			.spyOn(HTMLCanvasElement.prototype, 'getContext')
-			.mockReturnValue(null) as unknown as MockInstance;
 	});
 	afterEach(() => {
 		cleanup();
-		getContextSpy.mockRestore();
 	});
 
 	function setup(posts: BlogPost[] = threePosts) {
@@ -99,6 +88,35 @@ describe('blog listing page', () => {
 		expect(container.querySelectorAll('.featured-post')).toHaveLength(1);
 		expect(container.querySelector('.featured-post')).toHaveAttribute('href', '/blog/newest');
 		expect(container.querySelectorAll('.post-card')).toHaveLength(2);
+	});
+
+	it('dims the feature and every other card when one card is hovered', async () => {
+		const { container } = setup();
+		const featured = () => container.querySelector('.featured-post') as HTMLElement;
+		const cards = () => [...container.querySelectorAll('.post-card')];
+
+		await fireEvent(cards()[0], new Event('pointerenter'));
+		expect(featured()).toHaveClass('spotlight-card--dimmed');
+		expect(cards()[0]).not.toHaveClass('spotlight-card--dimmed');
+		expect(cards()[1]).toHaveClass('spotlight-card--dimmed');
+
+		await fireEvent(cards()[0], new Event('pointerleave'));
+		expect(featured()).not.toHaveClass('spotlight-card--dimmed');
+	});
+
+	it('stops dimming when a tag filter removes the hovered card', async () => {
+		const { container, getByRole } = setup();
+		const cards = () => [...container.querySelectorAll('.post-card')];
+
+		// 'oldest' is the last card; filtering to Research drops it from the list
+		// without the pointer ever leaving it.
+		await fireEvent(cards()[1], new Event('pointerenter'));
+		await fireEvent.click(getByRole('button', { name: 'Research' }));
+
+		await waitFor(() => {
+			expect(container.querySelector('.featured-post')).toHaveAttribute('href', '/blog/middle');
+		});
+		expect(container.querySelector('.featured-post')).not.toHaveClass('spotlight-card--dimmed');
 	});
 
 	it('offers one chip per distinct tag plus "All"', () => {

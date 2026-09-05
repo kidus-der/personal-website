@@ -169,7 +169,8 @@ src/
 │   ├── motion/                 # config.ts (springs, easings, durations) + index.ts
 │   ├── actions/                # reveal, tilt, magnetic, parallax, scrollProgress,
 │   │                           # press, pointer — the only place Motion is called
-│   ├── state/                  # Rune modules: theme, contact, subscribeForm
+│   ├── state/                  # Rune modules: theme, contact, subscribeForm,
+│   │                           # hoverGroup
 │   ├── components/
 │   │   ├── ui/                 # Button, Tag, SectionHeading, SEO, modals
 │   │   ├── layout/             # SiteShell, Nav, MobileMenu, Footer,
@@ -238,9 +239,49 @@ makes server-rendered content paint, vanish and fade back in.
 - `tests/unit/styles/prehide.test.ts` guards all of this, including that every
   `use:reveal` call site in `src/` carries the attribute.
 - Budget: `document.getAnimations().length` on a settled `/` stays at or under
-  40, asserted in `tests/e2e/perf.spec.ts`. `/` is the page the budget is
-  written for; `+error.svelte` renders the 44-path `BackgroundPaths` field by
-  design and has nothing else on it.
+  60, asserted in `tests/e2e/perf.spec.ts` — 36 `FlowField` paths plus the
+  hero's own entrance. Most of the field never reaches that count in practice:
+  Motion drives `pathLength` and `pathOffset` off its own ticker rather than
+  through the Web Animations API, so a settled `/` reports a single figure. The
+  ceiling is written for what the page renders, not for what Motion happens to
+  hand the browser.
+
+### The background field
+
+- `kokonut/FlowField.svelte` is the site's one background signature, behind the
+  home hero (`intensity="bold"`, 36 paths), the About bio, the blog masthead and
+  the 404 (`intensity="soft"`, 24). It replaced three separate treatments —
+  `HeroArt`, `BeamsBackground` and the 44-path `BackgroundPaths`.
+- Geometry lives in `kokonut/flowField.ts`: pure, deterministic, unit-tested. It
+  is ported from KokonutUI's Background Paths; the sets, ramps and view box are
+  ours. Nothing in the component computes a curve.
+- The opacity ramp is CSS (`--flow-from` / `--flow-to`, redefined for the light
+  theme) interpolated by each path's own `--t`, so the field re-tints with the
+  theme switch and the two ramps are one declaration each.
+- The field carries `data-hero` and runs its own entrance — the lines draw
+  themselves in, then drift forever, paused whenever the field is off screen or
+  the tab is hidden. `Hero` claims only the elements in its own schedule, never
+  every `[data-hero]` under it, or it would re-claim a field that has already
+  released itself.
+- Every caller lays a wash of `--bg` behind its own copy (`.hero::after`,
+  `.bio__content::before`, `.blog__header::before`) so text keeps its contrast
+  over the busiest part of the weave. The field's radial mask keeps the lines
+  off the page's edges.
+
+### Cards
+
+- `kokonut/SpotlightCard.svelte` is the one card surface: tilt, pointer glow,
+  shimmer, accent bottom line, sibling dimming. `ProjectCard`, `PostCard` and
+  `FeaturedPost` are all built on it.
+- It is a surface, not a container — it clips at its border radius and holds no
+  padding, so **every consumer pads the content it hands over**. Skipping that
+  is what clipped the skills headings. `tests/unit/styles/cardPadding.test.ts`
+  guards the contract.
+- Sibling dimming is the parent's job. `$lib/state/hoverGroup.svelte` holds it:
+  `createHoverGroup(() => keys)` gives a grid `dimmed(key)`, `enter`, `leave`.
+  It is keyed rather than a boolean per card (a late `pointerleave` must not
+  clear a hover a different card now owns) and re-checks the key against what is
+  rendered (a filter can remove the hovered card without a `pointerleave`).
 
 ### Design tokens
 

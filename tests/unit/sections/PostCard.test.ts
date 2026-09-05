@@ -3,8 +3,10 @@ import { render, cleanup } from '@testing-library/svelte';
 import PostCard from '$lib/components/sections/blog/PostCard.svelte';
 import type { BlogPost } from '$lib/types/content';
 import { resetMotionMocks } from '../mocks/motion';
+import { tilt, resetActionMocks } from '../mocks/actions';
 
 vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../mocks/actions')).tilt.module());
 
 const base: BlogPost = {
 	slug: 'shipping-halo',
@@ -23,7 +25,11 @@ function setup(post: Partial<BlogPost> = {}, props: Record<string, unknown> = {}
 }
 
 describe('PostCard', () => {
-	beforeEach(resetMotionMocks);
+	beforeEach(() => {
+		resetMotionMocks();
+		resetActionMocks();
+	});
+
 	afterEach(cleanup);
 
 	it('links the whole card to the post', () => {
@@ -78,6 +84,38 @@ describe('PostCard', () => {
 	it('defaults to the first gradient when no index is given', () => {
 		const { thumb } = setup();
 		expect(thumb().style.getPropertyValue('--thumb-color')).toBe('var(--chart-1)');
+	});
+
+	it('is a spotlight card, like the project cards it sits alongside', () => {
+		const { card, container } = setup();
+		expect(card()).toHaveClass('spotlight-card');
+		expect(tilt.calls).toHaveLength(1);
+		expect(container.querySelector('.spotlight-card__glow')).toBeInTheDocument();
+		expect(container.querySelector('.spotlight-card__shimmer')).toBeInTheDocument();
+		expect(container.querySelector('.spotlight-card__line')).toBeInTheDocument();
+	});
+
+	it('tints the card with the same palette colour as its thumbnail', () => {
+		const { card, thumb } = setup({}, { index: 2 });
+		expect(card().style.getPropertyValue('--card-color')).toBe(
+			thumb().style.getPropertyValue('--thumb-color')
+		);
+	});
+
+	it('recedes when the grid says another card is hovered', () => {
+		const { card } = setup({}, { dimmed: true });
+		expect(card()).toHaveClass('spotlight-card--dimmed');
+	});
+
+	it('reports hover to the parent grid', () => {
+		const onhoverstart = vi.fn();
+		const onhoverend = vi.fn();
+		const { card } = setup({}, { onhoverstart, onhoverend });
+
+		card().dispatchEvent(new Event('pointerenter'));
+		expect(onhoverstart).toHaveBeenCalledTimes(1);
+		card().dispatchEvent(new Event('pointerleave'));
+		expect(onhoverend).toHaveBeenCalledTimes(1);
 	});
 
 	it('hides the placeholder thumb from assistive tech', () => {

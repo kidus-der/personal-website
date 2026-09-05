@@ -8,8 +8,9 @@
 	data describing the person the page is about.
 
 	Two sections break the shared `.container` + `SectionHeading` shape, both
-	deliberately: `Bio` carries its own heading and background because it is the
-	page's opening statement rather than a band, and `Publications` carries its
+	deliberately: `Bio` carries its own heading, background and container because
+	it is the page's full-bleed opening statement rather than a band, and
+	`Publications` carries its
 	own heading because `id="publications"` has to sit on a section that includes
 	the title — the bio links down to it.
 
@@ -58,9 +59,9 @@
 </svelte:head>
 
 <main class="about">
-	<div class="container">
-		<Bio />
-	</div>
+	<!-- Outside the shared container: the bio band is full-bleed and carries its
+	     own `.container` inside, so its field can run the width of the page. -->
+	<Bio />
 
 	<section class="about__band container">
 		<SectionHeading title="Experience" />

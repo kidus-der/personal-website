@@ -1,6 +1,11 @@
 <!--
-	Bio — the About page's opening band: a beams wash, the bilingual greeting, and
-	two paragraphs of prose.
+	Bio — the About page's opening band: a `FlowField` behind the bilingual
+	greeting and two paragraphs of prose.
+
+	The band is full-bleed to the viewport edges with its own `.container` inside,
+	so the field can run the whole width of the page while the copy stays on the
+	page's measure. The route renders it outside the shared container for exactly
+	that reason.
 
 	The ሰላም tooltip is a real disclosure, not a `title` attribute: it carries three
 	sentences of context that has to be reachable by keyboard and readable at a
@@ -26,7 +31,7 @@
 	must not dismiss one the pointer is still resting on.
 -->
 <script lang="ts">
-	import BeamsBackground from '$lib/components/kokonut/BeamsBackground.svelte';
+	import FlowField from '$lib/components/kokonut/FlowField.svelte';
 	import { animate, reducedMotion, springs } from '$lib/motion';
 
 	const TOOLTIP_ID = 'selam-tip';
@@ -88,9 +93,9 @@
 <svelte:window onkeydown={onWindowKeydown} />
 
 <section class="bio">
-	<BeamsBackground intensity="subtle" />
+	<FlowField intensity="soft" />
 
-	<div class="bio__content">
+	<div class="container bio__content">
 		<!--
 			Hover lives on the wrapper so the tooltip stays up while the pointer
 			travels into it (WCAG 1.4.13). It is not interactive itself — the button
@@ -144,7 +149,7 @@
 </section>
 
 <style>
-	/* The beams canvas is `position: absolute; inset: 0` — this is what clips it. */
+	/* The field is `position: absolute; inset: 0` — this is what clips it. */
 	.bio {
 		position: relative;
 		overflow: hidden;
@@ -152,8 +157,33 @@
 		padding-block: clamp(3rem, 8vw, 6rem);
 	}
 
+	/*
+		A wash of the page's own background under the copy, so the prose keeps its
+		contrast over the busiest part of the weave without dimming the field at
+		the edges. It is a pseudo element rather than a background on the content
+		box so it can spread wider than the text does.
+	*/
+	.bio__content::before {
+		content: '';
+		position: absolute;
+		inset: -2rem -1rem;
+		z-index: -1;
+		pointer-events: none;
+		background: radial-gradient(
+			60% 80% at 25% 50%,
+			color-mix(in srgb, var(--bg) 80%, transparent),
+			transparent
+		);
+	}
+
 	.bio__content {
 		position: relative;
+		/*
+			Its own stacking context, so the wash above can sit at `z-index: -1`
+			behind the copy and still stay above the field. Without it, `-1` would
+			resolve against `.bio` and put the wash under the field instead.
+		*/
+		z-index: 1;
 		display: flex;
 		flex-direction: column;
 		gap: 1.5rem;

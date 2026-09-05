@@ -10,8 +10,7 @@ export { default as DynamicText } from './DynamicText.svelte';
 export { default as MatrixText } from './MatrixText.svelte';
 export { default as SlideTextButton } from './SlideTextButton.svelte';
 export { default as ParticleButton } from './ParticleButton.svelte';
-export { default as BackgroundPaths } from './BackgroundPaths.svelte';
-export { default as BeamsBackground } from './BeamsBackground.svelte';
+export { default as FlowField } from './FlowField.svelte';
 export { default as SpotlightCard } from './SpotlightCard.svelte';
 export { default as BentoCard } from './BentoCard.svelte';
 export { default as MouseEffectCard } from './MouseEffectCard.svelte';
@@ -21,11 +20,17 @@ export { default as SmoothTabs } from './SmoothTabs.svelte';
 
 export {
 	generateAestheticPath,
-	buildPathSets,
-	type AestheticPath,
-	type PathSets,
-	type PathType
-} from './backgroundPaths';
+	buildFlowField,
+	flowPathCount,
+	FLOW_MIRRORS,
+	FLOW_VIEW_BOX,
+	PATH_COUNTS,
+	STROKE_WIDTH,
+	type FlowPath,
+	type FlowSets,
+	type FlowLayer,
+	type FlowIntensity
+} from './flowField';
 
 export {
 	generateDots,
