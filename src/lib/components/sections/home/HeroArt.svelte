@@ -149,8 +149,16 @@
 		height: 260px;
 		overflow: hidden;
 		border-radius: var(--radius-card);
-		/* No border, no surface: the art floats over the page rather than
-		   sitting in a card, which is what keeps it from reading as a widget. */
+		/*
+			No border, no surface — and the clip is dissolved rather than drawn. The
+			aurora fills the box, so a hard `overflow: hidden` edge put a visible
+			rectangle around the art and it read as a card. The vignette fades the
+			whole composition out towards the edges instead, which is what lets it
+			float over the page.
+		*/
+		--art-vignette: radial-gradient(ellipse 66% 68% at 50% 48%, #000 34%, transparent 100%);
+		-webkit-mask-image: var(--art-vignette);
+		mask-image: var(--art-vignette);
 	}
 
 	@media (min-width: 960px) {
