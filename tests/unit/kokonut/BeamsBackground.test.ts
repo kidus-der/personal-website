@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import BeamsBackground from '$lib/components/kokonut/BeamsBackground.svelte';
 import { theme } from '$lib/state/theme.svelte';
-import { animations, preferReducedMotion, resetMotionMocks } from './motionMock';
+import { animations, preferReducedMotion, resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 interface GradientRecord {
 	stops: [number, string][];

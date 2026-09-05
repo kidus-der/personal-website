@@ -4,11 +4,11 @@ import { tick } from 'svelte';
 import MobileMenu from '$lib/components/layout/MobileMenu.svelte';
 import { navItems } from '$lib/components/layout/navItems';
 import { stagger } from '$lib/motion';
-import { animateMock, preferReducedMotion, resetMotionMocks } from '../kokonut/motionMock';
-import { resetNavigationMocks, runAfterNavigate } from './navigationMock';
+import { animateMock, preferReducedMotion, resetMotionMocks } from '../mocks/motion';
+import { resetNavigationMocks, runAfterNavigate } from '../mocks/navigation';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
-vi.mock('$app/navigation', async () => (await import('./navigationMock')).navigationModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
+vi.mock('$app/navigation', async () => (await import('../mocks/navigation')).navigationModule());
 
 vi.mock('$app/state', () => ({ page: { url: new URL('http://localhost/work') } }));
 

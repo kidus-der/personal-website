@@ -3,11 +3,11 @@ import { render, cleanup, fireEvent } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import Nav from '$lib/components/layout/Nav.svelte';
 import { navItems } from '$lib/components/layout/navItems';
-import { resetMotionMocks } from '../kokonut/motionMock';
-import { resetNavigationMocks, runAfterNavigate } from './navigationMock';
+import { resetMotionMocks } from '../mocks/motion';
+import { resetNavigationMocks, runAfterNavigate } from '../mocks/navigation';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
-vi.mock('$app/navigation', async () => (await import('./navigationMock')).navigationModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
+vi.mock('$app/navigation', async () => (await import('../mocks/navigation')).navigationModule());
 
 const pageState = vi.hoisted(() => ({ url: new URL('http://localhost/work') }));
 vi.mock('$app/state', () => ({ page: pageState }));

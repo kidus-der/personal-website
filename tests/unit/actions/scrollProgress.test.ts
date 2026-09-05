@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as motionModule from '$lib/motion';
 import { scrollProgress } from '$lib/actions/scrollProgress';
-import type { MotionMock, ScrollCallback } from './motionMock';
+import type { MotionMock, ScrollCallback } from '../mocks/motionFactory';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).createMotionMock());
+vi.mock('$lib/motion', async () => (await import('../mocks/motionFactory')).createMotionMock());
 
 const motion = motionModule as unknown as MotionMock;
 

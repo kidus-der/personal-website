@@ -3,9 +3,9 @@ import { render, cleanup, fireEvent } from '@testing-library/svelte';
 import PublicationRow from '$lib/components/sections/about/PublicationRow.svelte';
 import type { Publication } from '$lib/types/content';
 import { durations, easings } from '$lib/motion/config';
-import { animateMock, resetMotionMocks, preferReducedMotion } from '../../kokonut/motionMock';
+import { animateMock, resetMotionMocks, preferReducedMotion } from '../../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
 
 const base: Publication = {
 	id: '2502.10920',

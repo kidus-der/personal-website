@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as motionModule from '$lib/motion';
 import { parallax } from '$lib/actions/parallax';
-import type { MotionMock } from './motionMock';
+import type { MotionMock } from '../mocks/motionFactory';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).createMotionMock());
+vi.mock('$lib/motion', async () => (await import('../mocks/motionFactory')).createMotionMock());
 
 const motion = motionModule as unknown as MotionMock;
 

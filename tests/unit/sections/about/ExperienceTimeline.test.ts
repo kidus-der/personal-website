@@ -3,9 +3,9 @@ import { render, cleanup } from '@testing-library/svelte';
 import ExperienceTimeline from '$lib/components/sections/about/ExperienceTimeline.svelte';
 import { experience } from '$content/experience';
 import type { Experience } from '$lib/types/content';
-import { resetMotionMocks } from '../../kokonut/motionMock';
+import { resetMotionMocks } from '../../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
 
 function setup(roles: Experience[] = experience) {
 	const result = render(ExperienceTimeline, { props: { roles } });

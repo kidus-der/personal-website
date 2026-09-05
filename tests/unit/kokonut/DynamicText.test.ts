@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import DynamicText from '$lib/components/kokonut/DynamicText.svelte';
-import { animateMock, preferReducedMotion, resetMotionMocks } from './motionMock';
+import { animateMock, preferReducedMotion, resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 const WORDS = [{ text: 'ሰላም', lang: 'am' }, { text: 'hello' }, { text: 'bonjour' }];
 const INTERVAL = 320;

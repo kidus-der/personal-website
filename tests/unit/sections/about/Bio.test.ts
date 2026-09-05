@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup, fireEvent } from '@testing-library/svelte';
 import Bio from '$lib/components/sections/about/Bio.svelte';
-import { animateMock, resetMotionMocks, preferReducedMotion } from '../../kokonut/motionMock';
+import { animateMock, resetMotionMocks, preferReducedMotion } from '../../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
 
 function setup() {
 	const result = render(Bio);

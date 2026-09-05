@@ -3,7 +3,7 @@ import { render, cleanup } from '@testing-library/svelte';
 import { createRawSnippet } from 'svelte';
 import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 const action = createRawSnippet(() => ({ render: () => '<a href="/work">All work</a>' }));
 

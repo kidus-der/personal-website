@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as motionModule from '$lib/motion';
 import { springs } from '$lib/motion/config';
 import { press } from '$lib/actions/press';
-import type { MotionMock } from './motionMock';
+import type { MotionMock } from '../mocks/motionFactory';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).createMotionMock());
+vi.mock('$lib/motion', async () => (await import('../mocks/motionFactory')).createMotionMock());
 
 const motion = motionModule as unknown as MotionMock;
 

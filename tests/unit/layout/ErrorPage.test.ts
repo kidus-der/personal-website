@@ -2,10 +2,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import ErrorPage from '../../../src/routes/+error.svelte';
 import { navItems } from '$lib/components/layout/navItems';
-import { resetMotionMocks } from '../kokonut/motionMock';
+import { resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
-vi.mock('$app/navigation', async () => (await import('./navigationMock')).navigationModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
+vi.mock('$app/navigation', async () => (await import('../mocks/navigation')).navigationModule());
 
 const pageState = vi.hoisted(() => ({
 	url: new URL('http://localhost/nope'),

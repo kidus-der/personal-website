@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import { createRawSnippet } from 'svelte';
 import ParticleButton from '$lib/components/kokonut/ParticleButton.svelte';
-import { animateMock, preferReducedMotion, resetMotionMocks } from './motionMock';
+import { animateMock, preferReducedMotion, resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 const label = createRawSnippet(() => ({ render: () => '<span>Subscribe</span>' }));
 

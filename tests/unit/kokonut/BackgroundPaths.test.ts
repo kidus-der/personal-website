@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import BackgroundPaths from '$lib/components/kokonut/BackgroundPaths.svelte';
-import { animateMock, animations, preferReducedMotion, resetMotionMocks } from './motionMock';
+import { animateMock, animations, preferReducedMotion, resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 /** 12 primary + 15 secondary + 10 accent, mirrored. */
 const PATHS_PER_SIDE = 37;

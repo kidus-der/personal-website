@@ -3,7 +3,7 @@ import { vi, type Mock } from 'vitest';
 /**
  * A single `$lib/motion` test double, shared by every Kokonut component test.
  *
- * Used as `vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule())`
+ * Used as `vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule())`
  * — the dynamic import inside the factory keeps `vi.mock`'s hoisting happy while
  * still handing both the factory and the test file the same mock instances.
  */

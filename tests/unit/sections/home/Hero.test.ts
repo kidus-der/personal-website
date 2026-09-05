@@ -2,19 +2,15 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import Hero from '$lib/components/sections/home/Hero.svelte';
 import { site } from '$content/site';
-import {
-	animateMock,
-	animations,
-	preferReducedMotion,
-	resetMotionMocks
-} from '../../kokonut/motionMock';
-import { resetActionMocks } from '../../kokonut/actionsMock';
-import { magneticCalls, resetHomeActionMocks } from './homeMocks';
+import { animateMock, animations, preferReducedMotion, resetMotionMocks } from '../../mocks/motion';
+import { magnetic, resetActionMocks } from '../../mocks/actions';
 
-vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).motionModule());
-vi.mock('$lib/actions/tilt', async () => (await import('../../kokonut/actionsMock')).tiltModule());
-vi.mock('$lib/actions/reveal', async () => (await import('./homeMocks')).revealModule());
-vi.mock('$lib/actions/magnetic', async () => (await import('./homeMocks')).magneticModule());
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../../mocks/actions')).tilt.module());
+vi.mock('$lib/actions/reveal', async () => (await import('../../mocks/actions')).reveal.module());
+vi.mock('$lib/actions/magnetic', async () =>
+	(await import('../../mocks/actions')).magnetic.module()
+);
 
 /** Mirrors the hero's own greeting timings; see `GREETING_INTERVAL` there. */
 const GREETING_WORDS = 6;
@@ -37,7 +33,6 @@ describe('Hero', () => {
 	beforeEach(() => {
 		resetMotionMocks();
 		resetActionMocks();
-		resetHomeActionMocks();
 	});
 
 	afterEach(cleanup);
@@ -98,7 +93,7 @@ describe('Hero', () => {
 
 	it('makes each social link magnetic', () => {
 		setup();
-		expect(magneticCalls).toHaveLength(3);
+		expect(magnetic.calls).toHaveLength(3);
 	});
 
 	it('renders the verification card beside the copy', () => {

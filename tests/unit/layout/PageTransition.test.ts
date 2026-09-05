@@ -3,16 +3,11 @@ import { render, cleanup } from '@testing-library/svelte';
 import { createRawSnippet, tick } from 'svelte';
 import PageTransition from '$lib/components/layout/PageTransition.svelte';
 import { durations, easings } from '$lib/motion/config';
-import {
-	animateMock,
-	animations,
-	preferReducedMotion,
-	resetMotionMocks
-} from '../kokonut/motionMock';
-import { resetNavigationMocks, runAfterNavigate } from './navigationMock';
+import { animateMock, animations, preferReducedMotion, resetMotionMocks } from '../mocks/motion';
+import { resetNavigationMocks, runAfterNavigate } from '../mocks/navigation';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
-vi.mock('$app/navigation', async () => (await import('./navigationMock')).navigationModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
+vi.mock('$app/navigation', async () => (await import('../mocks/navigation')).navigationModule());
 
 const body = createRawSnippet(() => ({ render: () => '<p>Page body</p>' }));
 

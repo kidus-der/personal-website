@@ -2,13 +2,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import ProjectGrid from '$lib/components/sections/work/ProjectGrid.svelte';
 import type { Project } from '$lib/types/content';
-import { resetMotionMocks } from '../../kokonut/motionMock';
-import { resetActionMocks } from '../../kokonut/actionsMock';
-import { revealCalls, resetRevealMock } from './revealMock';
+import { resetMotionMocks } from '../../mocks/motion';
+import { reveal, resetActionMocks } from '../../mocks/actions';
 
-vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).motionModule());
-vi.mock('$lib/actions/tilt', async () => (await import('../../kokonut/actionsMock')).tiltModule());
-vi.mock('$lib/actions/reveal', async () => (await import('./revealMock')).revealModule());
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../../mocks/actions')).tilt.module());
+vi.mock('$lib/actions/reveal', async () => (await import('../../mocks/actions')).reveal.module());
 
 function project(overrides: Partial<Project> = {}): Project {
 	return {
@@ -41,7 +40,6 @@ describe('ProjectGrid', () => {
 	beforeEach(() => {
 		resetMotionMocks();
 		resetActionMocks();
-		resetRevealMock();
 	});
 
 	afterEach(cleanup);
@@ -66,9 +64,9 @@ describe('ProjectGrid', () => {
 
 	it('reveals the list with a stagger', () => {
 		const { container } = setup();
-		expect(revealCalls).toHaveLength(1);
-		expect(revealCalls[0].node).toBe(container.querySelector('.project-grid__list'));
-		expect(revealCalls[0].options).toMatchObject({ stagger: 0.06 });
+		expect(reveal.calls).toHaveLength(1);
+		expect(reveal.calls[0].node).toBe(container.querySelector('.project-grid__list'));
+		expect(reveal.calls[0].options).toMatchObject({ stagger: 0.06 });
 	});
 
 	it('shows the empty state instead of a list when there is nothing to show', () => {
@@ -80,7 +78,7 @@ describe('ProjectGrid', () => {
 
 	it('never reveals a list that does not exist', () => {
 		setup({ projects: [] });
-		expect(revealCalls).toHaveLength(0);
+		expect(reveal.calls).toHaveLength(0);
 	});
 
 	it('carries the id through so the tab row can point at it', () => {

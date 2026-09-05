@@ -3,9 +3,9 @@ import { render, cleanup } from '@testing-library/svelte';
 import FeaturedPost from '$lib/components/sections/blog/FeaturedPost.svelte';
 import type { BlogPost } from '$lib/types/content';
 import { formatDate } from '$lib/utils/dates';
-import { resetMotionMocks } from '../kokonut/motionMock';
+import { resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 const base: BlogPost = {
 	slug: 'why-deepfakes-are-hard',

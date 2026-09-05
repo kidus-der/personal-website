@@ -6,9 +6,9 @@ import {
 	moveIndicator
 } from '$lib/components/kokonut/indicator.svelte';
 import { springs } from '$lib/motion/config';
-import { animateMock, preferReducedMotion, resetMotionMocks } from './motionMock';
+import { animateMock, preferReducedMotion, resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 /** An element that reports a fixed box, the way a laid-out control would. */
 function control(left: number, width: number): HTMLElement {

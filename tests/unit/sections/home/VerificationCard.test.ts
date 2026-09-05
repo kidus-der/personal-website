@@ -5,9 +5,9 @@ import VerificationCard from '$lib/components/sections/home/VerificationCard.sve
 // line honest — that it animates, and that it stops for reduced motion — are
 // pinned against the source instead.
 import cardSource from '$lib/components/sections/home/VerificationCard.svelte?raw';
-import { resetMotionMocks } from '../../kokonut/motionMock';
+import { resetMotionMocks } from '../../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
 
 function setup(props: Record<string, unknown> = {}) {
 	const result = render(VerificationCard, { props });

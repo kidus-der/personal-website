@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import { tick, createRawSnippet } from 'svelte';
 import MouseEffectCard from '$lib/components/kokonut/MouseEffectCard.svelte';
-import { preferReducedMotion, resetMotionMocks } from './motionMock';
+import { preferReducedMotion, resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 const WIDTH = 400;
 const HEIGHT = 300;

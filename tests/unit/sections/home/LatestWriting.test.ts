@@ -2,14 +2,15 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import LatestWriting from '$lib/components/sections/home/LatestWriting.svelte';
 import type { BlogPost } from '$lib/types/content';
-import { resetMotionMocks } from '../../kokonut/motionMock';
-import { resetActionMocks } from '../../kokonut/actionsMock';
-import { resetHomeActionMocks } from './homeMocks';
+import { resetMotionMocks } from '../../mocks/motion';
+import { resetActionMocks } from '../../mocks/actions';
 
-vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).motionModule());
-vi.mock('$lib/actions/tilt', async () => (await import('../../kokonut/actionsMock')).tiltModule());
-vi.mock('$lib/actions/reveal', async () => (await import('./homeMocks')).revealModule());
-vi.mock('$lib/actions/magnetic', async () => (await import('./homeMocks')).magneticModule());
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../../mocks/actions')).tilt.module());
+vi.mock('$lib/actions/reveal', async () => (await import('../../mocks/actions')).reveal.module());
+vi.mock('$lib/actions/magnetic', async () =>
+	(await import('../../mocks/actions')).magnetic.module()
+);
 
 function post(n: number): BlogPost {
 	return {
@@ -32,7 +33,6 @@ describe('LatestWriting', () => {
 	beforeEach(() => {
 		resetMotionMocks();
 		resetActionMocks();
-		resetHomeActionMocks();
 	});
 
 	afterEach(cleanup);
