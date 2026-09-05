@@ -102,7 +102,7 @@
 			onpointerenter={() => setHovered(true)}
 			onpointerleave={() => setHovered(false)}
 		>
-			<h1 class="bio__heading">
+			<h1 class="display-heading bio__heading">
 				<button
 					type="button"
 					class="selam"
@@ -165,12 +165,8 @@
 		flex-wrap: wrap;
 		align-items: baseline;
 		gap: 0.25em;
-		font-family: var(--font-display);
 		font-size: var(--text-3xl);
-		font-weight: 600;
-		letter-spacing: -0.02em;
 		line-height: 1.05;
-		color: var(--text);
 	}
 
 	/* A button that has to read as a word inside a headline: every scrap of

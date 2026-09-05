@@ -49,13 +49,14 @@
 <main class="work-page">
 	<div class="container">
 		<header class="work-page__header" use:reveal>
-			<h1 class="work-page__title">Work</h1>
+			<h1 class="display-heading work-page__title">Work</h1>
 			<p class="work-page__lede">Projects I've built, from research tooling to production apps.</p>
 		</header>
 
 		<div class="work-page__filter">
 			<SmoothTabs {tabs} active={data.category} onchange={selectCategory} label="Filter projects" />
-			<p class="work-page__status" aria-live="polite">{status}</p>
+			<!-- Announced, never seen: the tab row already shows which filter is on. -->
+			<p class="visually-hidden" aria-live="polite">{status}</p>
 		</div>
 
 		<ProjectGrid id="project-grid" projects={data.projects} />
@@ -75,12 +76,8 @@
 	}
 
 	.work-page__title {
-		font-family: var(--font-display);
 		font-size: var(--text-3xl);
-		font-weight: 600;
-		letter-spacing: -0.02em;
 		line-height: 1.05;
-		color: var(--text);
 	}
 
 	.work-page__lede {
@@ -92,22 +89,5 @@
 
 	.work-page__filter {
 		margin-bottom: 2.5rem;
-	}
-
-	/*
-		Announced, never seen: the tab row already shows which filter is on, so a
-		visible count would only repeat it. Clipped rather than `display: none`,
-		which would take it out of the accessibility tree entirely.
-	*/
-	.work-page__status {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		margin: -1px;
-		padding: 0;
-		overflow: hidden;
-		clip-path: inset(50%);
-		white-space: nowrap;
-		border: 0;
 	}
 </style>

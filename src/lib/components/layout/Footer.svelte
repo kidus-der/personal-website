@@ -71,7 +71,8 @@
 							aria-hidden="true"
 							bind:value={form.honeypot}
 						/>
-						<label class="footer__label" for="footer-subscribe-email">Email address</label>
+						<!-- Named for screen readers; the placeholder carries the visual hint. -->
+						<label class="visually-hidden" for="footer-subscribe-email">Email address</label>
 						<input
 							id="footer-subscribe-email"
 							class="footer__input"
@@ -183,19 +184,6 @@
 
 	.footer__honeypot {
 		display: none;
-	}
-
-	/* Named for screen readers; the placeholder carries the visual hint. */
-	.footer__label {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		margin: -1px;
-		padding: 0;
-		overflow: hidden;
-		white-space: nowrap;
-		clip-path: inset(50%);
-		border: 0;
 	}
 
 	.footer__input {

@@ -48,7 +48,8 @@
 </script>
 
 <section {id} class={cn('project-grid', className)} aria-labelledby={headingId}>
-	<h2 id={headingId} class="project-grid__heading">Projects</h2>
+	<!-- Named for assistive tech: the page's own `<h1>` and the tab row already say what this is. -->
+	<h2 id={headingId} class="visually-hidden">Projects</h2>
 
 	{#if projects.length === 0}
 		<p class="project-grid__empty">Nothing in this category yet.</p>
@@ -71,23 +72,6 @@
 </section>
 
 <style>
-	/*
-		Named for assistive tech, never drawn: the page's own `<h1>` and the tab row
-		already say what this is. Clipped rather than `display: none`, which would
-		take the label back out of the accessibility tree.
-	*/
-	.project-grid__heading {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		margin: -1px;
-		padding: 0;
-		overflow: hidden;
-		clip-path: inset(50%);
-		white-space: nowrap;
-		border: 0;
-	}
-
 	.project-grid__list {
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -15,7 +15,7 @@
 
 <div class="education">
 	<div class="education__body">
-		<h3 class="education__degree">{education.degree}</h3>
+		<h3 class="display-heading education__degree">{education.degree}</h3>
 		<p class="education__school">{education.school}</p>
 		{#if education.detail}
 			<p class="education__detail">{education.detail}</p>
@@ -44,12 +44,9 @@
 	}
 
 	.education__degree {
-		font-family: var(--font-display);
 		font-size: var(--text-xl);
-		font-weight: 600;
 		letter-spacing: -0.01em;
 		line-height: 1.2;
-		color: var(--text);
 	}
 
 	.education__school {

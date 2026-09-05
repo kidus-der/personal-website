@@ -46,7 +46,7 @@
 				</ul>
 			{/if}
 
-			<h1 class="project-page__title">{project.title}</h1>
+			<h1 class="display-heading project-page__title">{project.title}</h1>
 			<p class="project-page__lede">{body}</p>
 
 			{#if project.url || project.githubUrl}
@@ -86,7 +86,7 @@
 
 		{#if project.highlights.length > 0}
 			<section class="project-page__section" use:reveal>
-				<h2 class="project-page__section-title">Highlights</h2>
+				<h2 class="display-heading project-page__section-title">Highlights</h2>
 				<ul class="project-page__highlights">
 					{#each project.highlights as highlight (highlight)}
 						<li>{highlight}</li>
@@ -98,11 +98,11 @@
 		<nav class="project-page__nav" aria-label="More projects">
 			<a class="project-nav-card" href="/work/{data.prev.slug}">
 				<span class="project-nav-card__label">Previous</span>
-				<span class="project-nav-card__title">{data.prev.title}</span>
+				<span class="display-heading project-nav-card__title">{data.prev.title}</span>
 			</a>
 			<a class="project-nav-card project-nav-card--next" href="/work/{data.next.slug}">
 				<span class="project-nav-card__label">Next</span>
-				<span class="project-nav-card__title">{data.next.title}</span>
+				<span class="display-heading project-nav-card__title">{data.next.title}</span>
 			</a>
 		</nav>
 	</div>
@@ -141,12 +141,8 @@
 	}
 
 	.project-page__title {
-		font-family: var(--font-display);
 		font-size: var(--text-3xl);
-		font-weight: 600;
-		letter-spacing: -0.02em;
 		line-height: 1.05;
-		color: var(--text);
 	}
 
 	.project-page__lede {
@@ -200,11 +196,7 @@
 
 	.project-page__section-title {
 		margin-bottom: 1.25rem;
-		font-family: var(--font-display);
 		font-size: var(--text-xl);
-		font-weight: 600;
-		letter-spacing: -0.02em;
-		color: var(--text);
 	}
 
 	.project-page__highlights {
@@ -277,12 +269,8 @@
 	}
 
 	.project-nav-card__title {
-		font-family: var(--font-display);
 		font-size: var(--text-lg);
-		font-weight: 600;
-		letter-spacing: -0.02em;
 		line-height: 1.25;
-		color: var(--text);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

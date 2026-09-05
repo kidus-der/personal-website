@@ -165,7 +165,7 @@ describe('/work page status line', () => {
 	it('is announced politely rather than shown', () => {
 		const { container } = renderPage();
 		const line = container.querySelector('[aria-live="polite"]') as HTMLElement;
-		expect(line).toHaveClass('work-page__status');
+		expect(line).toHaveClass('visually-hidden');
 		expect(line).toBeInTheDocument();
 	});
 });

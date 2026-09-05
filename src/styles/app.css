@@ -203,6 +203,37 @@ button {
 	}
 }
 
+/*
+	Named for assistive tech, never drawn. Clipped rather than `display: none`,
+	which would take the text back out of the accessibility tree. Three components
+	had each grown their own copy of these seven declarations.
+*/
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	clip-path: inset(50%);
+	border: 0;
+}
+
+/*
+	The site's display-face heading treatment: the four declarations every page
+	title and section title on the site repeated verbatim. Size stays with the
+	component — that is what actually varies — as does a tighter `line-height` for
+	the very large titles.
+*/
+.display-heading {
+	font-family: var(--font-display);
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	line-height: 1.1;
+	color: var(--text);
+}
+
 /* Faint dot grid for light-mode section bands (KokonutUI spotlight cards). */
 .dot-grid {
 	background-image: radial-gradient(circle, var(--border-strong) 1px, transparent 1px);

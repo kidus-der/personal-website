@@ -48,7 +48,7 @@
 				></span>
 
 				<div class="timeline__head">
-					<h3 class="timeline__role">{role.role}</h3>
+					<h3 class="display-heading timeline__role">{role.role}</h3>
 					<p class="timeline__meta">
 						<span class="timeline__company">
 							{#if role.url}
@@ -140,12 +140,9 @@
 	}
 
 	.timeline__role {
-		font-family: var(--font-display);
 		font-size: var(--text-xl);
-		font-weight: 600;
 		letter-spacing: -0.01em;
 		line-height: 1.2;
-		color: var(--text);
 	}
 
 	/* Separate spans with a gap instead of a joined "·" string. */

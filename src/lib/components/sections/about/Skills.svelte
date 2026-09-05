@@ -48,7 +48,7 @@
 		<div class="skills__groups">
 			{#each groups as group (group.name)}
 				<SpotlightCard tilt={false}>
-					<h3 class="skills__group-name">{group.name}</h3>
+					<h3 class="display-heading skills__group-name">{group.name}</h3>
 					<div class="skills__items">
 						{#each group.items as item (item)}
 							<Tag>{item}</Tag>
@@ -60,7 +60,7 @@
 	</div>
 
 	<div class="skills__certifications">
-		<h3 class="skills__certifications-title">Certifications</h3>
+		<h3 class="display-heading skills__certifications-title">Certifications</h3>
 		<ul>
 			{#each certifications as certification (certification)}
 				<li>{certification}</li>
@@ -107,11 +107,8 @@
 	}
 
 	.skills__group-name {
-		font-family: var(--font-display);
 		font-size: var(--text-lg);
-		font-weight: 600;
 		letter-spacing: -0.01em;
-		color: var(--text);
 	}
 
 	.skills__items {
@@ -122,11 +119,8 @@
 	}
 
 	.skills__certifications-title {
-		font-family: var(--font-display);
 		font-size: var(--text-lg);
-		font-weight: 600;
 		letter-spacing: -0.01em;
-		color: var(--text);
 	}
 
 	.skills__certifications ul {
