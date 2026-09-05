@@ -78,6 +78,20 @@ describe('Skills', () => {
 		}
 	});
 
+	it('puts each group in a padded box inside the card, not against its border', () => {
+		// The card clips at its border radius and carries no padding, so a heading
+		// handed to it directly gets its ascenders shaved. `.skills__group` is the
+		// padded box; `tests/unit/styles/cardPadding.test.ts` guards the padding
+		// itself, which jsdom cannot compute.
+		const { getByRole } = setup();
+		for (const group of groups) {
+			const heading = getByRole('heading', { name: group.name, level: 3 });
+			const padded = heading.closest('.skills__group');
+			expect(padded).not.toBeNull();
+			expect(padded?.parentElement).toHaveClass('spotlight-card__content');
+		}
+	});
+
 	it('draws the radar chart of self-assessed strengths', () => {
 		const { container } = setup();
 		const radar = container.querySelector('.skills__radar svg[role="img"]') as SVGElement;

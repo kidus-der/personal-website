@@ -10,6 +10,14 @@
 	that ties them to the rest of the site's cards but drop the rotation. Five
 	cards tilting next to a chart that is itself the focal point would be noise.
 
+	`SpotlightCard` is a surface, not a container: it clips at its border radius
+	(`overflow: hidden` on its inner box) and deliberately holds no padding, so
+	every consumer pads its own content — `ProjectCard` does it on
+	`.project-card__body`. This section skipped that step, which put the group
+	heading's glyphs on the border line and had the clip shave the ascenders and
+	the left stems off "Languages", "ML & data" and "Dev & testing". `.skills__group`
+	is that padded box.
+
 	Data arrives as props, like every other section on this page, so the route
 	stays the one place that reaches into `$content/*`.
 -->
@@ -48,11 +56,13 @@
 		<div class="skills__groups">
 			{#each groups as group (group.name)}
 				<SpotlightCard tilt={false}>
-					<h3 class="display-heading skills__group-name">{group.name}</h3>
-					<div class="skills__items">
-						{#each group.items as item (item)}
-							<Tag>{item}</Tag>
-						{/each}
+					<div class="skills__group">
+						<h3 class="display-heading skills__group-name">{group.name}</h3>
+						<div class="skills__items">
+							{#each group.items as item (item)}
+								<Tag>{item}</Tag>
+							{/each}
+						</div>
 					</div>
 				</SpotlightCard>
 			{/each}
@@ -98,6 +108,21 @@
 		display: grid;
 		gap: 1rem;
 		grid-template-columns: minmax(0, 1fr);
+		/*
+			Each card is as tall as its own chip list. Stretching them to the row
+			leaves the short groups — Databases beside a five-row Frameworks card —
+			as a heading floating over half a card of empty surface.
+		*/
+		align-items: start;
+	}
+
+	/*
+		`align-items` alone is not enough: `SpotlightCard` carries `height: 100%`
+		for the equal-height grids it was written for, and a percentage height on a
+		grid item resolves against the whole row however the item is aligned in it.
+	*/
+	.skills__groups > :global(.spotlight-card) {
+		height: auto;
 	}
 
 	@media (min-width: 640px) {
@@ -106,9 +131,21 @@
 		}
 	}
 
+	/*
+		The padded box inside the clipping card. Without it the heading sits on the
+		card's border and `overflow: hidden` takes a slice off its glyphs.
+	*/
+	.skills__group {
+		padding: 1.25rem;
+	}
+
 	.skills__group-name {
 		font-size: var(--text-lg);
 		letter-spacing: -0.01em;
+		/* The display face's ascenders overshoot a 1.1 line box; this is the room
+		   they need so a capital never meets the top padding edge. */
+		padding-block-start: 0.05em;
+		text-wrap: balance;
 	}
 
 	.skills__items {
