@@ -25,20 +25,20 @@ describe('Publications', () => {
 
 	it('renders one row per paper', () => {
 		const { headers } = setup();
-		expect(headers()).toHaveLength(8);
+		expect(headers()).toHaveLength(9);
 		expect(headers()).toHaveLength(publications.length);
 	});
 
 	it('starts with every row collapsed', () => {
 		const { expanded } = setup();
-		expect(expanded()).toEqual(Array(8).fill('false'));
+		expect(expanded()).toEqual(Array(publications.length).fill('false'));
 	});
 
 	it('expands the row that was clicked', async () => {
 		const { headers, expanded } = setup();
 		await fireEvent.click(headers()[0]);
 		expect(expanded()[0]).toBe('true');
-		expect(expanded().slice(1)).toEqual(Array(7).fill('false'));
+		expect(expanded().slice(1)).toEqual(Array(publications.length - 1).fill('false'));
 	});
 
 	it('closes the open row when another one is opened', async () => {
@@ -59,14 +59,14 @@ describe('Publications', () => {
 		expect(expanded()[1]).toBe('true');
 
 		await fireEvent.click(headers()[1]);
-		expect(expanded()).toEqual(Array(8).fill('false'));
+		expect(expanded()).toEqual(Array(publications.length).fill('false'));
 	});
 
 	it('charts the papers per year beside the intro line', () => {
 		const { container, getByText } = setup();
 		const chart = container.querySelector('.publications__chart svg[role="img"]');
 		expect(chart).toBeInTheDocument();
-		expect(getByText('Eight papers on synthetic-media forensics, 2025 to today.')).toBeVisible();
+		expect(getByText('Nine papers on synthetic-media forensics, 2025 to today.')).toBeVisible();
 	});
 
 	it('renders nothing but the intro when there are no papers', () => {

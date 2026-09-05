@@ -11,7 +11,7 @@ export const experience: Experience[] = [
 			"Built core detection pipelines for Eva V1.6, Scam AI's multi-modal deepfake and forgery engine: face-swap, lip-sync, GAN fingerprinting, diffusion signatures, document forgery localization, voice clones across image, video, document, and audio. SOC 2 Type II, GDPR-compliant; catches 98.2% of deepfakes at sub-4-second inference.",
 			'Shipped Halo with Qualcomm: the first on-device, real-time deepfake detector for live video calls (Zoom, Teams, Meet) running ~4 checks/sec with zero video upload.',
 			'Hands-on technical point of contact for enterprise clients integrating the REST detection API into onboarding, claims, and content-moderation workflows.',
-			"Authored 8 peer-reviewed and arXiv papers on synthetic-media forensics that directly informed Eva's model selection and training-data strategy."
+			"Authored 9 peer-reviewed and arXiv papers on synthetic-media forensics that directly informed Eva's model selection and training-data strategy."
 		]
 	},
 	{

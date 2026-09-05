@@ -16,6 +16,19 @@ export const publications: Publication[] = [
 		]
 	},
 	{
+		id: '2608.01033',
+		title: 'CallScreenBench: Benchmarking Small Language Models as Phone Secretaries',
+		venue: 'arXiv',
+		year: 2026,
+		url: 'https://arxiv.org/abs/2608.01033',
+		topics: ['llm-eval', 'benchmark', 'behavioral'],
+		bullets: [
+			'Introduced CallScreenBench, a benchmark for on-device small language models (0.6B to 4B, 4-bit) that answer unknown inbound calls on their owner’s behalf, where the caller holds the goal and may be an adversary.',
+			'Defined five automated call-and-note measure groups motivated by owner endorsement, each paired with a counter-metric and an uncertainty estimate, plus three guardedness diagnostics for a toolless proxy holding no credentials.',
+			'Showed that larger checkpoints score higher on service, recall, and plausibility while triage discrimination follows a different ordering, and that scripted degenerate agents expose floors a single pass/fail score would hide.'
+		]
+	},
+	{
 		id: '2604.25370',
 		title:
 			'GPT-Image-2 in the Wild: A Twitter Dataset of Self-Reported AI-Generated Images from the First Week of Deployment',

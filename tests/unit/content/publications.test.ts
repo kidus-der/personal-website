@@ -3,7 +3,7 @@ import { publications, publicationsByYear } from '$content/publications';
 
 describe('publications', () => {
 	it('has exactly 8 entries', () => {
-		expect(publications).toHaveLength(8);
+		expect(publications).toHaveLength(9);
 	});
 
 	it('has unique ids', () => {
@@ -18,6 +18,7 @@ describe('publications', () => {
 
 		expect(publications.map((p) => p.id)).toEqual([
 			'2608.24127',
+			'2608.01033',
 			'2604.25370',
 			'2604.25213',
 			'2604.05475',
@@ -52,7 +53,7 @@ describe('publicationsByYear', () => {
 	it('returns ascending-year counts', () => {
 		expect(publicationsByYear()).toEqual([
 			{ year: 2025, count: 3 },
-			{ year: 2026, count: 5 }
+			{ year: 2026, count: 6 }
 		]);
 	});
 });

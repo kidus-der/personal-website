@@ -38,7 +38,7 @@
 		<div class="publications__chart">
 			<BarChart data={byYear} xKey="year" {series} aspectRatio="3 / 1" showGrid={false} showXAxis />
 		</div>
-		<p class="publications__lede">Eight papers on synthetic-media forensics, 2025 to today.</p>
+		<p class="publications__lede">Nine papers on synthetic-media forensics, 2025 to today.</p>
 	</div>
 
 	<div class="publications__rows">

@@ -142,7 +142,7 @@ describe('Bio', () => {
 		expect(scamAi).toHaveAttribute('target', '_blank');
 		expect(scamAi).toHaveAttribute('rel', 'noopener noreferrer');
 
-		expect(getByRole('link', { name: 'eight papers' })).toHaveAttribute('href', '#publications');
+		expect(getByRole('link', { name: 'nine papers' })).toHaveAttribute('href', '#publications');
 	});
 
 	it('renders the two bio paragraphs', () => {

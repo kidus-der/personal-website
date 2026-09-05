@@ -131,7 +131,7 @@
 				Alberta, graduating June 2026, and a Founding Engineer at
 				<a href="https://www.scam.ai/en" target="_blank" rel="noopener noreferrer">Scam AI</a>. My
 				work sits where research meets production:
-				<a href="#publications">eight papers</a> on deepfake and document forensics, and the detection
+				<a href="#publications">nine papers</a> on deepfake and document forensics, and the detection
 				systems that put them to use.
 			</p>
 			<p>
