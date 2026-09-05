@@ -256,6 +256,42 @@ describe('reveal', () => {
 
 			expect(first).toHaveAttribute('data-revealed', '');
 			expect(second).toHaveAttribute('data-revealed', '');
+		});
+
+		it('releases the group itself, so children rendered into it later are visible', () => {
+			const first = document.createElement('span');
+			node.append(first);
+			node.setAttribute('data-reveal-group', '');
+
+			reveal(node, { stagger: 0.06 });
+			enterView();
+
+			expect(node).toHaveAttribute('data-revealed', '');
+
+			// The /work and /blog filters swap the list's children while keeping
+			// the list. The pre-hide selector matches children by position, so a
+			// child rendered in after the reveal has run would be hidden by a rule
+			// this instance is never going to lift again — it would sit invisible
+			// until the 3s safety net caught it.
+			first.remove();
+			const late = document.createElement('span');
+			node.append(late);
+
+			expect(
+				late.matches('[data-reveal-group]:not([data-revealed]) > *:not([data-revealed])')
+			).toBe(false);
+		});
+
+		it('re-arms the group when a non-once stagger scrolls back out', () => {
+			node.append(document.createElement('span'));
+			node.setAttribute('data-reveal-group', '');
+
+			reveal(node, { stagger: 0.06, once: false });
+			const leave = enterView() as () => void;
+			expect(node).toHaveAttribute('data-revealed', '');
+
+			leave();
+
 			expect(node.hasAttribute('data-revealed')).toBe(false);
 		});
 

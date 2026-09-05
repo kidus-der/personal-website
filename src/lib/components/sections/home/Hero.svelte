@@ -20,7 +20,7 @@
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { animate, easings, reducedMotion, stagger } from '$lib/motion';
+	import { animate, easings, markRevealed, reducedMotion, stagger } from '$lib/motion';
 	import { magnetic } from '$lib/actions/magnetic';
 	import DynamicText from '$lib/components/kokonut/DynamicText.svelte';
 	import SlideTextButton from '$lib/components/kokonut/SlideTextButton.svelte';
@@ -83,21 +83,11 @@
 		return [...(sectionEl?.querySelectorAll<HTMLElement>(selector) ?? [])];
 	}
 
-	/** Hand an element back to the stylesheet, fully arrived. */
-	function release(elements: HTMLElement[]) {
-		for (const element of elements) {
-			element.setAttribute('data-revealed', '');
-			element.removeAttribute('data-motion-ready');
-			element.style.removeProperty('opacity');
-			element.style.removeProperty('transform');
-		}
-	}
-
 	onMount(() => {
 		// Reduced motion: the markup is already the finished hero, so the only
 		// thing left to do is lift the pre-hide.
 		if (reducedMotion()) {
-			release(find('[data-hero]'));
+			markRevealed(find('[data-hero]'));
 			return;
 		}
 
@@ -121,7 +111,7 @@
 					duration: DURATION,
 					ease,
 					delay,
-					onComplete: () => release(elements)
+					onComplete: () => markRevealed(elements)
 				})
 			);
 		}

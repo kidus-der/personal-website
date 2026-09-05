@@ -23,6 +23,10 @@
  * not been updated — falls back to the old behaviour and is hidden inline. That
  * still works; it just flashes.
  *
+ * A staggered group is released alongside its children, so a list that swaps
+ * its items after the reveal has run — the `/work` and `/blog` filters — does
+ * not hand the new items to a pre-hide rule nothing will lift.
+ *
  * On mount the action also sets `data-motion-ready`, which stands the
  * stylesheet's three-second safety net down for that element. The net is there
  * for a script that never ran; this one has, and a net that fired anyway would
@@ -34,7 +38,7 @@
  * is used on; a list that grows at runtime wants `reveal` on each item instead.
  */
 import type { Action } from 'svelte/action';
-import { animate, easings, inView, reducedMotion, stagger } from '$lib/motion';
+import { animate, easings, inView, markRevealed, reducedMotion, stagger } from '$lib/motion';
 import type { RevealOptions } from '$lib/types/motion';
 
 type Animation = ReturnType<typeof animate>;
@@ -92,6 +96,9 @@ function resolveAmount(node: HTMLElement, amount: RevealOptions['amount']) {
 
 /** The state a target waits in. `opacity` only for targets the CSS is not hiding. */
 function hide(targets: HTMLElement[], y: number, group: HTMLElement | null, force = false) {
+	// Re-arming the group is what puts the pre-hide back in charge of its
+	// children after a non-`once` reveal has scrolled out again.
+	group?.removeAttribute('data-revealed');
 	for (const target of targets) {
 		target.removeAttribute('data-revealed');
 		// This action owns the entrance from here; the safety net can stand down.
@@ -101,14 +108,19 @@ function hide(targets: HTMLElement[], y: number, group: HTMLElement | null, forc
 	}
 }
 
-/** Hand the element back to the stylesheet once it has arrived. */
-function markRevealed(targets: HTMLElement[]) {
-	for (const target of targets) {
-		target.setAttribute('data-revealed', '');
-		target.removeAttribute('data-motion-ready');
-		target.style.removeProperty('opacity');
-		target.style.removeProperty('transform');
-	}
+/**
+ * Hand the targets — and the group they came from — back to the stylesheet.
+ *
+ * Releasing the group as well as its children is not belt and braces. The
+ * pre-hide selector matches a group's children *by position*, so a child
+ * rendered into a kept list after the reveal has run — which is exactly what
+ * the `/work` category filter and the `/blog` tag filter do — would be hidden
+ * by a rule this instance is never going to lift again, and would only appear
+ * when the 3s safety net caught it.
+ */
+function release(targets: HTMLElement[], group: HTMLElement | null) {
+	markRevealed(targets);
+	group?.setAttribute('data-revealed', '');
 }
 
 export const reveal: Action<HTMLElement, RevealOptions | undefined> = (node, options) => {
@@ -154,7 +166,7 @@ export const reveal: Action<HTMLElement, RevealOptions | undefined> = (node, opt
 			// `once` this fires a single time anyway; the flag is belt and braces.
 			if (opts.once && revealed) return;
 			revealed = true;
-			play({ opacity: 1, y: 0 }, delay, () => markRevealed(targets));
+			play({ opacity: 1, y: 0 }, delay, () => release(targets, group));
 
 			if (opts.once) return;
 			// Re-hiding on the way out is what keeps the next entrance an entrance,

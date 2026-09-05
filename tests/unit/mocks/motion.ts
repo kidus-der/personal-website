@@ -48,8 +48,11 @@ export const reducedMotionMock = vi.fn(() => false);
 /** The module shape `vi.mock('$lib/motion', …)` should return. */
 export async function motionModule() {
 	const config = await import('$lib/motion/config');
+	// `markRevealed` is plain DOM writes; jsdom runs it, so the real one is used.
+	const { markRevealed } = await import('$lib/motion/prehide');
 	return {
 		...config,
+		markRevealed,
 		animate: animateMock,
 		reducedMotion: reducedMotionMock,
 		inView: vi.fn(() => () => {}),
