@@ -178,6 +178,7 @@ src/
 │   │   ├── charts/             # RingChart, BarChart, RadarChart (barrel)
 │   │   └── sections/           # home/, work/, about/, blog/ page sections
 │   ├── server/                 # hmac, rateLimit, validation, emailTemplates
+│   ├── remark/                 # callouts.js — Obsidian-style callout plugin
 │   ├── utils/                  # cn, dates, posts, readingTime, jsonLd,
 │   │                           # navigation, period, text
 │   └── types/                  # content.ts, motion.ts

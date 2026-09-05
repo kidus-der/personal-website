@@ -268,10 +268,11 @@ button {
 }
 
 /*
-	The site's display-face heading treatment: the four declarations every page
-	title and section title on the site repeated verbatim. Size stays with the
-	component — that is what actually varies — as does a tighter `line-height` for
-	the very large titles.
+	The site's display-face heading treatment: the five declarations — font
+	family, font weight, letter spacing, `line-height: 1.1`, and color — every
+	page title and section title on the site repeated verbatim. Size stays with
+	the component, since that is what actually varies from one heading to the
+	next.
 */
 .display-heading {
 	font-family: var(--font-display);
