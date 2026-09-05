@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup, fireEvent, screen, waitFor } from '@testing-library/svelte';
 import ContactModal from '$lib/components/ui/ContactModal.svelte';
-import { animateMock, resetMotionMocks } from '../kokonut/motionMock';
+import { animateMock, resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 function fillIn(values = {}) {
 	const fields = {
@@ -38,7 +38,7 @@ describe('ContactModal', () => {
 		expect(dialog).toHaveAccessibleName('Contact form');
 	});
 
-	it('springs the card in and fades the overlay with Motion, not GSAP', async () => {
+	it('springs the card in and fades the overlay with Motion', async () => {
 		render(ContactModal, { props: { open: true } });
 		await waitFor(() => expect(animateMock).toHaveBeenCalled());
 		const scaled = animateMock.mock.calls.find(

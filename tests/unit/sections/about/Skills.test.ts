@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import Skills from '$lib/components/sections/about/Skills.svelte';
 import type { RadarScore, SkillGroup } from '$lib/types/content';
-import { resetMotionMocks } from '../../kokonut/motionMock';
-import { tiltCalls, resetActionMocks } from '../../kokonut/actionsMock';
+import { resetMotionMocks } from '../../mocks/motion';
+import { tilt, resetActionMocks } from '../../mocks/actions';
 
-vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).motionModule());
-vi.mock('$lib/actions/tilt', async () => (await import('../../kokonut/actionsMock')).tiltModule());
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../../mocks/actions')).tilt.module());
 
 /**
  * Fixtures rather than the real content module: these tests are about how the
@@ -95,8 +95,8 @@ describe('Skills', () => {
 
 	it('flattens the group cards — the radar is the moving part, not these', () => {
 		setup();
-		expect(tiltCalls).toHaveLength(groups.length);
-		expect(tiltCalls.every((call) => (call.options as { max: number }).max === 0)).toBe(true);
+		expect(tilt.calls).toHaveLength(groups.length);
+		expect(tilt.calls.every((call) => (call.options as { max: number }).max === 0)).toBe(true);
 	});
 
 	it('lists the certifications as plain prose', () => {

@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import ReadingProgress from '$lib/components/sections/blog/ReadingProgress.svelte';
 import { scroll } from '$lib/motion';
-import { resetMotionMocks } from '../../kokonut/motionMock';
+import { resetMotionMocks } from '../../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
 
 describe('ReadingProgress', () => {
 	beforeEach(() => {

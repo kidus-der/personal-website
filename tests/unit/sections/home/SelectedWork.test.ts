@@ -2,14 +2,15 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup, fireEvent } from '@testing-library/svelte';
 import SelectedWork from '$lib/components/sections/home/SelectedWork.svelte';
 import { featuredProjects } from '$content/projects';
-import { resetMotionMocks } from '../../kokonut/motionMock';
-import { resetActionMocks } from '../../kokonut/actionsMock';
-import { resetHomeActionMocks, revealCalls } from './homeMocks';
+import { resetMotionMocks } from '../../mocks/motion';
+import { reveal, resetActionMocks } from '../../mocks/actions';
 
-vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).motionModule());
-vi.mock('$lib/actions/tilt', async () => (await import('../../kokonut/actionsMock')).tiltModule());
-vi.mock('$lib/actions/reveal', async () => (await import('./homeMocks')).revealModule());
-vi.mock('$lib/actions/magnetic', async () => (await import('./homeMocks')).magneticModule());
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../../mocks/actions')).tilt.module());
+vi.mock('$lib/actions/reveal', async () => (await import('../../mocks/actions')).reveal.module());
+vi.mock('$lib/actions/magnetic', async () =>
+	(await import('../../mocks/actions')).magnetic.module()
+);
 
 function setup() {
 	const result = render(SelectedWork);
@@ -22,7 +23,6 @@ describe('SelectedWork', () => {
 	beforeEach(() => {
 		resetMotionMocks();
 		resetActionMocks();
-		resetHomeActionMocks();
 	});
 
 	afterEach(cleanup);
@@ -44,8 +44,8 @@ describe('SelectedWork', () => {
 
 	it('staggers the grid into view', () => {
 		setup();
-		expect(revealCalls).toHaveLength(1);
-		expect(revealCalls[0].options).toEqual({ stagger: 0.06 });
+		expect(reveal.calls).toHaveLength(1);
+		expect(reveal.calls[0].options).toEqual({ stagger: 0.06 });
 	});
 
 	it('dims the siblings of the hovered card, and undims them again', async () => {

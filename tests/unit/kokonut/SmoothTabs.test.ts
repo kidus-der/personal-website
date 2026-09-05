@@ -3,9 +3,9 @@ import { render, cleanup } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import SmoothTabs from '$lib/components/kokonut/SmoothTabs.svelte';
 import { springs } from '$lib/motion/config';
-import { animateMock, resetMotionMocks } from './motionMock';
+import { animateMock, resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 const tabs = [
 	{ id: 'all', label: 'All' },

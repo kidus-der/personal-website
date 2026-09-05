@@ -20,9 +20,6 @@ importers:
       '@fontsource/noto-sans-ethiopic':
         specifier: ^5.3.0
         version: 5.3.0
-      '@studio-freight/lenis':
-        specifier: ^1.0.42
-        version: 1.0.42
       '@vercel/analytics':
         specifier: ^1.6.1
         version: 1.6.1(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@5.1.1(supports-color@7.2.0)(svelte@5.53.6)(vite@6.4.1(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)))(svelte@5.53.6)(typescript@5.9.3)(vite@6.4.1(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)))(react@19.2.4)(svelte@5.53.6)
@@ -32,12 +29,6 @@ importers:
       '@vercel/speed-insights':
         specifier: ^1.3.1
         version: 1.3.1(@sveltejs/kit@2.53.4(@sveltejs/vite-plugin-svelte@5.1.1(supports-color@7.2.0)(svelte@5.53.6)(vite@6.4.1(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)))(svelte@5.53.6)(typescript@5.9.3)(vite@6.4.1(@types/node@22.19.13)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.97.3)))(react@19.2.4)(svelte@5.53.6)
-      gsap:
-        specifier: ^3.12.7
-        version: 3.14.2
-      lenis:
-        specifier: ^1.2.3
-        version: 1.3.17(react@19.2.4)
       motion:
         specifier: ^13.2.0
         version: 13.2.0(react@19.2.4)
@@ -50,12 +41,6 @@ importers:
       tailwindcss:
         specifier: ^4.0.12
         version: 4.2.1
-      three:
-        specifier: 0.134.0
-        version: 0.134.0
-      vanta:
-        specifier: ^0.5.24
-        version: 0.5.24
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -87,9 +72,6 @@ importers:
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
-      '@types/three':
-        specifier: 0.134.0
-        version: 0.134.0
       eslint:
         specifier: ^9.18.0
         version: 9.39.3(jiti@2.6.1)(supports-color@7.2.0)
@@ -1076,10 +1058,6 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@studio-freight/lenis@1.0.42':
-    resolution: {integrity: sha512-HJAGf2DeM+BTvKzHv752z6Z7zy6bA643nZM7W88Ft9tnw2GsJSp6iJ+3cekjyMIWH+cloL2U9X82dKXgdU8kPg==}
-    deprecated: 'The ''@studio-freight/lenis'' package has been renamed to ''lenis''. Please update your dependencies: npm install lenis and visit the documentation: https://www.npmjs.com/package/lenis'
-
   '@sveltejs/acorn-typescript@1.0.9':
     resolution: {integrity: sha512-lVJX6qEgs/4DOcRTpo56tmKzVPtoWAaVbL4hfO7t7NVwl9AAXzQR6cihesW1BmNMPl+bK6dreu2sOKBP2Q9CIA==}
     peerDependencies:
@@ -1278,9 +1256,6 @@ packages:
 
   '@types/react@19.2.14':
     resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
-
-  '@types/three@0.134.0':
-    resolution: {integrity: sha512-4YB+99Rgqq27EjiYTItEoZtdjLnTh8W9LxowgpC9eWsjaQJIL4Kn/ZcUKAnW3gB/jS4hqGN8iqmid+RcUZDzpA==}
 
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
@@ -1878,9 +1853,6 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
-  gsap@3.14.2:
-    resolution: {integrity: sha512-P8/mMxVLU7o4+55+1TCnQrPmgjPKnwkzkXOK1asnR9Jg2lna4tEY5qBJjMmAaOBDDZWtlRjBXjLa0w53G/uBLA==}
-
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
     engines: {node: '>=8'}
@@ -2000,20 +1972,6 @@ packages:
 
   known-css-properties@0.37.0:
     resolution: {integrity: sha512-JCDrsP4Z1Sb9JwG0aJ8Eo2r7k4Ou5MwmThS/6lcIe1ICyb7UBJKGRIUUdqc2ASdE/42lgz6zFUnzAIhtXnBVrQ==}
-
-  lenis@1.3.17:
-    resolution: {integrity: sha512-k9T9rgcxne49ggJOvXCraWn5dt7u2mO+BNkhyu6yxuEnm9c092kAW5Bus5SO211zUvx7aCCEtzy9UWr0RB+oJw==}
-    peerDependencies:
-      '@nuxt/kit': '>=3.0.0'
-      react: '>=17.0.0'
-      vue: '>=3.0.0'
-    peerDependenciesMeta:
-      '@nuxt/kit':
-        optional: true
-      react:
-        optional: true
-      vue:
-        optional: true
 
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
@@ -2547,9 +2505,6 @@ packages:
     resolution: {integrity: sha512-BTLcK0xsDh2+PUe9F6c2TlRp4zOOBMTkoQHQIWSIzI0R7KG46uEwq4OPk2W7bZcprBMsuaeFsqwYr7pjh6CuHg==}
     engines: {node: '>=18'}
 
-  three@0.134.0:
-    resolution: {integrity: sha512-LbBerg7GaSPjYtTOnu41AMp7tV6efUNR3p4Wk5NzkSsNTBuA5mDGOfwwZL1jhhVMLx9V20HolIUo0+U3AXehbg==}
-
   tiny-inflate@1.0.3:
     resolution: {integrity: sha512-pkY1fj1cKHb2seWDy0B16HeWyczlJA9/WW3u3c4z/NiWDsO3DOU5D7nhTLE9CF0yXv/QZFY7sEJmj24dK+Rrqw==}
 
@@ -2678,9 +2633,6 @@ packages:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
     deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
-
-  vanta@0.5.24:
-    resolution: {integrity: sha512-fvieEbHy1ZS23zrcX+topzqAgA4Uct1enngOEWLFBgs9TtOf6RDFOYatH7KSVdrABzQDMCQ5myQy+nTSZZwLzg==}
 
   vfile-message@2.0.4:
     resolution: {integrity: sha512-DjssxRGkMvifUOJre00juHoP9DPWuzjxKuMDrhNbk2TdaYYBNMStsNhEOt3idrtI12VQYM/1+iM0KOzXi4pxwQ==}
@@ -3463,8 +3415,6 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@studio-freight/lenis@1.0.42': {}
-
   '@sveltejs/acorn-typescript@1.0.9(acorn@8.16.0)':
     dependencies:
       acorn: 8.16.0
@@ -3655,8 +3605,6 @@ snapshots:
   '@types/react@19.2.14':
     dependencies:
       csstype: 3.2.3
-
-  '@types/three@0.134.0': {}
 
   '@types/trusted-types@2.0.7': {}
 
@@ -4267,8 +4215,6 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  gsap@3.14.2: {}
-
   has-flag@4.0.0: {}
 
   hast-util-heading-rank@3.0.0:
@@ -4399,10 +4345,6 @@ snapshots:
   kleur@4.1.5: {}
 
   known-css-properties@0.37.0: {}
-
-  lenis@1.3.17(react@19.2.4):
-    optionalDependencies:
-      react: 19.2.4
 
   levn@0.4.1:
     dependencies:
@@ -4964,8 +4906,6 @@ snapshots:
       minizlib: 3.1.0
       yallist: 5.0.0
 
-  three@0.134.0: {}
-
   tiny-inflate@1.0.3: {}
 
   tinybench@2.9.0: {}
@@ -5094,8 +5034,6 @@ snapshots:
   util-deprecate@1.0.2: {}
 
   uuid@10.0.0: {}
-
-  vanta@0.5.24: {}
 
   vfile-message@2.0.4:
     dependencies:

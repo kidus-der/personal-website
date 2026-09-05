@@ -3,9 +3,9 @@ import { render, cleanup } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import ThemeSwitch from '$lib/components/kokonut/ThemeSwitch.svelte';
 import { theme } from '$lib/state/theme.svelte';
-import { resetMotionMocks } from './motionMock';
+import { resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 function setup(props: Record<string, unknown> = {}) {
 	const result = render(ThemeSwitch, { props });

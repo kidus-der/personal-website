@@ -16,7 +16,8 @@
 	import { page } from '$app/state';
 	import { animate, durations, easings, reducedMotion, stagger } from '$lib/motion';
 	import ThemeSwitch from '$lib/components/kokonut/ThemeSwitch.svelte';
-	import { navItems, isCurrent } from './navItems';
+	import { navItems } from './navItems';
+	import { isActivePath } from '$lib/utils/navigation';
 	import { cn } from '$lib/utils/cn';
 
 	interface Props {
@@ -191,8 +192,8 @@
 					bind:this={linkEls[index]}
 					href={item.href}
 					class="mobile-menu__link"
-					class:mobile-menu__link--current={isCurrent(item.href, page.url.pathname)}
-					aria-current={isCurrent(item.href, page.url.pathname) ? 'page' : undefined}
+					class:mobile-menu__link--current={isActivePath(page.url.pathname, item.href)}
+					aria-current={isActivePath(page.url.pathname, item.href) ? 'page' : undefined}
 				>
 					{item.label}
 				</a>

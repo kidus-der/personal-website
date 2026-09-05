@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import { createRawSnippet } from 'svelte';
 import SpotlightCard from '$lib/components/kokonut/SpotlightCard.svelte';
-import { animateMock, preferReducedMotion, resetMotionMocks } from './motionMock';
-import { resetActionMocks, tiltCalls } from './actionsMock';
+import { animateMock, preferReducedMotion, resetMotionMocks } from '../mocks/motion';
+import { tilt, resetActionMocks } from '../mocks/actions';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
-vi.mock('$lib/actions/tilt', async () => (await import('./actionsMock')).tiltModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../mocks/actions')).tilt.module());
 
 const body = createRawSnippet(() => ({ render: () => '<p>Prime Radiant</p>' }));
 
@@ -85,13 +85,13 @@ describe('SpotlightCard', () => {
 
 	it('wires the tilt action with the spotlight tilt maximum', () => {
 		setup();
-		expect(tiltCalls).toHaveLength(1);
-		expect(tiltCalls[0].options).toEqual({ max: 9 });
+		expect(tilt.calls).toHaveLength(1);
+		expect(tilt.calls[0].options).toEqual({ max: 9 });
 	});
 
 	it('flattens the tilt to zero degrees when tilt is false', () => {
 		setup({ tilt: false });
-		expect(tiltCalls[0].options).toEqual({ max: 0 });
+		expect(tilt.calls[0].options).toEqual({ max: 0 });
 	});
 
 	it('reports hover start and end to the parent', () => {

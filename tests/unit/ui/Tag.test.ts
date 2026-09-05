@@ -3,7 +3,7 @@ import { render, cleanup } from '@testing-library/svelte';
 import { createRawSnippet } from 'svelte';
 import Tag from '$lib/components/ui/Tag.svelte';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 const label = createRawSnippet(() => ({ render: () => '<span>SvelteKit</span>' }));
 

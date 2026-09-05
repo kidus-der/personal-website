@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup, fireEvent } from '@testing-library/svelte';
 import Publications from '$lib/components/sections/about/Publications.svelte';
 import { publications } from '$content/publications';
-import { resetMotionMocks } from '../../kokonut/motionMock';
+import { resetMotionMocks } from '../../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
 
 function setup(items = publications) {
 	const result = render(Publications, { props: { items } });

@@ -3,9 +3,9 @@ import { render, cleanup, fireEvent, waitFor } from '@testing-library/svelte';
 import Footer from '$lib/components/layout/Footer.svelte';
 import { navItems } from '$lib/components/layout/navItems';
 import { site } from '$content/site';
-import { resetMotionMocks } from '../kokonut/motionMock';
+import { resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 function setup() {
 	const result = render(Footer);

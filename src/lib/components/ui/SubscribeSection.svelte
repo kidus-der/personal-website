@@ -10,8 +10,7 @@
 	import { page } from '$app/state';
 	import { ParticleButton } from '$lib/components/kokonut';
 	import { cn } from '$lib/utils/cn';
-
-	type FormState = 'idle' | 'loading' | 'success' | 'error';
+	import { createSubscribeForm } from '$lib/state/subscribeForm.svelte';
 
 	interface Props {
 		class?: string;
@@ -19,40 +18,10 @@
 
 	let { class: className = '' }: Props = $props();
 
-	let email = $state('');
-	let honeypot = $state('');
-	let formState = $state<FormState>('idle');
-	let errorMessage = $state('');
+	const form = createSubscribeForm();
 
 	// Set when the confirm endpoint redirects back after a click-through.
 	const redirectedSuccess = $derived(page.url.searchParams.get('subscribed') === '1');
-
-	async function handleSubmit(e: SubmitEvent) {
-		e.preventDefault();
-		if (formState === 'loading') return;
-
-		formState = 'loading';
-		errorMessage = '';
-
-		try {
-			const res = await fetch('/api/subscribe', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, website: honeypot })
-			});
-			const data = await res.json();
-
-			if (!res.ok) {
-				formState = 'error';
-				errorMessage = data.error ?? 'Something went wrong. Please try again.';
-			} else {
-				formState = 'success';
-			}
-		} catch {
-			formState = 'error';
-			errorMessage = 'Network error. Please try again.';
-		}
-	}
 </script>
 
 <section class={cn('subscribe', className)}>
@@ -66,10 +35,10 @@
 			<p class="subscribe__sub">Get an email when a new post drops.</p>
 		</div>
 
-		{#if formState === 'success'}
+		{#if form.status === 'success'}
 			<p class="subscribe__success">Check your inbox for a confirmation link.</p>
 		{:else}
-			<form class="subscribe__form" onsubmit={handleSubmit} novalidate>
+			<form class="subscribe__form" onsubmit={form.submit} novalidate>
 				<!-- Honeypot: hidden from people and assistive tech, visible to bots. -->
 				<input
 					type="text"
@@ -77,7 +46,7 @@
 					tabindex="-1"
 					aria-hidden="true"
 					autocomplete="off"
-					bind:value={honeypot}
+					bind:value={form.honeypot}
 					style="display:none"
 				/>
 
@@ -85,17 +54,17 @@
 					type="email"
 					class="subscribe__input"
 					placeholder="your@email.com"
-					bind:value={email}
-					disabled={formState === 'loading'}
+					bind:value={form.email}
+					disabled={form.status === 'loading'}
 					required
 					aria-label="Email address"
 				/>
-				<ParticleButton type="submit" disabled={formState === 'loading'}>
-					{formState === 'loading' ? 'Sending' : 'Subscribe'}
+				<ParticleButton type="submit" disabled={form.status === 'loading'}>
+					{form.status === 'loading' ? 'Sending' : 'Subscribe'}
 				</ParticleButton>
 
-				{#if formState === 'error'}
-					<p class="subscribe__error" role="alert">{errorMessage}</p>
+				{#if form.status === 'error'}
+					<p class="subscribe__error" role="alert">{form.error}</p>
 				{/if}
 			</form>
 		{/if}

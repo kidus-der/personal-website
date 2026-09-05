@@ -5,17 +5,6 @@ const DEFAULT_THEME: Theme = 'dark';
 
 let current = $state<Theme>(DEFAULT_THEME);
 
-/**
- * Subscribers exist only so the legacy `$lib/stores/theme` shim can bridge this
- * rune state into a Svelte store for components that have not migrated yet.
- * New code should read `theme.current` directly.
- */
-const listeners = new Set<(theme: Theme) => void>();
-
-function notify() {
-	for (const listener of listeners) listener(current);
-}
-
 function readStored(): Theme | null {
 	try {
 		const stored = localStorage.getItem(STORAGE_KEY);
@@ -35,10 +24,7 @@ function persist(next: Theme) {
 }
 
 function apply(next: Theme) {
-	if (current !== next) {
-		current = next;
-		notify();
-	}
+	current = next;
 	if (typeof document !== 'undefined') {
 		document.documentElement.setAttribute('data-theme', next);
 	}
@@ -73,13 +59,3 @@ export const theme = {
 		apply(readStored() ?? fromDom ?? preferred);
 	}
 };
-
-/**
- * Register a change listener. Returns an unsubscribe function. Used by the
- * `$lib/stores/theme` compatibility shim; prefer `theme.current` in new code.
- */
-export function subscribeTheme(listener: (theme: Theme) => void): () => void {
-	listeners.add(listener);
-	listener(current);
-	return () => listeners.delete(listener);
-}

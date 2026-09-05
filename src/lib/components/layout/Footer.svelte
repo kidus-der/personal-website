@@ -10,8 +10,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import { navItems } from './navItems';
 	import { site } from '$content/site';
-
-	type FormState = 'idle' | 'loading' | 'success' | 'error';
+	import { createSubscribeForm } from '$lib/state/subscribeForm.svelte';
 
 	const year = new Date().getFullYear();
 
@@ -22,42 +21,11 @@
 		{ label: 'Email', href: `mailto:${site.email}` }
 	];
 
-	let email = $state('');
-	/** Bots fill this; people never see it. A non-empty value is rejected server-side. */
-	let honeypot = $state('');
-	let formState = $state<FormState>('idle');
-	let errorMessage = $state('');
+	const form = createSubscribeForm();
 
 	const successMessage = $derived(
-		formState === 'success' ? 'Check your inbox for a confirmation link.' : ''
+		form.status === 'success' ? 'Check your inbox for a confirmation link.' : ''
 	);
-
-	async function subscribe(event: SubmitEvent) {
-		event.preventDefault();
-		if (formState === 'loading') return;
-
-		formState = 'loading';
-		errorMessage = '';
-
-		try {
-			const response = await fetch('/api/subscribe', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, website: honeypot })
-			});
-			const data = await response.json().catch(() => ({}));
-
-			if (response.ok) {
-				formState = 'success';
-			} else {
-				formState = 'error';
-				errorMessage = data.error ?? 'Something went wrong. Please try again.';
-			}
-		} catch {
-			formState = 'error';
-			errorMessage = 'Network error. Please try again.';
-		}
-	}
 </script>
 
 <footer class="footer">
@@ -92,8 +60,8 @@
 				<h2 class="footer__heading">Newsletter</h2>
 				<p class="footer__lede">Occasional notes from the Buna Print</p>
 
-				{#if formState !== 'success'}
-					<form class="footer__form" onsubmit={subscribe} novalidate>
+				{#if form.status !== 'success'}
+					<form class="footer__form" onsubmit={form.submit} novalidate>
 						<input
 							class="footer__honeypot"
 							type="text"
@@ -101,20 +69,21 @@
 							tabindex="-1"
 							autocomplete="off"
 							aria-hidden="true"
-							bind:value={honeypot}
+							bind:value={form.honeypot}
 						/>
-						<label class="footer__label" for="footer-subscribe-email">Email address</label>
+						<!-- Named for screen readers; the placeholder carries the visual hint. -->
+						<label class="visually-hidden" for="footer-subscribe-email">Email address</label>
 						<input
 							id="footer-subscribe-email"
 							class="footer__input"
 							type="email"
 							required
 							placeholder="you@example.com"
-							disabled={formState === 'loading'}
-							bind:value={email}
+							disabled={form.status === 'loading'}
+							bind:value={form.email}
 						/>
-						<Button type="submit" size="sm" disabled={formState === 'loading'}>
-							{formState === 'loading' ? 'Sending' : 'Subscribe'}
+						<Button type="submit" size="sm" disabled={form.status === 'loading'}>
+							{form.status === 'loading' ? 'Sending' : 'Subscribe'}
 						</Button>
 					</form>
 				{/if}
@@ -125,7 +94,7 @@
 					updated, and most screen readers stay silent.
 				-->
 				<p class="footer__note" role="status">{successMessage}</p>
-				<p class="footer__error" role="alert">{formState === 'error' ? errorMessage : ''}</p>
+				<p class="footer__error" role="alert">{form.error}</p>
 			</section>
 		</div>
 
@@ -215,19 +184,6 @@
 
 	.footer__honeypot {
 		display: none;
-	}
-
-	/* Named for screen readers; the placeholder carries the visual hint. */
-	.footer__label {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		margin: -1px;
-		padding: 0;
-		overflow: hidden;
-		white-space: nowrap;
-		clip-path: inset(50%);
-		border: 0;
 	}
 
 	.footer__input {

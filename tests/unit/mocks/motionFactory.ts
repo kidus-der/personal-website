@@ -11,7 +11,7 @@
  *
  * Usage (the factory must not close over test state, so import it lazily):
  *
- *   vi.mock('$lib/motion', async () => (await import('./motionMock')).createMotionMock());
+ *   vi.mock('$lib/motion', async () => (await import('../mocks/motionFactory')).createMotionMock());
  */
 import { vi } from 'vitest';
 import { springs, easings, durations } from '$lib/motion/config';

@@ -8,11 +8,11 @@ import BentoCard from '$lib/components/kokonut/BentoCard.svelte';
 // the tilt is an invisible orthographic squash, and a `transition: transform`
 // would fight the spring `use:tilt` drives frame by frame.
 import bentoSource from '$lib/components/kokonut/BentoCard.svelte?raw';
-import { resetMotionMocks } from './motionMock';
-import { resetActionMocks, tiltCalls } from './actionsMock';
+import { resetMotionMocks } from '../mocks/motion';
+import { tilt, resetActionMocks } from '../mocks/actions';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
-vi.mock('$lib/actions/tilt', async () => (await import('./actionsMock')).tiltModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../mocks/actions')).tilt.module());
 
 const feature = createRawSnippet(() => ({ render: () => '<p>8 papers</p>' }));
 
@@ -82,8 +82,8 @@ describe('BentoCard', () => {
 
 	it('tilts by at most two degrees', () => {
 		setup();
-		expect(tiltCalls).toHaveLength(1);
-		expect(tiltCalls[0].options).toEqual({ max: 2 });
+		expect(tilt.calls).toHaveLength(1);
+		expect(tilt.calls[0].options).toEqual({ max: 2 });
 	});
 
 	it('merges a caller-supplied class', () => {

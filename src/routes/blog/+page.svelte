@@ -39,7 +39,7 @@
 		<BeamsBackground intensity="subtle" />
 		<div class="container">
 			<header class="blog__header">
-				<h1 class="blog__title">The Buna Print</h1>
+				<h1 class="display-heading blog__title">The Buna Print</h1>
 				<p class="blog__title-am" lang="am">የቡና እትም</p>
 				<p class="blog__lede">A home for ideas, perspectives, thoughts, and everything else.</p>
 			</header>
@@ -102,13 +102,9 @@
 	}
 
 	.blog__title {
-		font-family: var(--font-display);
 		/* A notch under `--text-display`: this is a masthead, not the home hero. */
 		font-size: clamp(2.5rem, 6vw, 4.5rem);
-		font-weight: 600;
-		letter-spacing: -0.02em;
 		line-height: 1.05;
-		color: var(--text);
 	}
 
 	.blog__title-am {

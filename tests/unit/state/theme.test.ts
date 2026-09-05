@@ -76,15 +76,18 @@ describe('theme', () => {
 		expect(theme.current).toBe('dark');
 	});
 
-	it('notifies subscribers on change and stops after unsubscribe', async () => {
-		const { theme, subscribeTheme } = await freshTheme();
-		const seen: string[] = [];
-		const off = subscribeTheme((t) => seen.push(t));
-		expect(seen).toEqual(['dark']);
-		theme.set('light');
-		expect(seen).toEqual(['dark', 'light']);
-		off();
+	it('init() reconciles with the attribute the blocking script wrote', async () => {
+		document.documentElement.setAttribute('data-theme', 'light');
+		stubColorScheme(false);
+		const { theme } = await freshTheme();
+		theme.init();
+		expect(theme.current).toBe('light');
+	});
+
+	it('re-applying the current theme still writes the attribute back', async () => {
+		const { theme } = await freshTheme();
+		document.documentElement.removeAttribute('data-theme');
 		theme.set('dark');
-		expect(seen).toEqual(['dark', 'light']);
+		expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
 	});
 });

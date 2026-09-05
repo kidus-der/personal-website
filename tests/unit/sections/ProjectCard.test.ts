@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import ProjectCard from '$lib/components/sections/work/ProjectCard.svelte';
 import type { Project } from '$lib/types/content';
-import { resetMotionMocks } from '../kokonut/motionMock';
-import { resetActionMocks } from '../kokonut/actionsMock';
+import { resetMotionMocks } from '../mocks/motion';
+import { resetActionMocks } from '../mocks/actions';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
-vi.mock('$lib/actions/tilt', async () => (await import('../kokonut/actionsMock')).tiltModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../mocks/actions')).tilt.module());
 
 const base: Project = {
 	slug: 'prime-radiant',

@@ -3,9 +3,9 @@ import { render, cleanup } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import MorphicNav from '$lib/components/kokonut/MorphicNav.svelte';
 import { springs } from '$lib/motion/config';
-import { animateMock, preferReducedMotion, resetMotionMocks } from './motionMock';
+import { animateMock, preferReducedMotion, resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 const items = [
 	{ href: '/', label: 'Home' },

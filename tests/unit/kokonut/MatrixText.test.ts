@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import MatrixText from '$lib/components/kokonut/MatrixText.svelte';
-import { preferReducedMotion, resetMotionMocks } from './motionMock';
+import { preferReducedMotion, resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('./motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 const TEXT = 'Not found';
 const INITIAL_DELAY = 200;

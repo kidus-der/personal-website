@@ -12,6 +12,7 @@
 <script lang="ts">
 	import { createIndicator } from './indicator.svelte';
 	import { cn } from '$lib/utils/cn';
+	import { isActivePath } from '$lib/utils/navigation';
 
 	export interface NavItem {
 		href: string;
@@ -32,15 +33,7 @@
 	let indicatorEl = $state<HTMLSpanElement | undefined>();
 	let linkEls = $state<(HTMLAnchorElement | undefined)[]>([]);
 
-	/**
-	 * Home matches only itself; every other item owns its whole subtree, so
-	 * `/work/prime-radiant` keeps "Work" marked as the current page.
-	 */
-	function isActive(href: string): boolean {
-		return href === '/' ? current === '/' : current.startsWith(href);
-	}
-
-	const activeIndex = $derived(items.findIndex((item) => isActive(item.href)));
+	const activeIndex = $derived(items.findIndex((item) => isActivePath(current, item.href)));
 
 	// Owns the measuring, the instant first placement and the resize listener.
 	// A route with no matching item hands it `undefined`, which hides the pill.

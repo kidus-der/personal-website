@@ -5,9 +5,9 @@ import { createRawSnippet } from 'svelte';
 import { scroll } from '$lib/motion';
 import { pickNeighbours } from '$lib/utils/posts';
 import type { BlogPost } from '$lib/types/content';
-import { animateMock, resetMotionMocks } from '../kokonut/motionMock';
+import { animateMock, resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 vi.mock('$app/stores', () => ({
 	page: readable({ url: new URL('http://localhost/blog') })
 }));

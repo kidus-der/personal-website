@@ -4,7 +4,7 @@ import EducationCard from '$lib/components/sections/about/Education.svelte';
 import { education } from '$content/education';
 import type { Education } from '$lib/types/content';
 
-vi.mock('$lib/motion', async () => (await import('../../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../../mocks/motion')).motionModule());
 
 function setup(overrides: Partial<Education> = {}) {
 	return render(EducationCard, { props: { education: { ...education, ...overrides } } });

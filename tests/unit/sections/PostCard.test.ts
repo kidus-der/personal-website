@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/svelte';
 import PostCard from '$lib/components/sections/blog/PostCard.svelte';
 import type { BlogPost } from '$lib/types/content';
-import { resetMotionMocks } from '../kokonut/motionMock';
+import { resetMotionMocks } from '../mocks/motion';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
 
 const base: BlogPost = {
 	slug: 'shipping-halo',

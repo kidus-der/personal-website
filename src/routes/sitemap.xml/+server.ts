@@ -1,8 +1,9 @@
 import type { RequestHandler } from './$types';
 import { projects } from '$content/projects';
-import type { BlogPost } from '$lib/types/content';
+import { site } from '$content/site';
+import { loadPosts } from '$lib/utils/posts';
 
-const SITE_URL = 'https://kidusder.com';
+const SITE_URL = site.url;
 
 type SitemapEntry = {
 	url: string;
@@ -25,16 +26,9 @@ function renderUrl(entry: SitemapEntry): string {
 }
 
 export const GET: RequestHandler = async () => {
-	// Load blog posts via import.meta.glob (same pattern as blog/+page.ts)
-	const postModules = import.meta.glob('/src/content/posts/*.md', { eager: true });
-
-	const posts: BlogPost[] = Object.entries(postModules)
-		.map(([path, module]) => {
-			const slug = path.split('/').pop()?.replace('.md', '') ?? '';
-			const meta = (module as Record<string, unknown>).metadata as Omit<BlogPost, 'slug'>;
-			return { slug, ...meta };
-		})
-		.filter((p) => !p.draft);
+	// The glob literal has to stay at the call site for Vite to see it; the
+	// parsing, draft filtering and sorting live in `loadPosts`.
+	const posts = loadPosts(import.meta.glob('/src/content/posts/*.md', { eager: true }));
 
 	const staticRoutes: SitemapEntry[] = [
 		{ url: SITE_URL, changefreq: 'monthly', priority: '1.0' },

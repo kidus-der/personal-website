@@ -7,7 +7,7 @@ import { vi } from 'vitest';
  * records the callbacks instead, so a test can drive a navigation by hand.
  *
  * Used as
- * `vi.mock('$app/navigation', async () => (await import('./navigationMock')).navigationModule())`
+ * `vi.mock('$app/navigation', async () => (await import('../mocks/navigation')).navigationModule())`
  * — the dynamic import keeps `vi.mock`'s hoisting happy while handing both the
  * factory and the test file the same instances.
  */

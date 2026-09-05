@@ -104,120 +104,199 @@ Ask if I want one of two options:
 
 ## Project
 
-Personal website for kidus-der. Built with SvelteKit 2 + Svelte 5, TypeScript, GSAP, Lenis, Tailwind v4, and mdsvex.
+Personal website for kidus-der: a portfolio and a blog ("The Buna Print") in one
+SvelteKit app. Built with SvelteKit 2 + Svelte 5 runes, TypeScript, Motion,
+Tailwind v4 and mdsvex.
 
 ## Repository
 
 - GitHub: `git@github.com:kidus-der/personal-website.git`
-- `my-cv.pdf` is present locally but should not be committed to git.
+- `my-cv.pdf` / `my-cv.tex` are present locally but are gitignored, as is every
+  PDF at the repo root.
 
 ## Commands
 
 ```bash
-pnpm dev          # Start dev server at localhost:5173
+pnpm dev          # Dev server at localhost:5173
 pnpm build        # Production build
-pnpm preview      # Preview production build
-pnpm check        # TypeScript + Svelte diagnostics
+pnpm preview      # Preview the production build
+pnpm check        # TypeScript + Svelte diagnostics (must be 0 errors, 0 warnings)
 pnpm check:watch  # Watch mode
-pnpm lint         # Prettier + ESLint
+pnpm lint         # Prettier --check + ESLint
 pnpm format       # Auto-format
+pnpm test         # test:unit then test:e2e
+pnpm test:unit    # Vitest (jsdom)
+pnpm test:e2e     # Playwright
+```
+
+`pnpm build` reads `$env/static/private` and `$env/static/public`, so it needs a
+`.env`. Copy `.env.example` and fill in placeholders — the values only have to be
+present, not real, for a local build:
+
+```
+RESEND_API_KEY, RESEND_SEGMENT_ID, SUBSCRIBE_HMAC_SECRET, ADMIN_SECRET,
+PUBLIC_SITE_URL
 ```
 
 ## Stack
 
-| Concern            | Choice                                                  |
-| ------------------ | ------------------------------------------------------- |
-| Framework          | SvelteKit 2 + Svelte 5                                  |
-| Language           | TypeScript throughout                                   |
-| Package manager    | pnpm                                                    |
-| Animations         | GSAP (ScrollTrigger, Flip)                              |
-| Smooth scroll      | Lenis v2                                                |
-| CSS                | Tailwind v4 + SCSS for animation styles                 |
-| Content (blog)     | mdsvex (`.md` files in `src/content/posts/`)            |
-| Content (projects) | TypeScript data files (`src/content/projects/index.ts`) |
-| Deployment         | Vercel + `@sveltejs/adapter-vercel`                     |
+| Concern         | Choice                                                      |
+| --------------- | ----------------------------------------------------------- |
+| Framework       | SvelteKit 2 + Svelte 5 (runes)                              |
+| Language        | TypeScript throughout                                       |
+| Package manager | pnpm                                                        |
+| Animation       | Motion (`motion` v13) behind `$lib/motion` + `$lib/actions` |
+| CSS             | Tailwind v4 + plain CSS with design tokens (no SCSS)        |
+| Blog content    | mdsvex (`.md` in `src/content/posts/`) + Shiki              |
+| Site content    | Typed TS modules in `src/content/`, aliased `$content`      |
+| Email           | Resend (contact form, double opt-in subscriptions)          |
+| Unit tests      | Vitest 3 + jsdom + `@testing-library/svelte`                |
+| E2E tests       | Playwright                                                  |
+| Deployment      | Vercel + `@sveltejs/adapter-vercel`                         |
 
 ## Project Structure
 
 ```
 src/
+├── app.html                    # Blocking theme script lives here
+├── content/                    # `$content` alias
+│   ├── site.ts                 # Name, url, email, socials
+│   ├── projects/index.ts       # projects, PROJECT_CATEGORIES, helpers
+│   ├── publications.ts         # publications, publicationsByYear()
+│   ├── experience.ts, education.ts, skills.ts
+│   └── posts/                  # Blog posts as .md (mdsvex)
 ├── lib/
+│   ├── motion/                 # config.ts (springs, easings, durations) + index.ts
+│   ├── actions/                # reveal, tilt, magnetic, parallax, scrollProgress,
+│   │                           # press, pointer — the only place Motion is called
+│   ├── state/                  # Rune modules: theme, contact, subscribeForm
 │   ├── components/
-│   │   ├── ui/          # Primitives (Button, Tag, Link)
-│   │   ├── layout/      # Nav, Footer, BlogPostLayout
-│   │   └── animation/   # CustomCursor, etc.
-│   ├── actions/         # Svelte actions — GSAP integration layer
-│   │   ├── gsap.ts      # use:gsapFrom, use:gsapTo
-│   │   ├── magnetic.ts  # use:magnetic
-│   │   ├── revealOnScroll.ts
-│   │   └── cursor.ts    # use:cursorTarget
-│   ├── stores/          # cursor.ts, scroll.ts, theme.ts
-│   ├── animation/       # Pure TS: gsap.config.ts, lenis.config.ts, easings.ts, timelines/
-│   ├── utils/           # math.ts (lerp, clamp), dom.ts
-│   └── types/           # content.ts, animation.ts
+│   │   ├── ui/                 # Button, Tag, SectionHeading, SEO, modals
+│   │   ├── layout/             # SiteShell, Nav, MobileMenu, Footer,
+│   │   │                       # PageTransition, BlogPostLayout, navItems
+│   │   ├── kokonut/            # KokonutUI ports (barrel export in index.ts)
+│   │   ├── charts/             # RingChart, BarChart, RadarChart (barrel)
+│   │   └── sections/           # home/, work/, about/, blog/ page sections
+│   ├── server/                 # hmac, rateLimit, validation, emailTemplates
+│   ├── utils/                  # cn, dates, posts, readingTime, jsonLd,
+│   │                           # navigation, period, text
+│   └── types/                  # content.ts, motion.ts
 ├── routes/
-│   ├── +layout.svelte          # Root: Lenis init, theme injection
-│   ├── (portfolio)/            # Route group — portfolio section
-│   │   ├── +layout.svelte      # Portfolio chrome: cursor, nav, page transitions
-│   │   ├── +page.svelte        # Home / hero
-│   │   ├── work/               # /work, /work/[slug]
-│   │   └── about/              # /about
-│   └── blog/                   # Blog section — editorial atmosphere
-│       ├── +layout.svelte
-│       ├── +page.svelte        # Blog listing
-│       └── [slug]/             # Blog post (mdsvex)
-├── content/
-│   ├── projects/index.ts       # Project data (typed array)
-│   └── posts/                  # Blog posts as .md files
+│   ├── +layout.svelte          # Fonts, tokens, analytics, theme.init()
+│   ├── +error.svelte           # App-wide error page (SiteShell variant="error")
+│   ├── (portfolio)/            # Home, /work, /work/[slug], /about
+│   ├── blog/                   # /blog, /blog/[slug]
+│   ├── api/                    # contact, subscribe, subscribe/confirm,
+│   │                           # admin/broadcast
+│   ├── og/                     # OG image endpoint
+│   └── sitemap.xml/
 └── styles/
-    ├── app.css                 # Tailwind v4 entry + @theme design tokens
-    └── _tokens.scss, _typography.scss, _animations.scss
+    ├── app.css                 # Tailwind entry, @theme tokens, class utilities
+    └── prose.css               # Blog post typography
+
+tests/
+├── unit/                       # Vitest; mirrors src/ + tests/unit/mocks/
+└── e2e/                        # Playwright
 ```
 
 ## Key Architecture Decisions
 
-### Animation System
+### Animation system
 
-- **Never call GSAP directly in component markup** — use Svelte Actions or Timeline factories
-- Svelte Actions (`src/lib/actions/`) — element-level animations tied to mount/unmount
-- Timeline factories (`src/lib/animation/timelines/`) — multi-element orchestrated sequences
-- GSAP plugins registered once in `gsap.config.ts`, imported in root layout
+- **Never call Motion from component markup.** Components import from
+  `$lib/motion` inside `<script>`, or apply a Svelte action from `$lib/actions`.
+- `$lib/motion` re-exports `animate, inView, scroll, stagger, spring, press,
+hover` plus the shared `springs`, `easings`, `durations` and `reducedMotion()`.
+- Actions are the element-level layer: `use:reveal`, `use:tilt`, `use:magnetic`,
+  `use:parallax`, `use:scrollProgress`, `use:press`. Option types live in
+  `$lib/types/motion`.
+- Every animation must respect `reducedMotion()` (or a
+  `prefers-reduced-motion` media query for pure-CSS transitions).
 
-### Design Tokens
+### Design tokens
 
-- Single source of truth: `@theme` block in `src/styles/app.css`
-- Themes scoped to `[data-theme="dark"]` / `[data-theme="light"]` on `<html>`
-- Blocking inline script in root layout prevents theme flash on load
+- Single source of truth: the `@theme` block in `src/styles/app.css`.
+- Themes are scoped to `[data-theme="dark"]` / `[data-theme="light"]` on
+  `<html>`. Components read the raw vars (`--bg`, `--text`, `--accent`, …).
+- Shared class utilities also live in `app.css`: `.container`, `.chip`,
+  `.dot-grid`, `.bullet-list`, `.visually-hidden`, `.display-heading`. Reach for
+  one before writing the same declarations into a component again.
 
-### Blog "Second Half"
+### Theme
 
-- Same SvelteKit app, same domain, completely separate layout
-- `src/routes/(portfolio)/` — portfolio section (animated, cinematic)
-- `src/routes/blog/` — blog section (editorial, reading-focused)
-- mdsvex processes `.md` files with frontmatter and Svelte component interpolation
+- The rune module is `$lib/state/theme.svelte` — `theme.current`, `theme.set()`,
+  `theme.toggle()`, `theme.init()`.
+- A blocking inline script in `src/app.html` (not the layout) applies the stored
+  or preferred theme before first paint. `theme.init()` in the root layout only
+  reconciles the rune with what that script already wrote.
 
-### Lenis + GSAP sync
+### Layout shell
 
-```ts
-gsap.ticker.add((time) => lenis.raf(time * 1000));
-gsap.ticker.lagSmoothing(0);
-lenis.on('scroll', ScrollTrigger.update);
+- `layout/SiteShell.svelte` is the one Nav / content / Footer frame, taking a
+  `variant` of `portfolio`, `blog` or `error`. It owns `--nav-height`, which
+  pages inherit so a full-bleed hero can pull back under the fixed nav.
+- The `error` variant skips `PageTransition`: it renders outside both route
+  groups and has no route change to animate.
+
+### Blog
+
+- Same app, same domain, its own layout and reading-focused typography
+  (`src/styles/prose.css`).
+- `src/routes/(portfolio)/` is the portfolio; `src/routes/blog/` is the blog.
+- mdsvex processes `.md` with frontmatter, Shiki highlighting and a callouts
+  plugin; every post is wrapped in `layout/BlogPostLayout.svelte`.
+- Posts are read through `loadPosts()` in `$lib/utils/posts`, which takes the
+  `import.meta.glob` result, drops drafts and sorts newest first. Every caller —
+  the listing, the post page, the sitemap, the broadcast endpoint — uses it.
+
+### Publications accordion
+
+- `sections/about/Publications.svelte` holds the list and which row is open;
+  `PublicationRow.svelte` is one disclosure. This replaced an earlier modal.
+- Only one row opens at a time, tracked by publication id rather than index so
+  the state survives filtering or reordering.
+- Data lives in `$content/publications`, not in the page.
+
+### Content
+
+- Everything that is data lives in `src/content/*.ts` behind the `$content`
+  alias, typed by `$lib/types/content`. Pages import it; they never inline it.
+
+## Conventions
+
+- Svelte 5 runes; `interface Props` + `$props()`; `$app/state` (not
+  `$app/stores`).
+- Compose classes with `cn()` from `$lib/utils/cn`.
+- Tokens only — no hard-coded colours, spacing or type sizes.
+- Copy: sentence case, no all-caps eyebrow labels, no `·` separators (use
+  separate spans with a gap), no `→` inside link or button text.
+
+## Testing
+
+Unit tests are Vitest 3 in jsdom with `@testing-library/svelte`, under
+`tests/unit/`, mirroring `src/`. E2E is Playwright under `tests/e2e/`.
+
+- Reusable doubles live in `tests/unit/mocks/`: `motion.ts` (the shared
+  `$lib/motion` singleton for component tests), `motionFactory.ts`
+  (`createMotionMock()`, a fresh instance per action test), `navigation.ts`
+  (`$app/navigation`), and `actions.ts` — `recordingAction(name)` plus ready-made
+  `reveal`, `tilt` and `magnetic` recorders and `resetActionMocks()`.
+- Mock a module lazily so `vi.mock` hoisting stays happy:
+  `vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule())`.
+- Mock `$app/state` as `vi.mock('$app/state', () => ({ page: { url: new
+URL('http://localhost/'), params: {} } }))`.
+- A test needing runes in the test file itself uses the `.test.svelte.ts`
+  extension.
+
+```bash
+pnpm test:unit                       # everything
+pnpm test:unit tests/unit/ui         # one directory
+pnpm test:unit:watch                 # watch mode
 ```
-
-Destroyed/re-initialized around SvelteKit `beforeNavigate` / `afterNavigate`.
-
-### Publication Modal
-
-- `PublicationModal` component lives in `src/lib/components/ui/PublicationModal.svelte`
-- Accepts `pub: Publication` (type from `$lib/types/content`) and `index: number` props
-- Self-contained: owns `$state(open)`, GSAP open/close timelines, and Escape key handler
-- Opens with GSAP spring animation (`back.out(1.4)`), closes in `onComplete` callback
-- Glassmorphism card: `backdrop-filter: blur(24px)`, `:global([data-theme="light"])` override
-- Publications data lives in `src/routes/(portfolio)/about/+page.svelte` as `Publication[]`
 
 ## Adding Content
 
-**New blog post:** Add a `.md` file to `src/content/posts/` with frontmatter:
+**Blog post:** add a `.md` file to `src/content/posts/` with frontmatter:
 
 ```md
 ---
@@ -229,4 +308,13 @@ draft: false
 ---
 ```
 
-**New project:** Add an entry to `src/content/projects/index.ts` following the `Project` type.
+**Project:** add an entry to `src/content/projects/index.ts` following the
+`Project` type. The slug becomes `/work/<slug>`.
+
+**Publication:** add an entry to `src/content/publications.ts` (newest first)
+following the `Publication` type; the year chart and the accordion both derive
+from it.
+
+**Experience, education, skills:** edit `src/content/experience.ts`,
+`education.ts` or `skills.ts`. Each has a unit test asserting its shape, so run
+`pnpm test:unit` after editing.

@@ -7,11 +7,9 @@ import WorkPage from '../../../src/routes/(portfolio)/work/+page.svelte';
 import { orderProjectsForGrid } from '$lib/components/sections/work/order';
 import { projects, projectsByCategory } from '$content/projects';
 
-vi.mock('$lib/motion', async () => (await import('../kokonut/motionMock')).motionModule());
-vi.mock('$lib/actions/tilt', async () => (await import('../kokonut/actionsMock')).tiltModule());
-vi.mock('$lib/actions/reveal', async () =>
-	(await import('../sections/work/revealMock')).revealModule()
-);
+vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../mocks/actions')).tilt.module());
+vi.mock('$lib/actions/reveal', async () => (await import('../mocks/actions')).reveal.module());
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
 // `SEO` reads the page store for its canonical URL.
 vi.mock('$app/stores', () => ({
@@ -167,7 +165,7 @@ describe('/work page status line', () => {
 	it('is announced politely rather than shown', () => {
 		const { container } = renderPage();
 		const line = container.querySelector('[aria-live="polite"]') as HTMLElement;
-		expect(line).toHaveClass('work-page__status');
+		expect(line).toHaveClass('visually-hidden');
 		expect(line).toBeInTheDocument();
 	});
 });

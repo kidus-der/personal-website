@@ -41,7 +41,7 @@
 			</SectionHeading>
 
 			<div class="latest-writing__featured">
-				<FeaturedPost post={featured} />
+				<FeaturedPost post={featured} level={3} />
 			</div>
 
 			{#if rest.length > 0}
