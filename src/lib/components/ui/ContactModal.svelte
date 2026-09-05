@@ -18,7 +18,7 @@
 	are undone on close and on unmount, restoring whatever was there before —
 	another modal on the page must not have its `inert` marks stolen.
 
-	The network and validation behaviour is unchanged from the GSAP-era version:
+	The network and validation behaviour is unchanged from the previous version:
 	the same payload, the same endpoint, the same error handling. Only the
 	presentation and the animation moved.
 -->

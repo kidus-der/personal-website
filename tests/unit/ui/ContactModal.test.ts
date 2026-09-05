@@ -38,7 +38,7 @@ describe('ContactModal', () => {
 		expect(dialog).toHaveAccessibleName('Contact form');
 	});
 
-	it('springs the card in and fades the overlay with Motion, not GSAP', async () => {
+	it('springs the card in and fades the overlay with Motion', async () => {
 		render(ContactModal, { props: { open: true } });
 		await waitFor(() => expect(animateMock).toHaveBeenCalled());
 		const scaled = animateMock.mock.calls.find(
