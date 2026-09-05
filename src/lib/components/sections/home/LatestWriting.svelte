@@ -5,6 +5,10 @@
 	The whole band disappears when there is nothing published, rather than
 	rendering a heading over an empty grid. The two-up grid disappears on its own
 	when there is only one post.
+
+	All three cards are one hover group, the featured one included: they read as a
+	single set, so hovering any of them recedes the rest — the same treatment the
+	work grid gives its projects.
 -->
 <script lang="ts">
 	import { GRID_REVEAL } from '$lib/motion';
@@ -13,6 +17,7 @@
 	import PostCard from '$lib/components/sections/blog/PostCard.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import SectionHeading from '$lib/components/ui/SectionHeading.svelte';
+	import { createHoverGroup } from '$lib/state/hoverGroup.svelte';
 	import type { BlogPost } from '$lib/types/content';
 	import { cn } from '$lib/utils/cn';
 
@@ -26,6 +31,9 @@
 
 	const featured = $derived(posts[0]);
 	const rest = $derived(posts.slice(1, 3));
+
+	const shown = $derived(featured ? [featured, ...rest] : []);
+	const hover = createHoverGroup(() => shown.map((post) => post.slug));
 </script>
 
 {#if featured}
@@ -41,13 +49,25 @@
 			</SectionHeading>
 
 			<div class="latest-writing__featured">
-				<FeaturedPost post={featured} level={3} />
+				<FeaturedPost
+					post={featured}
+					level={3}
+					dimmed={hover.dimmed(featured.slug)}
+					onhoverstart={() => hover.enter(featured.slug)}
+					onhoverend={() => hover.leave(featured.slug)}
+				/>
 			</div>
 
 			{#if rest.length > 0}
 				<div class="latest-writing__grid" data-reveal-group use:reveal={GRID_REVEAL}>
 					{#each rest as post, index (post.slug)}
-						<PostCard {post} {index} />
+						<PostCard
+							{post}
+							{index}
+							dimmed={hover.dimmed(post.slug)}
+							onhoverstart={() => hover.enter(post.slug)}
+							onhoverend={() => hover.leave(post.slug)}
+						/>
 					{/each}
 				</div>
 			{/if}

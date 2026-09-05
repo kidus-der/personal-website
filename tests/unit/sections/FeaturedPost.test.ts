@@ -4,8 +4,10 @@ import FeaturedPost from '$lib/components/sections/blog/FeaturedPost.svelte';
 import type { BlogPost } from '$lib/types/content';
 import { formatDate } from '$lib/utils/dates';
 import { resetMotionMocks } from '../mocks/motion';
+import { tilt, resetActionMocks } from '../mocks/actions';
 
 vi.mock('$lib/motion', async () => (await import('../mocks/motion')).motionModule());
+vi.mock('$lib/actions/tilt', async () => (await import('../mocks/actions')).tilt.module());
 
 const base: BlogPost = {
 	slug: 'why-deepfakes-are-hard',
@@ -16,14 +18,18 @@ const base: BlogPost = {
 	readingTime: 7
 };
 
-function setup(post: Partial<BlogPost> = {}, props: { level?: 2 | 3 } = {}) {
+function setup(post: Partial<BlogPost> = {}, props: Record<string, unknown> = {}) {
 	const result = render(FeaturedPost, { props: { post: { ...base, ...post }, ...props } });
 	const card = () => result.container.querySelector('.featured-post') as HTMLAnchorElement;
 	return { ...result, card };
 }
 
 describe('FeaturedPost', () => {
-	beforeEach(resetMotionMocks);
+	beforeEach(() => {
+		resetMotionMocks();
+		resetActionMocks();
+	});
+
 	afterEach(cleanup);
 
 	it('links the whole card to the post', () => {
@@ -99,5 +105,40 @@ describe('FeaturedPost', () => {
 		expect(placeholder).toBeInTheDocument();
 		expect(placeholder).toHaveAttribute('aria-hidden', 'true');
 		expect(container.querySelector('.featured-post__image')).toBeNull();
+	});
+
+	it('is a spotlight card, like every other card on the site', () => {
+		const { card, container } = setup();
+		expect(card()).toHaveClass('spotlight-card');
+		expect(card().style.getPropertyValue('--card-color')).toBe('var(--accent)');
+		expect(tilt.calls).toHaveLength(1);
+		expect(container.querySelector('.spotlight-card__glow')).toBeInTheDocument();
+		expect(container.querySelector('.spotlight-card__shimmer')).toBeInTheDocument();
+		expect(container.querySelector('.spotlight-card__line')).toBeInTheDocument();
+	});
+
+	it('recedes when another card in its group is hovered', () => {
+		const { card } = setup({}, { dimmed: true });
+		expect(card()).toHaveClass('spotlight-card--dimmed');
+	});
+
+	it('reports hover to the parent, so the grid below it can dim', () => {
+		const onhoverstart = vi.fn();
+		const onhoverend = vi.fn();
+		const { card } = setup({}, { onhoverstart, onhoverend });
+
+		card().dispatchEvent(new Event('pointerenter'));
+		expect(onhoverstart).toHaveBeenCalledTimes(1);
+		card().dispatchEvent(new Event('pointerleave'));
+		expect(onhoverend).toHaveBeenCalledTimes(1);
+	});
+
+	it('keeps the two-column split inside the card, not on it', () => {
+		// The visual has to run to the card's clipped edge while the body is
+		// padded, so the grid lives on a child rather than on the card itself.
+		const { card, container } = setup();
+		const layout = container.querySelector('.featured-post__layout') as HTMLElement;
+		expect(layout).toBeInTheDocument();
+		expect(card().contains(layout)).toBe(true);
 	});
 });

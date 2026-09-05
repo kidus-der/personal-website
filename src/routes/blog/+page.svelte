@@ -8,6 +8,7 @@
 	import SEO from '$lib/components/ui/SEO.svelte';
 	import SubscribeSection from '$lib/components/ui/SubscribeSection.svelte';
 	import { reveal } from '$lib/actions/reveal';
+	import { createHoverGroup } from '$lib/state/hoverGroup.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -27,6 +28,15 @@
 
 	const featured = $derived(filtered[0]);
 	const rest = $derived(filtered.slice(1));
+
+	/**
+	 * The featured card is part of the same group as the grid below it: they read
+	 * as one set of posts, so hovering any card should recede all the others,
+	 * including the big one. Keyed by slug over the whole filtered list, so a tag
+	 * change under a parked pointer cannot leave the page dimmed — see
+	 * `$lib/state/hoverGroup.svelte`.
+	 */
+	const hover = createHoverGroup(() => filtered.map((post) => post.slug));
 </script>
 
 <SEO
@@ -58,14 +68,25 @@
 				{#if !featured}
 					<p class="blog__empty">No posts with that tag yet.</p>
 				{:else}
-					<FeaturedPost post={featured} />
+					<FeaturedPost
+						post={featured}
+						dimmed={hover.dimmed(featured.slug)}
+						onhoverstart={() => hover.enter(featured.slug)}
+						onhoverend={() => hover.leave(featured.slug)}
+					/>
 
 					{#if rest.length > 0}
 						<section class="blog__more">
 							<SectionHeading title="More posts" level={2} />
 							<div class="blog__grid" data-reveal-group use:reveal={{ stagger: 0.06 }}>
 								{#each rest as post, index (post.slug)}
-									<PostCard {post} {index} />
+									<PostCard
+										{post}
+										{index}
+										dimmed={hover.dimmed(post.slug)}
+										onhoverstart={() => hover.enter(post.slug)}
+										onhoverend={() => hover.leave(post.slug)}
+									/>
 								{/each}
 							</div>
 						</section>

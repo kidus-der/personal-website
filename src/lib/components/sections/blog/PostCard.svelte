@@ -2,24 +2,38 @@
 	PostCard — a post in the blog listing grid and beneath the featured post on
 	the home page. The compact counterpart to `FeaturedPost`.
 
+	Built on `SpotlightCard`, like `ProjectCard`: the same 3D tilt, pointer-
+	following glow, shimmer sweep and accent bottom line, and the same sibling
+	dimming driven by whichever grid is rendering it. A post and a project are the
+	same kind of object on this site — a cover, a title, a line of prose, some
+	metadata — and there was no reason for them to behave differently under the
+	pointer.
+
 	Posts rarely ship with cover art, so the thumbnail falls back to a gradient
 	drawn from the chart palette. Cycling it by `index` keeps a grid of untitled
-	posts from reading as five copies of the same tile.
+	posts from reading as five copies of the same tile; that same colour is what
+	the card lights its glow and its bottom line with, so the whole card is tinted
+	by one value rather than two.
 
 	The cover is `alt=""`: the whole card is one link already named by its title.
 -->
 <script lang="ts">
+	import SpotlightCard from '$lib/components/kokonut/SpotlightCard.svelte';
 	import Tag from '$lib/components/ui/Tag.svelte';
 	import type { BlogPost } from '$lib/types/content';
 	import { formatDate } from '$lib/utils/dates';
 
 	interface Props {
 		post: BlogPost;
-		/** Position in the grid; picks the placeholder gradient. */
+		/** Position in the grid; picks the placeholder gradient and the card tint. */
 		index?: number;
+		/** Another card in the grid is hovered — recede. */
+		dimmed?: boolean;
+		onhoverstart?: () => void;
+		onhoverend?: () => void;
 	}
 
-	let { post, index = 0 }: Props = $props();
+	let { post, index = 0, dimmed = false, onhoverstart, onhoverend }: Props = $props();
 
 	/** Theme-aware, so the palette re-tints with the light/dark switch. */
 	const THUMB_COLORS = [
@@ -37,7 +51,14 @@
 	);
 </script>
 
-<a class="post-card" href="/blog/{post.slug}">
+<SpotlightCard
+	class="post-card"
+	href="/blog/{post.slug}"
+	color={thumbColor}
+	{dimmed}
+	{onhoverstart}
+	{onhoverend}
+>
 	<div class="post-card__thumb" style="--thumb-color: {thumbColor}">
 		{#if post.coverImage}
 			<img class="post-card__image" src={post.coverImage} alt="" loading="lazy" />
@@ -60,33 +81,14 @@
 			{/if}
 		</div>
 	</div>
-</a>
+</SpotlightCard>
 
 <style>
-	.post-card {
-		display: flex;
-		flex-direction: column;
-		height: 100%;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-card);
-		background-color: var(--surface);
-		overflow: hidden;
-		color: inherit;
-		transition:
-			border-color 300ms var(--ease-out-expo),
-			background-color 300ms var(--ease-out-expo);
-	}
-
-	.post-card:hover,
-	.post-card:focus-visible {
-		border-color: var(--border-strong);
-		background-color: var(--surface-raised);
-	}
-
 	.post-card__thumb {
 		position: relative;
 		aspect-ratio: 4 / 3;
 		overflow: hidden;
+		border-bottom: 1px solid var(--border);
 		background-color: var(--surface-raised);
 	}
 
@@ -112,6 +114,7 @@
 			);
 	}
 
+	/* The card clips and holds no padding of its own, so the body pads itself. */
 	.post-card__body {
 		flex: 1;
 		display: flex;
@@ -148,11 +151,5 @@
 		padding-top: 0.25rem;
 		font-size: var(--text-xs);
 		color: var(--text-muted);
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.post-card {
-			transition: none;
-		}
 	}
 </style>
