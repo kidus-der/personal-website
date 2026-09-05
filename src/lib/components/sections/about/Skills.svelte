@@ -102,6 +102,18 @@
 	.skills__radar {
 		display: flex;
 		justify-content: center;
+		/*
+			The radar's axis labels sit outside its square viewBox. On narrow
+			screens the square fills the column, so give the labels room on each
+			side instead of letting the viewport edge cut them off.
+		*/
+		padding-inline: 4.5rem;
+	}
+
+	@media (min-width: 900px) {
+		.skills__radar {
+			padding-inline: 0;
+		}
 	}
 
 	.skills__groups {
