@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test';
 
+declare global {
+	interface Window {
+		/** Page-clock milliseconds at which the hero finished arriving. */
+		__settledAt?: number;
+	}
+}
+
 /**
  * The animation budget, and the flicker it was hiding.
  *
@@ -48,19 +55,18 @@ test.describe('home page performance', () => {
 		}
 
 		// The sequence finishes 1.45s in (0.75s delay + 0.7s duration). Waiting on
-		// the condition rather than sleeping a fixed 2.5s keeps the assertion
-		// about the sequence and not about how busy the machine was; the elapsed
-		// time is then checked against the budget on its own.
-		const startedAt = Date.now();
-		await page.waitForFunction(
-			(selector) =>
-				[...document.querySelectorAll(selector)].every((element) =>
-					element.hasAttribute('data-revealed')
-				),
-			HERO,
-			{ timeout: SETTLE_BUDGET_MS }
-		);
-		expect(Date.now() - startedAt).toBeLessThan(SETTLE_BUDGET_MS);
+		// the condition rather than sleeping a fixed 2.5s keeps this assertion
+		// about the sequence; the budget is then checked against the page's own
+		// clock, which is the number the contract is written in and is not moved
+		// by how busy the machine running Playwright happens to be.
+		await page.waitForFunction((selector) => {
+			const staged = [...document.querySelectorAll(selector)];
+			if (!staged.every((element) => element.hasAttribute('data-revealed'))) return false;
+			window.__settledAt ??= performance.now();
+			return true;
+		}, HERO);
+		const settledAt = await page.evaluate(() => window.__settledAt ?? Number.POSITIVE_INFINITY);
+		expect(settledAt).toBeLessThan(SETTLE_BUDGET_MS);
 
 		const settled = await page.evaluate(
 			(selector) =>

@@ -270,6 +270,40 @@ describe('reveal', () => {
 			expect(child.style.opacity).toBe('0');
 		});
 
+		it('claims the node on mount, so the safety net stands down', () => {
+			node.setAttribute('data-reveal', '');
+
+			reveal(node, undefined);
+
+			// The net exists for a script that never ran. This one did, and owns
+			// the element's entrance — letting the net fire at 3s anyway would
+			// leave a below-the-fold element already at full opacity, with no
+			// fade left to play when it finally scrolls into view.
+			expect(node).toHaveAttribute('data-motion-ready', '');
+		});
+
+		it('drops the claim once the node has arrived', () => {
+			node.setAttribute('data-reveal', '');
+
+			reveal(node, undefined);
+			enterView();
+
+			expect(node.hasAttribute('data-motion-ready')).toBe(false);
+			expect(node).toHaveAttribute('data-revealed', '');
+		});
+
+		it('claims every staggered child', () => {
+			const first = document.createElement('span');
+			const second = document.createElement('span');
+			node.append(first, second);
+			node.setAttribute('data-reveal-group', '');
+
+			reveal(node, { stagger: 0.06 });
+
+			expect(first).toHaveAttribute('data-motion-ready', '');
+			expect(second).toHaveAttribute('data-motion-ready', '');
+		});
+
 		it('marks the node revealed synchronously under reduced motion', () => {
 			motion.reducedMotion.mockReturnValue(true);
 			node.setAttribute('data-reveal', '');

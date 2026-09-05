@@ -179,13 +179,24 @@ button {
 
    The `reveal-safety` animation is the failsafe: if a script stalls, throws or
    never hydrates, the content still fades up three seconds in rather than
-   leaving a blank page behind.
+   leaving a blank page behind. It stands down for anything carrying
+   `data-motion-ready`, which is what a script sets when it takes ownership of
+   an element's entrance — a net that fired anyway would leave a section that is
+   merely waiting to be scrolled to sitting at full opacity, with no fade left
+   to play when it finally arrives.
    ============================================================ */
 @media (prefers-reduced-motion: no-preference) {
 	html.js [data-reveal]:not([data-revealed]),
 	html.js [data-reveal-group]:not([data-revealed]) > *:not([data-revealed]),
 	html.js [data-hero]:not([data-revealed]) {
 		opacity: 0;
+	}
+
+	html.js [data-reveal]:not([data-revealed]):not([data-motion-ready]),
+	html.js
+		[data-reveal-group]:not([data-revealed])
+		> *:not([data-revealed]):not([data-motion-ready]),
+	html.js [data-hero]:not([data-revealed]):not([data-motion-ready]) {
 		animation: reveal-safety 0s linear 3s forwards;
 	}
 

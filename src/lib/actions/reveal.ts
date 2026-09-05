@@ -23,6 +23,12 @@
  * not been updated — falls back to the old behaviour and is hidden inline. That
  * still works; it just flashes.
  *
+ * On mount the action also sets `data-motion-ready`, which stands the
+ * stylesheet's three-second safety net down for that element. The net is there
+ * for a script that never ran; this one has, and a net that fired anyway would
+ * push a section that is only waiting to be scrolled to up to full opacity,
+ * leaving it nothing to fade in with when it finally gets there.
+ *
  * The staggered children are captured once, at mount: children added later are
  * neither hidden nor animated. That suits the static, server-rendered lists this
  * is used on; a list that grows at runtime wants `reveal` on each item instead.
@@ -88,6 +94,8 @@ function resolveAmount(node: HTMLElement, amount: RevealOptions['amount']) {
 function hide(targets: HTMLElement[], y: number, group: HTMLElement | null, force = false) {
 	for (const target of targets) {
 		target.removeAttribute('data-revealed');
+		// This action owns the entrance from here; the safety net can stand down.
+		target.setAttribute('data-motion-ready', '');
 		if (force || !isPreHidden(target, group)) target.style.opacity = '0';
 		target.style.transform = `translateY(${y}px)`;
 	}
@@ -97,6 +105,7 @@ function hide(targets: HTMLElement[], y: number, group: HTMLElement | null, forc
 function markRevealed(targets: HTMLElement[]) {
 	for (const target of targets) {
 		target.setAttribute('data-revealed', '');
+		target.removeAttribute('data-motion-ready');
 		target.style.removeProperty('opacity');
 		target.style.removeProperty('transform');
 	}

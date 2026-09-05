@@ -162,6 +162,16 @@ describe('Hero', () => {
 		expect(stagger).toHaveBeenCalledWith(0.08, { startDelay: LINE_DELAY });
 	});
 
+	it('claims every staged element on mount, so the safety net stands down', () => {
+		// The claim is dropped again as each element is released, so a hero that
+		// has finished carries neither attribute.
+		const { container } = setup();
+		for (const element of container.querySelectorAll('[data-hero]')) {
+			expect(element.hasAttribute('data-motion-ready')).toBe(false);
+			expect(element).toHaveAttribute('data-revealed', '');
+		}
+	});
+
 	it('releases each element from the pre-hide when its entrance lands', () => {
 		const { container } = setup();
 		for (const element of container.querySelectorAll('[data-hero]')) {

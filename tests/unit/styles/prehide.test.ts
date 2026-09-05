@@ -64,6 +64,17 @@ describe('the pre-hide rules', () => {
 		expect(APP_CSS).toContain('animation: reveal-safety');
 		expect(APP_CSS).toMatch(/@keyframes reveal-safety \{[^}]*to \{[^}]*opacity: 1;/s);
 	});
+
+	it('stands the safety net down for an element a script has claimed', () => {
+		// Every selector in the safety-net rule must exclude claimed elements, or
+		// the net fires at 3s on content that is only waiting to be scrolled to
+		// and steals the fade it was about to play.
+		const end = APP_CSS.indexOf('animation: reveal-safety');
+		// Back up past the three selectors to the end of the rule before them.
+		const selectorList = APP_CSS.slice(APP_CSS.lastIndexOf('}', end) + 1, end);
+		expect(selectorList.match(/html\.js/g)).toHaveLength(3);
+		expect(selectorList.match(/:not\(\[data-motion-ready\]\)/g)).toHaveLength(3);
+	});
 });
 
 describe('every use:reveal call site', () => {

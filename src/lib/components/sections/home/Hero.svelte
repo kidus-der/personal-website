@@ -87,6 +87,7 @@
 	function release(elements: HTMLElement[]) {
 		for (const element of elements) {
 			element.setAttribute('data-revealed', '');
+			element.removeAttribute('data-motion-ready');
 			element.style.removeProperty('opacity');
 			element.style.removeProperty('transform');
 		}
@@ -99,6 +100,11 @@
 			release(find('[data-hero]'));
 			return;
 		}
+
+		// This component owns the entrance of everything it staged, so the
+		// stylesheet's safety net can stand down for all of it — a net that fired
+		// at three seconds would override the inline opacity mid-animation.
+		for (const element of find('[data-hero]')) element.setAttribute('data-motion-ready', '');
 
 		// The tuple annotation is what makes the shared token a cubic bezier
 		// rather than a widened `number[]`, which Motion's `Easing` union rejects.
