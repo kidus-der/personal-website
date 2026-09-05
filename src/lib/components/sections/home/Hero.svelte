@@ -159,8 +159,9 @@
 			</div>
 
 			<h1 class="hero__headline" bind:this={headlineEl}>
-				<span class="hero__line">I build the systems</span>
-				<span class="hero__line">that tell <em class="hero__emphasis">real from fake</em>.</span>
+				<span class="hero__line">I build intelligent</span>
+				<span class="hero__line">systems that</span>
+				<span class="hero__line"><em class="hero__emphasis">reason and act</em>.</span>
 			</h1>
 
 			<p class="hero__sub" bind:this={subEl}>

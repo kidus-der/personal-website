@@ -3,7 +3,7 @@ export const site = {
 	shortName: 'Kidus',
 	url: 'https://kidusder.com',
 	email: 'kidusdereje41@gmail.com',
-	tagline: 'I build the systems that tell real from fake.',
+	tagline: 'I build intelligent systems that reason and act.',
 	socials: {
 		github: 'https://github.com/kidus-der',
 		linkedin: 'https://www.linkedin.com/in/kidus-dereje-zewde-804424241/',

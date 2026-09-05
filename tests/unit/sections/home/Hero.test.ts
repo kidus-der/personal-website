@@ -40,14 +40,14 @@ describe('Hero', () => {
 	it('renders the headline as the page h1', () => {
 		const { getByRole } = setup();
 		const heading = getByRole('heading', { level: 1 });
-		expect(text(heading)).toBe('I build the systems that tell real from fake.');
+		expect(text(heading)).toBe('I build intelligent systems that reason and act.');
 	});
 
 	it('emphasises exactly one phrase, in italic display type', () => {
 		const { container } = setup();
 		const emphasis = container.querySelectorAll('.hero__emphasis');
 		expect(emphasis).toHaveLength(1);
-		expect(emphasis[0]).toHaveTextContent('real from fake');
+		expect(emphasis[0]).toHaveTextContent('reason and act');
 	});
 
 	it('splits the headline into animatable lines', () => {
