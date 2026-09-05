@@ -31,12 +31,12 @@ describe('+error.svelte', () => {
 	});
 	afterEach(cleanup);
 
-	it('lays the site flow field behind the message, at its soft intensity', () => {
+	it('lays the site particle network behind the message, at its soft intensity', () => {
 		const { container } = render(ErrorPage);
-		const field = container.querySelector('.flow-field') as HTMLElement;
+		const field = container.querySelector('.particle-network') as HTMLElement;
 		// Soft enough to stay a texture: the error copy is the thing to read.
 		expect(field).toBeInTheDocument();
-		expect(field).toHaveClass('flow-field--soft');
+		expect(field).toHaveClass('particle-network--soft');
 		expect(field).toHaveAttribute('aria-hidden', 'true');
 	});
 

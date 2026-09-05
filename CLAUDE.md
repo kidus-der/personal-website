@@ -239,34 +239,49 @@ makes server-rendered content paint, vanish and fade back in.
 - `tests/unit/styles/prehide.test.ts` guards all of this, including that every
   `use:reveal` call site in `src/` carries the attribute.
 - Budget: `document.getAnimations().length` on a settled `/` stays at or under
-  60, asserted in `tests/e2e/perf.spec.ts` — 36 `FlowField` paths plus the
-  hero's own entrance. Most of the field never reaches that count in practice:
-  Motion drives `pathLength` and `pathOffset` off its own ticker rather than
-  through the Web Animations API, so a settled `/` reports a single figure. The
-  ceiling is written for what the page renders, not for what Motion happens to
-  hand the browser.
+  60, asserted in `tests/e2e/perf.spec.ts`. The ceiling is written for what the
+  page renders, not for what Motion happens to hand the browser.
+  `ParticleNetwork` registers nothing here at all — it is one canvas and one
+  `requestAnimationFrame` loop — so the same spec also asserts that the hero
+  holds exactly one `<canvas>`, which is the regression the count cannot see.
 
 ### The background field
 
-- `kokonut/FlowField.svelte` is the site's one background signature, behind the
-  home hero (`intensity="bold"`, 36 paths), the About bio, the blog masthead and
-  the 404 (`intensity="soft"`, 24). It replaced three separate treatments —
+- `kokonut/ParticleNetwork.svelte` is the site's one background signature,
+  behind the home hero (`intensity="bold"`, 2400 particles), the About bio, the
+  blog masthead and the 404 (`intensity="soft"`, 1200). Below a 640px viewport
+  both counts halve. It replaced `FlowField`, which had itself replaced
   `HeroArt`, `BeamsBackground` and the 44-path `BackgroundPaths`.
-- Geometry lives in `kokonut/flowField.ts`: pure, deterministic, unit-tested. It
-  is ported from KokonutUI's Background Paths; the sets, ramps and view box are
-  ours. Nothing in the component computes a curve.
-- The opacity ramp is CSS (`--flow-from` / `--flow-to`, redefined for the light
-  theme) interpolated by each path's own `--t`, so the field re-tints with the
-  theme switch and the two ramps are one declaration each.
-- The field carries `data-hero` and runs its own entrance — the lines draw
-  themselves in, then drift forever, paused whenever the field is off screen or
-  the tab is hidden. `Hero` claims only the elements in its own schedule, never
-  every `[data-hero]` under it, or it would re-claim a field that has already
-  released itself.
+- Particles ride a seeded value-noise flow field at 0.55px a frame, live 120–360
+  frames and respawn; every frame, pairs closer than 26px are joined by a
+  hairline, and one particle in thirty is a "hub" that links out to 42px. The
+  links are what make it a network rather than a particle system.
+- The maths lives in `kokonut/particleNetwork.ts`: pure, deterministic,
+  unit-tested — `createNoise`, `SpatialHash`, `parseColor`, `particleCount` and
+  the tuning constants. Nothing in the component computes geometry.
+- **Three things keep 2400 particles inside the budget** (~1.2ms of script per
+  frame at 1440px, measured headless), and any change here has to keep all
+  three: neighbours come from the `SpatialHash` (linear, not quadratic);
+  particle state is parallel `Float32Array`s, not objects; and every link and
+  node is batched by colour — five alpha bands plus a hub band is six
+  `stroke()`s, the nodes are six `fill()`s, and the glow is one pre-rendered
+  sprite `drawImage`d for a subset. A `createRadialGradient` or a `stroke()` per
+  particle is what this design exists to avoid.
+- Colour is read off `<html>` on mount and again when `data-theme` changes (a
+  `MutationObserver` with an `attributeFilter`): `--accent` for most nodes,
+  `--chart-2` for the warm ~35% picked by a second noise field, `--text` for the
+  links, and `--bg` for the translucent wash that leaves the trail — which is
+  what makes the light theme fade to white rather than to black. The two themes
+  get their own alphas, chosen by the background's luminance.
+- The field carries `data-hero` and runs its own entrance, then loops until it
+  is off screen or the tab is hidden, at which point the loop is cancelled
+  outright. `Hero` claims only the elements in its own schedule, never every
+  `[data-hero]` under it, or it would re-claim a field that has already released
+  itself. Under `prefers-reduced-motion` it simulates 60 frames once and stops.
 - Every caller lays a wash of `--bg` behind its own copy (`.hero::after`,
   `.bio__content::before`, `.blog__header::before`) so text keeps its contrast
-  over the busiest part of the weave. The field's radial mask keeps the lines
-  off the page's edges.
+  over the busiest part of the field. The canvas's own radial mask keeps the
+  nodes off the page's edges.
 
 ### Cards
 

@@ -20,13 +20,11 @@ declare global {
 /**
  * What `document.getAnimations()` may report on a settled page.
  *
- * Raised from 40 with the `FlowField` hero: 36 drifting paths plus the hero's
- * own entrance. Most of the field does not actually show up in this count —
- * Motion drives `pathLength` and `pathOffset` off its own ticker rather than
- * through the Web Animations API, so a settled `/` reports far fewer than the
- * ceiling — but the ceiling is written for what the page renders, not for what
- * one animation library happens to hand to the browser. It is what catches the
- * next background that goes back to one WAAPI animation per element.
+ * The ceiling is written for what the page renders, not for what one animation
+ * library happens to hand the browser. `ParticleNetwork` draws a 2400-node
+ * field and registers nothing at all here — it is one canvas and one
+ * `requestAnimationFrame` loop — so what this actually catches is the next
+ * background that goes back to one WAAPI animation per element.
  */
 const ANIMATION_BUDGET = 60;
 /** Everything the hero stages. */
@@ -86,6 +84,17 @@ test.describe('home page performance', () => {
 			HERO
 		);
 		for (const opacity of settled) expect(opacity).toBe(1);
+	});
+
+	/**
+	 * The whole field is one element. A second canvas in the hero would mean a
+	 * second frame loop, which is the regression the budget above cannot see:
+	 * canvases register no WAAPI animations, so they are invisible to it.
+	 */
+	test('draws the whole hero backdrop on a single canvas', async ({ page }) => {
+		await page.goto('/');
+		await page.waitForLoadState('load');
+		await expect(page.locator('.hero canvas')).toHaveCount(1);
 	});
 
 	test('shows the whole hero to a reader with no JavaScript', async ({ browser }) => {

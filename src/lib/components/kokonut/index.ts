@@ -10,7 +10,7 @@ export { default as DynamicText } from './DynamicText.svelte';
 export { default as MatrixText } from './MatrixText.svelte';
 export { default as SlideTextButton } from './SlideTextButton.svelte';
 export { default as ParticleButton } from './ParticleButton.svelte';
-export { default as FlowField } from './FlowField.svelte';
+export { default as ParticleNetwork } from './ParticleNetwork.svelte';
 export { default as SpotlightCard } from './SpotlightCard.svelte';
 export { default as BentoCard } from './BentoCard.svelte';
 export { default as MouseEffectCard } from './MouseEffectCard.svelte';
@@ -19,18 +19,20 @@ export { default as ThemeSwitch } from './ThemeSwitch.svelte';
 export { default as SmoothTabs } from './SmoothTabs.svelte';
 
 export {
-	generateAestheticPath,
-	buildFlowField,
-	flowPathCount,
-	FLOW_MIRRORS,
-	FLOW_VIEW_BOX,
-	PATH_COUNTS,
-	STROKE_WIDTH,
-	type FlowPath,
-	type FlowSets,
-	type FlowLayer,
-	type FlowIntensity
-} from './flowField';
+	SpatialHash,
+	createNoise,
+	isLightBackground,
+	parseColor,
+	particleCount,
+	rgba,
+	CELL_SIZE,
+	HUB_LINK_RADIUS,
+	LINK_RADIUS,
+	NARROW_VIEWPORT,
+	PARTICLE_COUNTS,
+	type NetworkIntensity,
+	type RGB
+} from './particleNetwork';
 
 export {
 	generateDots,
