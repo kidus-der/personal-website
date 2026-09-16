@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { publications, publicationsByYear } from '$content/publications';
 
 describe('publications', () => {
-	it('has exactly 8 entries', () => {
-		expect(publications).toHaveLength(9);
+	it('has exactly 11 entries', () => {
+		expect(publications).toHaveLength(11);
 	});
 
 	it('has unique ids', () => {
@@ -17,6 +17,8 @@ describe('publications', () => {
 		expect(years).toEqual(sortedYears);
 
 		expect(publications.map((p) => p.id)).toEqual([
+			'2609.15100',
+			'2609.13617',
 			'2608.24127',
 			'2608.01033',
 			'2604.25370',
@@ -53,7 +55,7 @@ describe('publicationsByYear', () => {
 	it('returns ascending-year counts', () => {
 		expect(publicationsByYear()).toEqual([
 			{ year: 2025, count: 3 },
-			{ year: 2026, count: 6 }
+			{ year: 2026, count: 8 }
 		]);
 	});
 });
