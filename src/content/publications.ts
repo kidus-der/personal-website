@@ -2,6 +2,33 @@ import type { Publication } from '$lib/types/content';
 
 export const publications: Publication[] = [
 	{
+		id: '2609.15100',
+		title: 'ChatGPT Images 2.5 in the Wild: A Launch-Period Dataset and Detector Evaluation',
+		venue: 'arXiv',
+		year: 2026,
+		url: 'https://arxiv.org/abs/2609.15100',
+		topics: ['dataset', 'deepfake', 'benchmark'],
+		bullets: [
+			'Froze a launch-period collection of 3,478 images from 2,440 posts across eight sources, every one recorded within the first 51.1 hours of the ChatGPT Images 2.5 announcement, with three attribution tiers kept so caption claims read as admission evidence rather than verified generator identity.',
+			'Evaluated six frozen detectors at thresholds calibrated to a 5% flag rate on reference photographs, where collection flag rates spanned 3.7% to 56.4% and fell 42 to 81 percentage points below the same detectors’ GenImage recall.',
+			'Showed that a higher flag rate does not by itself establish better detection, with held-out artwork false-positive rates ranging from 1.5% to 96.5% across those detectors.'
+		]
+	},
+	{
+		id: '2609.13617',
+		title:
+			'From Advertised Improvements to Measured Capabilities: Evaluating ChatGPT Images 2.5 on Forgery Tasks',
+		venue: 'arXiv',
+		year: 2026,
+		url: 'https://arxiv.org/abs/2609.13617',
+		topics: ['documents', 'benchmark'],
+		bullets: [
+			'Tested whether the improvements advertised for ChatGPT Images 2.5 hold on forgery tasks with predetermined answers, comparing its Flare and Sunburst API models against GPT-Image-2 re-run in the same week across receipt-field edits, repeated editing, product placement and fine-print rendering.',
+			'Found that Flare and Sunburst disturbed the text surrounding an edited receipt field less often after image registration (31.7% and 31.2% of cases against 44.2% for both GPT-Image-2 baselines), with no detectable gain in target-field correctness.',
+			'Measured the gap between controlled and in-the-wild detection: at a fixed threshold, Community Forensics flagged 68.6% of controlled Images 2.5 images but only 35.9% of self-reported images posted online.'
+		]
+	},
+	{
 		id: '2608.24127',
 		title:
 			'Anatomy of a Scam Call: What 10,000 real scam and spam calls reveal about how phone scammers operate',
