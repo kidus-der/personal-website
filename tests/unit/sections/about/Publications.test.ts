@@ -25,7 +25,7 @@ describe('Publications', () => {
 
 	it('renders one row per paper', () => {
 		const { headers } = setup();
-		expect(headers()).toHaveLength(9);
+		expect(headers()).toHaveLength(11);
 		expect(headers()).toHaveLength(publications.length);
 	});
 
